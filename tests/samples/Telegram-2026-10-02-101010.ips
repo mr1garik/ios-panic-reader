@@ -1,0 +1,2 @@
+{"app_name":"Telegram","timestamp":"2026-10-02 10:10:10.00 +0300","bug_type":"309","os_version":"iPhone OS 18.6 (22G86)","name":"Telegram"}
+{"procName":"Telegram","modelCode":"iPhone14,5","exception":{"type":"EXC_BAD_ACCESS","signal":"SIGSEGV","codes":"0x1"},"osVersion":{"train":"iPhone OS 18.6","build":"22G86"}}
