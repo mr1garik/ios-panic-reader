@@ -7,7 +7,7 @@ echo.
 echo === Сборка iOSPanicReader.exe ===
 python -m PyInstaller --noconfirm --onefile --noconsole --name iOSPanicReader ^
   --collect-all pymobiledevice3 ^
-  --hidden-import gui --hidden-import core --hidden-import device --hidden-import knowledge_base ^
+  --hidden-import gui --hidden-import core --hidden-import device --hidden-import knowledge_base --hidden-import history --hidden-import report_pdf --collect-all reportlab ^
   ios_panic_reader.py
 echo.
 echo Готово: dist\iOSPanicReader.exe

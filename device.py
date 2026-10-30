@@ -7,6 +7,7 @@
   ("info", dev)          — телефон прочитан, начинается снятие логов
   ("pulled", dev)        — логи сняты, dev["dir"] — папка с логами
   ("disconnected", serial)
+  ("erased", serial) / ("erase_failed", текст)
   ("log", текст)
 """
 
@@ -104,6 +105,18 @@ async def _device_job(serial, out_root, on_info):
     return dev
 
 
+async def _erase_job(serial):
+    from pymobiledevice3.lockdown import create_using_usbmux
+    from pymobiledevice3.services.crash_reports import CrashReportsManager
+
+    lockdown = await _ma(create_using_usbmux(serial=serial))
+    await _ma(CrashReportsManager(lockdown).clear())
+    try:
+        await _ma(lockdown.close())
+    except Exception:
+        pass
+
+
 class DeviceWatcher(threading.Thread):
     """Следит за подключением iPhone и сам снимает логи."""
 
@@ -112,6 +125,7 @@ class DeviceWatcher(threading.Thread):
         self.events = events
         self.done = set()      # серийники, с которых уже сняли логи
         self.manual = queue.Queue()
+        self.erase = queue.Queue()     # серийники (udid), на которых стереть логи
         self._last_state = None
 
     def state(self, code, text):
@@ -136,6 +150,14 @@ class DeviceWatcher(threading.Thread):
             present = serials
             if not serials:
                 self.state("wait", "")
+
+            while not self.erase.empty():
+                s = self.erase.get()
+                try:
+                    asyncio.run(_erase_job(s))
+                    self.events.put(("erased", s))
+                except Exception as e:
+                    self.events.put(("erase_failed", f"{e.__class__.__name__}: {e}"))
 
             again = set()
             while not self.manual.empty():

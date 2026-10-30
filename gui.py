@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Окно программы: Телефон · Детали · Все логи · Справочник ошибок."""
+"""Окно программы: Телефон · Детали · Все логи · История · Справочник ошибок."""
 
 import os
 import queue
@@ -8,12 +8,14 @@ import subprocess
 import sys
 import tkinter as tk
 from datetime import datetime
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk, filedialog, messagebox, simpledialog
 
 import core
 from core import (APP_TITLE, build_report, build_summary, build_verdict, collect_files,
                   logs_root, main_cause, parse_log, parts_table)
 from device import DeviceWatcher, device_support
+from history import History, phone_key
+import report_pdf
 from knowledge_base import CATEGORIES, KB, PRODUCTS, SENSORS
 
 # ---------------------------------------------------------------------------
@@ -188,6 +190,10 @@ class App:
         self.phone_state = "nodriver" if not device_support() else "start"
         self.events = queue.Queue()
         self.current_tab = None
+        self.history = History()
+        self.prev_visit = None     # прошлый визит этого телефона
+        self.after_repair = True   # показывать только сбои после отметки ремонта
+        self.part_filter = None    # деталь, по которой отфильтрован список логов
 
         root.title(APP_TITLE)
         root.geometry("1200x800")
@@ -207,7 +213,7 @@ class App:
         label(nav, "iOS Panic Reader", 13, True).pack(side="left", padx=(0, 20))
         self.nav_buttons = {}
         for key, title in (("phone", "Телефон"), ("parts", "Детали"), ("logs", "Все логи"),
-                           ("kb", "Справочник ошибок")):
+                           ("history", "История"), ("kb", "Справочник ошибок")):
             b = FlatButton(nav, text=title, font=font(11), padx=16, pady=7, highlightthickness=1,
                            highlightbackground="#cfd6df", command=lambda k=key: self.show(k))
             b.pack(side="left", padx=3)
@@ -228,6 +234,7 @@ class App:
             "phone": ScrollFrame(self.content, C["bg"]),
             "parts": ScrollFrame(self.content, C["bg"]),
             "logs": self._build_logs(),
+            "history": self._build_history(),
             "kb": self._build_kb(),
         }
         self.show("phone")
@@ -255,6 +262,8 @@ class App:
         self.current_tab = key
         if key == "parts":
             self.render_parts()
+        elif key == "history":
+            self.refresh_history()
         self.update_status()
 
     def update_status(self):
@@ -295,7 +304,11 @@ class App:
                     self.dev = ev[1]
                     self.logs.clear()
                     self.known.clear()
+                    self.part_filter = None
+                    self.after_repair = True
                     self.load([self.dev["dir"]], quiet=True)
+                    self.prev_visit = self.history.add_visit(
+                        self.dev, build_verdict(self.view_logs(), self.dev), self.view_logs())
                     self.phone_state = "result"
                     self.render_phone()
                     self.show("phone")
@@ -303,6 +316,11 @@ class App:
                     if self.phone_state != "result":
                         self.phone_state = "wait"
                         self.render_phone()
+                elif kind == "erased":
+                    messagebox.showinfo(APP_TITLE, "Старые логи на телефоне стёрты. Копия осталась "
+                                                   "в папке с логами на компьютере.")
+                elif kind == "erase_failed":
+                    messagebox.showerror(APP_TITLE, "Не удалось стереть логи на телефоне:\n" + ev[1])
                 elif kind == "log":
                     print(ev[1])
                 self.update_status()
@@ -350,7 +368,107 @@ class App:
             self.watcher.manual.put("*")
         self.phone_state = "wait"
         self.dev = None
+        self.prev_visit = None
         self.render_phone()
+
+    # ------------------------------------------------------------- ремонт
+    def repair_info(self):
+        """(datetime, заметка) последней отметки ремонта текущего телефона или None."""
+        if not self.dev:
+            return None
+        return self.history.last_repair(phone_key(self.dev))
+
+    def view_logs(self):
+        """Логи, по которым строится вывод: после ремонта (если он отмечен) или все."""
+        r = self.repair_info()
+        if r and self.after_repair:
+            return core.logs_since(self.logs, r[0])
+        return self.logs
+
+    def toggle_repair_view(self):
+        self.after_repair = not self.after_repair
+        self.refresh_logs()
+        self.render_phone()
+
+    def mark_repair(self):
+        if not self.dev:
+            return
+        w = tk.Toplevel(self.root, bg=C["card"], padx=24, pady=20)
+        w.title("Отметить ремонт")
+        w.transient(self.root)
+        w.resizable(False, False)
+        label(w, "Отметить ремонт", 16, True).pack(anchor="w")
+        label(w, "С этого момента программа будет показывать только новые сбои — так видно, "
+                 "помог ли ремонт. Подключите телефон после ремонта ещё раз.", 11, color=C["muted"],
+              wrap=460).pack(anchor="w", pady=(4, 12))
+        label(w, "Что сделано", 10, True, C["muted"]).pack(anchor="w")
+        note = tk.StringVar()
+        e = ttk.Entry(w, textvariable=note, width=52, font=font(11))
+        e.pack(anchor="w", pady=(2, 10), fill="x")
+        e.focus_set()
+        erase = tk.BooleanVar(value=False)
+        if self.watcher:
+            tk.Checkbutton(w, text="Стереть старые логи на телефоне (копия останется на компьютере)",
+                           variable=erase, bg=C["card"], activebackground=C["card"],
+                           font=font(10)).pack(anchor="w")
+        row = tk.Frame(w, bg=C["card"])
+        row.pack(anchor="e", pady=(16, 0))
+
+        def save():
+            if erase.get() and not messagebox.askyesno(
+                    APP_TITLE, "Стереть все логи сбоев на телефоне?\n\nКопия уже сохранена в папке "
+                               "с логами на компьютере.", parent=w):
+                return
+            self.history.add_repair(self.dev, note.get().strip())
+            if erase.get() and self.watcher:
+                self.watcher.erase.put(self.dev["udid"])
+            self.after_repair = True
+            w.destroy()
+            self.refresh_logs()
+            self.render_phone()
+
+        button(row, "Отмена", w.destroy).pack(side="left", padx=(0, 8))
+        button(row, "Отметить", save, True).pack(side="left")
+        w.bind("<Return>", lambda ev: save())
+        w.bind("<Escape>", lambda ev: w.destroy())
+        w.grab_set()
+
+    def open_part_logs(self, part):
+        self.part_filter = part
+        self.only_panic.set(False)
+        self.log_q.set("")
+        self.refresh_logs()
+        self.show("logs")
+        kids = self.tree.get_children()
+        if kids:
+            self.tree.selection_set(kids[0])
+
+    # ------------------------------------------------------------- PDF
+    def save_pdf(self):
+        if not self.logs and not self.dev:
+            return
+        if not report_pdf.available():
+            messagebox.showwarning(APP_TITLE, "PDF недоступен (нет модуля reportlab или шрифта). "
+                                              "Сохраню текстовый отчёт.")
+            return self.save_report()
+        ws = self.history.setting("workshop", None)
+        if ws is None:
+            ws = simpledialog.askstring(APP_TITLE, "Название мастерской для отчёта\n(можно оставить пустым, "
+                                                   "изменить — во вкладке «История»):", parent=self.root) or ""
+            self.history.set_setting("workshop", ws)
+        name = (self.dev or {}).get("model", "телефон")
+        f = filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF", "*.pdf")],
+                                         initialfile=f"Диагностика {name} {datetime.now():%Y-%m-%d}.pdf")
+        if not f:
+            return
+        note = (self.history.get(phone_key(self.dev)) or {}).get("note", "") if self.dev else ""
+        rep = self.repair_info() if self.after_repair else None
+        try:
+            report_pdf.build_pdf(f, self.view_logs(), self.dev, self.device_lines(), ws, rep, note)
+        except Exception as e:
+            return messagebox.showerror(APP_TITLE, f"Не удалось сохранить PDF:\n{e}")
+        self.status.set("PDF сохранён: " + f)
+        open_path(f)
 
     def save_report(self):
         if not self.logs and not self.dev:
@@ -361,7 +479,8 @@ class App:
         if not f:
             return
         out = []
-        problems = build_verdict(self.logs, self.dev)
+        logs = self.view_logs()
+        problems = build_verdict(logs, self.dev)
         out.append(f"ОТЧЁТ iOS Panic Reader · {datetime.now():%d.%m.%Y %H:%M}")
         out.append("=" * 72)
         out += [f"{k}: {v}" for k, v in self.device_lines()]
@@ -378,12 +497,12 @@ class App:
             out.append("ПРОБЛЕМ НЕ НАЙДЕНО")
         out.append("")
         out.append("ДЕТАЛИ:")
-        for name_, data, fails, lvl in parts_table(self.logs, self.dev):
+        for name_, data, fails, lvl in parts_table(logs, self.dev):
             out.append(f"  {name_}: {data} · сбои: {fails}")
         out.append("")
-        out.append(build_summary(self.logs))
+        out.append(build_summary(logs))
         out.append("")
-        for l in self.logs:
+        for l in logs:
             if l["is_panic"]:
                 out.append(build_report(l))
         with open(f, "w", encoding="utf-8") as fh:
@@ -486,14 +605,16 @@ class App:
         wrap = tk.Frame(body, bg=C["bg"], padx=20, pady=20)
         wrap.pack(fill="both", expand=True)
         wrap.columnconfigure(1, weight=1)
+        d = self.dev
+        logs = self.view_logs()
+        panics = [l for l in logs if l["is_panic"]]
+        repair = self.repair_info()
 
         # Левая колонка — карточка телефона
         left = tk.Frame(wrap, bg=C["bg"], width=320)
         left.grid(row=0, column=0, sticky="nw", padx=(0, 20))
         o, c = card(left)
         o.pack(fill="x")
-        d = self.dev
-        panics = [l for l in self.logs if l["is_panic"]]
         if d:
             label(c, d["model"], 17, True).pack(anchor="w")
             label(c, f"iOS {d['ios']} · {d.get('serial', '')}", 10, color=C["muted"]).pack(anchor="w", pady=(2, 10))
@@ -521,8 +642,22 @@ class App:
         if d and d.get("imei"):
             label(c, "IMEI " + d["imei"], 10, color=C["muted"]).pack(anchor="w", pady=(8, 0))
 
+        if self.prev_visit:
+            v = self.prev_visit
+            o, c = card(left, C["line"], C["gray_bg"])
+            o.pack(fill="x", pady=(12, 0))
+            label(c, "ЭТОТ ТЕЛЕФОН УЖЕ БЫЛ", 9, True, C["muted"], bg=C["gray_bg"]).pack(anchor="w")
+            label(c, datetime.strptime(v["date"], "%Y-%m-%d %H:%M:%S").strftime("%d.%m.%Y %H:%M"), 12, True,
+                  bg=C["gray_bg"]).pack(anchor="w")
+            label(c, ", ".join(v["problems"]) or "проблем не было", 10, bg=C["gray_bg"], wrap=260,
+                  color=LEVEL[v.get("level", "green")][2]).pack(anchor="w", pady=(2, 0))
+            if v.get("battery") is not None:
+                label(c, f"Аккумулятор тогда: {v['battery']}%", 10, color=C["muted"], bg=C["gray_bg"]).pack(anchor="w")
+
         btns = tk.Frame(left, bg=C["bg"])
         btns.pack(fill="x", pady=12)
+        if d:
+            button(btns, "Отметить ремонт", self.mark_repair).pack(fill="x", pady=3)
         if self.watcher:
             button(btns, "Подключить другой телефон", self.again).pack(fill="x", pady=3)
         button(btns, "Открыть файл лога…", self.open_files).pack(fill="x", pady=3)
@@ -530,22 +665,45 @@ class App:
         # Правая колонка — вывод
         right = tk.Frame(wrap, bg=C["bg"])
         right.grid(row=0, column=1, sticky="nsew")
-        problems = build_verdict(self.logs, d)
+        problems = build_verdict(logs, d)
         wl = 640
+
+        if repair:
+            when, rnote = repair
+            o, c = card(right, C["blue"], C["blue_bg"])
+            o.pack(fill="x", pady=(0, 12))
+            head = tk.Frame(c, bg=C["blue_bg"])
+            head.pack(fill="x")
+            label(head, f"Ремонт отмечен {when:%d.%m.%Y %H:%M}" + (f": {rnote}" if rnote else ""), 12, True,
+                  bg=C["blue_bg"], wrap=wl - 200).pack(side="left")
+            button(head, "Показать все логи" if self.after_repair else "Только после ремонта",
+                   self.toggle_repair_view, size=10).pack(side="right")
+            if self.after_repair:
+                if panics:
+                    txt, col = (f"После ремонта снова {len(panics)} {plural(len(panics), 'паника', 'паники', 'паник')}"
+                                " — проблема не устранена или есть другая."), C["red_text"]
+                else:
+                    txt, col = "После ремонта паник нет ✓  Показаны только новые сбои.", C["green_text"]
+            else:
+                txt, col = "Показаны все логи, включая те, что были до ремонта.", C["muted"]
+            label(c, txt, 11, color=col, bg=C["blue_bg"], wrap=wl).pack(anchor="w", pady=(4, 0))
 
         if not problems:
             o, c = card(right, C["green"], C["green_bg"], 2)
             o.pack(fill="x")
             label(c, "ПРОБЛЕМ НЕ НАЙДЕНО", 10, True, C["green_text"]).pack(anchor="w")
             label(c, "Телефон в порядке", 22, True, C["head"]).pack(anchor="w", pady=(4, 6))
-            msg = "В логах нет ни одной паники ядра." if not panics else \
-                "Паники единичные и не указывают на конкретную деталь."
+            if repair and self.after_repair:
+                msg = "После ремонта не было ни одной паники ядра." if not panics else \
+                    "После ремонта паники единичные и не указывают на конкретную деталь."
+            else:
+                msg = "В логах нет ни одной паники ядра." if not panics else \
+                    "Паники единичные и не указывают на конкретную деталь."
             if d and d.get("battery_health") is not None:
                 msg += f" Аккумулятор: {d['battery_health']}%."
             label(c, msg, 12, color=C["text"], wrap=wl).pack(anchor="w")
         elif len(problems) == 1:
-            p = problems[0]
-            self._problem_card(right, p, wl, big=True)
+            self._problem_card(right, problems[0], wl, big=True)
         else:
             reds = sum(p["level"] == "red" for p in problems)
             label(right, f"НАЙДЕНО {len(problems)} {plural(len(problems), 'ПРОБЛЕМА', 'ПРОБЛЕМЫ', 'ПРОБЛЕМ')} · "
@@ -554,9 +712,12 @@ class App:
             for i, p in enumerate(problems, 1):
                 self._problem_card(right, p, wl, num=i)
 
+        if any(l["is_panic"] for l in self.logs):
+            self._chart(right, repair[0] if repair else None)
+
         # Что ещё нашлось в логах
-        crashes = [l for l in self.logs if not l["is_panic"] and l["exception"]]
-        jetsam = [l for l in self.logs if "Jetsam" in l["kind"] or l["bug_type"] == "298"]
+        crashes = [l for l in logs if not l["is_panic"] and l["exception"]]
+        jetsam = [l for l in logs if "Jetsam" in l["kind"] or l["bug_type"] == "298"]
         if crashes or jetsam:
             o, c = card(right)
             o.pack(fill="x", pady=(14, 0))
@@ -567,17 +728,53 @@ class App:
                     apps[l["process"] or "?"] = apps.get(l["process"] or "?", 0) + 1
                 top = ", ".join(f"{a} ({n})" for a, n in sorted(apps.items(), key=lambda x: -x[1])[:4])
                 self._dot_line(c, "orange", f"{len(crashes)} {plural(len(crashes), 'вылет', 'вылета', 'вылетов')} "
-                                            f"{'приложения' if len(crashes) == 1 else 'приложений'}: {top} — ошибки приложений, с железом не связано", wl)
+                                            f"{'приложения' if len(crashes) == 1 else 'приложений'}: {top} — "
+                                            "ошибки приложений, с железом не связано", wl)
             if jetsam:
                 self._dot_line(c, "gray", f"{len(jetsam)} раз не хватило памяти (Jetsam) — это нормально", wl)
 
         row = tk.Frame(right, bg=C["bg"])
         row.pack(anchor="w", pady=16)
-        button(row, "Посмотреть логи", lambda: self.show("logs"), True).pack(side="left", padx=(0, 8))
+        button(row, "PDF для клиента", self.save_pdf, True).pack(side="left", padx=(0, 8))
+        button(row, "Посмотреть логи", lambda: self.show("logs")).pack(side="left", padx=(0, 8))
         button(row, "Детали", lambda: self.show("parts")).pack(side="left", padx=(0, 8))
-        button(row, "Сохранить отчёт", self.save_report).pack(side="left", padx=(0, 8))
+        button(row, "Отчёт .txt", self.save_report).pack(side="left", padx=(0, 8))
         if d and d.get("dir"):
-            button(row, "Открыть папку с логами", lambda: open_path(d["dir"])).pack(side="left")
+            button(row, "Папка с логами", lambda: open_path(d["dir"])).pack(side="left")
+
+    def _chart(self, parent, repair_dt=None, days=30):
+        """Столбики: паники по дням за последний месяц (по всем логам)."""
+        data = core.panics_by_day(self.logs, days)
+        if not any(n for _, n in data):
+            # все паники старше месяца — показываем месяц, заканчивающийся последней паникой
+            last = max((core.log_local_dt(l) for l in self.logs if l["is_panic"] and core.log_local_dt(l)),
+                       default=None)
+            if last is None:
+                return
+            data = core.panics_by_day(self.logs, days, last)
+        o, c = card(parent)
+        o.pack(fill="x", pady=(14, 0))
+        total = sum(n for _, n in data)
+        label(c, f"Паники по дням · {data[0][0]:%d.%m} – {data[-1][0]:%d.%m} · всего {total}", 12,
+              True).pack(anchor="w", pady=(0, 8))
+        H, W = 130, 640
+        cv = tk.Canvas(c, height=H + 24, width=W, bg=C["card"], highlightthickness=0)
+        cv.pack(fill="x")
+        top = max(n for _, n in data) or 1
+        step = W / len(data)
+        bw = max(4, step * 0.65)
+        cv.create_line(0, H, W, H, fill=C["line"])
+        for i, (day, n) in enumerate(data):
+            x = i * step + (step - bw) / 2
+            if n:
+                h = max(3, n / top * (H - 18))
+                cv.create_rectangle(x, H - h, x + bw, H, fill=C["red"], outline="")
+                cv.create_text(x + bw / 2, H - h - 8, text=str(n), font=font(8), fill=C["muted"])
+            if repair_dt and day == repair_dt.date():
+                cv.create_line(x + bw / 2, 0, x + bw / 2, H, fill=C["blue"], width=2, dash=(4, 3))
+                cv.create_text(x + bw / 2 + 4, 6, text="ремонт", anchor="nw", font=font(8, True), fill=C["blue"])
+            if i in (0, len(data) // 2, len(data) - 1):
+                cv.create_text(x + bw / 2, H + 12, text=f"{day:%d.%m}", font=font(8), fill=C["muted"])
 
     def _dot_line(self, parent, lvl, text, wl):
         r = tk.Frame(parent, bg=parent["bg"])
@@ -603,7 +800,13 @@ class App:
         label(c, "ЧТО ДЕЛАТЬ", 9, True, C["muted"]).pack(anchor="w", pady=(6, 0))
         for i, f in enumerate(p["fix"], 1):
             label(c, f"{i}. {f.rstrip('.')}", 11, wrap=wl).pack(anchor="w")
-        label(c, "Уверенность: " + p["note"], 10, color=C["muted"]).pack(anchor="w", pady=(8, 0))
+        foot = tk.Frame(c, bg=bg)
+        foot.pack(fill="x", pady=(8, 0))
+        label(foot, "Уверенность: " + p["note"], 10, color=C["muted"]).pack(side="left")
+        if p.get("count"):
+            FlatButton(foot, text="Показать логи этой детали →", font=font(10, True), fg=C["blue"], bg=bg,
+                       activebackground=bg, activeforeground="#1e3a8a", padx=0, pady=0,
+                       command=lambda part=p["part"]: self.open_part_logs(part)).pack(side="right")
 
     # ------------------------------------------------------------- экран «Детали»
     def render_parts(self):
@@ -614,7 +817,7 @@ class App:
         title = (self.dev or {}).get("model") or next((l["model"] for l in self.logs if l["model"]), "телефона")
         label(body, f"Детали {title} — состояние и сбои", 18, True, bg=C["bg"]).pack(anchor="w")
 
-        rows = parts_table(self.logs, self.dev)
+        rows = parts_table(self.view_logs(), self.dev)
         counts = {k: sum(r[3] == k for r in rows) for k in ("green", "orange", "red")}
         cnt = tk.Frame(body, bg=C["bg"])
         cnt.pack(fill="x", pady=14)
@@ -667,11 +870,19 @@ class App:
         self.only_panic = tk.BooleanVar(value=False)
         tk.Checkbutton(bar, text="Только паники", variable=self.only_panic, bg=C["bg"], font=font(11),
                        command=self.refresh_logs, activebackground=C["bg"]).pack(side="left", padx=8)
+        self.chip_row = tk.Frame(root, bg=C["bg"])
+        self.filter_chip = FlatButton(self.chip_row, text="", font=font(10, True), bg=C["blue"], fg="#ffffff",
+                                      activebackground="#1d4ed8", activeforeground="#ffffff", padx=12, pady=4,
+                                      command=self._clear_part_filter)
         button(bar, "Открыть файлы…", self.open_files, size=10).pack(side="right", padx=3)
         button(bar, "Открыть папку…", self.open_folder, size=10).pack(side="right", padx=3)
         self.log_q.trace_add("write", lambda *_: self.refresh_logs())
+        self.filter_chip.pack(side="left")
+        label(self.chip_row, "показаны только паники этой детали — нажмите, чтобы снять фильтр", 10,
+              color=C["muted"], bg=C["bg"]).pack(side="left", padx=10)
 
         paned = ttk.PanedWindow(root, orient="horizontal")
+        self.logs_paned = paned
         paned.pack(fill="both", expand=True)
         left = tk.Frame(paned, bg=C["card"])
         self.tree = ttk.Treeview(left, columns=("what", "date", "kind"), show="headings", selectmode="browse")
@@ -714,12 +925,26 @@ class App:
             return "Не хватило памяти"
         return l["kind"]
 
+    def _clear_part_filter(self):
+        self.part_filter = None
+        self.refresh_logs()
+
     def refresh_logs(self):
         if not hasattr(self, "tree"):
             return
         self.tree.delete(*self.tree.get_children())
         q = self.log_q.get().lower().strip()
+        visible = {id(l) for l in self.view_logs()}
+        if self.part_filter:
+            self.filter_chip.configure(text=f"Деталь: {core.PART_NAMES[self.part_filter]}  ✕")
+            self.chip_row.pack(fill="x", pady=(0, 10), before=self.logs_paned)
+        else:
+            self.chip_row.pack_forget()
         for i, l in enumerate(self.logs):
+            if id(l) not in visible:
+                continue
+            if self.part_filter and not (l["is_panic"] and core.panic_part(l) == self.part_filter):
+                continue
             if self.only_panic.get() and not l["is_panic"]:
                 continue
             title = self._log_title(l)
@@ -783,6 +1008,137 @@ class App:
         l = self._selected_log()
         if l:
             self._popup("Разбор: " + os.path.basename(l["file"]), build_report(l))
+
+    # ------------------------------------------------------------- экран «История»
+    def _build_history(self):
+        root = tk.Frame(self.content, bg=C["bg"], padx=16, pady=14)
+        bar = tk.Frame(root, bg=C["bg"])
+        bar.pack(fill="x", pady=(0, 10))
+        label(bar, "Телефоны, которые подключали", 14, True, bg=C["bg"]).pack(side="left")
+        self.hist_q = tk.StringVar()
+        ttk.Entry(bar, textvariable=self.hist_q, width=26, font=font(11)).pack(side="right")
+        label(bar, "Поиск", 11, color=C["muted"], bg=C["bg"]).pack(side="right", padx=8)
+        self.hist_q.trace_add("write", lambda *_: self.refresh_history())
+
+        ws = tk.Frame(root, bg=C["bg"])
+        ws.pack(fill="x", pady=(0, 10))
+        label(ws, "Мастерская (для PDF):", 10, color=C["muted"], bg=C["bg"]).pack(side="left")
+        self.ws_var = tk.StringVar(value=self.history.setting("workshop", ""))
+        ttk.Entry(ws, textvariable=self.ws_var, width=40, font=font(10)).pack(side="left", padx=8)
+        button(ws, "Сохранить", lambda: (self.history.set_setting("workshop", self.ws_var.get().strip()),
+                                         self.status.set("Название мастерской сохранено")), size=10).pack(side="left")
+
+        paned = ttk.PanedWindow(root, orient="horizontal")
+        paned.pack(fill="both", expand=True)
+        left = tk.Frame(paned, bg=C["card"])
+        self.htree = ttk.Treeview(left, columns=("model", "serial", "last", "result"), show="headings",
+                                  selectmode="browse")
+        for c_, t, w in (("model", "Модель", 140), ("serial", "Серийный", 130), ("last", "Последний визит", 130),
+                         ("result", "Результат", 220)):
+            self.htree.heading(c_, text=t)
+            self.htree.column(c_, width=w, anchor="w")
+        for lvl in ("red", "orange", "green"):
+            self.htree.tag_configure(lvl, foreground=LEVEL[lvl][2])
+        sb = ttk.Scrollbar(left, orient="vertical", command=self.htree.yview)
+        self.htree.configure(yscrollcommand=sb.set)
+        self.htree.pack(side="left", fill="both", expand=True)
+        sb.pack(side="right", fill="y")
+        paned.add(left, weight=3)
+        self.hdetail = ScrollFrame(paned, C["card"])
+        paned.add(self.hdetail, weight=2)
+        self.htree.bind("<<TreeviewSelect>>", lambda e: self.show_phone_history())
+        return root
+
+    def refresh_history(self):
+        sel = self.htree.selection()
+        self.htree.delete(*self.htree.get_children())
+        q = self.hist_q.get().lower().strip()
+        items = sorted(self.history.phones.items(),
+                       key=lambda kv: (kv[1]["visits"][-1]["date"] if kv[1]["visits"] else ""), reverse=True)
+        for key, p in items:
+            v = p["visits"][-1] if p["visits"] else {}
+            result = ", ".join(v.get("problems", [])) or "в порядке"
+            row = (p.get("model", "?"), p.get("serial", key), v.get("date", "")[:16], result)
+            if q and q not in (" ".join(row) + p.get("note", "") + p.get("imei", "")).lower():
+                continue
+            self.htree.insert("", "end", iid=key, values=row, tags=(v.get("level", "green"),))
+        if sel and self.htree.exists(sel[0]):
+            self.htree.selection_set(sel[0])
+        elif self.htree.get_children():
+            self.htree.selection_set(self.htree.get_children()[0])
+        else:
+            self.hdetail.clear()
+            label(self.hdetail.body, "Здесь появятся телефоны после первого подключения.", 11,
+                  color=C["muted"], wrap=380).pack(anchor="w", padx=18, pady=18)
+
+    def show_phone_history(self):
+        sel = self.htree.selection()
+        if not sel:
+            return
+        key = sel[0]
+        p = self.history.get(key)
+        sf = self.hdetail
+        sf.clear()
+        b = tk.Frame(sf.body, bg=C["card"], padx=18, pady=16)
+        b.pack(fill="both", expand=True)
+        label(b, p.get("model", "?"), 17, True).pack(anchor="w")
+        label(b, f"Серийный {p.get('serial', key)}" + (f" · IMEI {p['imei']}" if p.get("imei") else ""), 10,
+              color=C["muted"]).pack(anchor="w", pady=(2, 10))
+
+        label(b, "ЗАМЕТКА", 9, True, C["muted"]).pack(anchor="w")
+        t = tk.Text(b, height=4, width=40, font=font(11), wrap="word", bd=1, relief="solid",
+                    highlightthickness=0)
+        t.insert("1.0", p.get("note", ""))
+        t.pack(fill="x", pady=(2, 6))
+        button(b, "Сохранить заметку", lambda: (self.history.set_note(key, t.get("1.0", "end").strip()),
+                                                self.status.set("Заметка сохранена")), size=10).pack(anchor="w")
+
+        if p.get("repairs"):
+            label(b, "РЕМОНТЫ", 9, True, C["muted"]).pack(anchor="w", pady=(14, 2))
+            for r in reversed(p["repairs"]):
+                when = datetime.strptime(r["date"], "%Y-%m-%d %H:%M:%S")
+                label(b, f"{when:%d.%m.%Y %H:%M} — {r.get('note') or 'без описания'}", 11, wrap=380).pack(anchor="w")
+
+        label(b, f"ВИЗИТЫ ({len(p['visits'])})", 9, True, C["muted"]).pack(anchor="w", pady=(14, 2))
+        for v in reversed(p["visits"]):
+            when = datetime.strptime(v["date"], "%Y-%m-%d %H:%M:%S")
+            row = tk.Frame(b, bg=C["card"])
+            row.pack(fill="x", pady=3)
+            tk.Label(row, text="●", fg=LEVEL[v.get("level", "green")][0], bg=C["card"],
+                     font=font(11)).pack(side="left", anchor="n")
+            col = tk.Frame(row, bg=C["card"])
+            col.pack(side="left", padx=6, fill="x")
+            label(col, f"{when:%d.%m.%Y %H:%M} · iOS {v.get('ios', '?')}", 10, True).pack(anchor="w")
+            info = ", ".join(v.get("problems", [])) or "проблем не найдено"
+            extra = []
+            if v.get("battery") is not None:
+                extra.append(f"аккумулятор {v['battery']}%")
+            extra.append(f"паник {v.get('panics', 0)}")
+            label(col, info + " · " + ", ".join(extra), 10, color=C["muted"], wrap=360).pack(anchor="w")
+
+        row = tk.Frame(b, bg=C["card"])
+        row.pack(anchor="w", pady=(16, 0))
+        folder = next((os.path.join(logs_root(), n) for n in os.listdir(logs_root())
+                       if n.endswith("_" + p.get("serial", key))), None)
+        if folder:
+            button(row, "Открыть логи", lambda: self.open_history_logs(folder), size=10).pack(side="left", padx=(0, 8))
+
+        def delete():
+            if messagebox.askyesno(APP_TITLE, "Удалить этот телефон из истории?\n(логи на диске останутся)"):
+                self.history.delete(key)
+                self.refresh_history()
+        button(row, "Удалить из истории", delete, size=10).pack(side="left")
+
+    def open_history_logs(self, folder):
+        self.dev = None
+        self.prev_visit = None
+        self.logs.clear()
+        self.known.clear()
+        self.part_filter = None
+        self.load([folder], quiet=True)
+        self.phone_state = "result"
+        self.render_phone()
+        self.show("phone")
 
     # ------------------------------------------------------------- экран «Справочник»
     def _build_kb(self):
