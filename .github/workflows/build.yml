@@ -92,3 +92,39 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: iOSPanicReader-macOS.zip
+
+  # Релиз выпускается сам, когда в файле VERSION новая версия (такого тега ещё нет)
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Версия
+        id: v
+        run: |
+          V="v$(tr -d '[:space:]' < VERSION)"
+          echo "tag=$V" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/$V" > /dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/download-artifact@v4
+        if: steps.v.outputs.exists == 'false'
+        with:
+          path: dist
+
+      - name: Публикация релиза
+        if: steps.v.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.v.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: iOS Panic Reader ${{ steps.v.outputs.tag }}
+          body_path: RELEASE_NOTES.md
+          files: |
+            dist/iOSPanicReader-Windows/iOSPanicReader.exe
+            dist/iOSPanicReader-macOS/iOSPanicReader-macOS.zip
