@@ -1,21 +1,35 @@
 # iOS Panic Reader
 
-Программа для Windows: подключаете iPhone кабелем — она сама снимает логи и простыми словами
+Программа для **Windows** и **Mac**: подключаете iPhone кабелем — она сама снимает логи и простыми словами
 показывает, **что с телефоном, какая деталь виновата и что делать**.
 
 ## Скачать
 
-Готовый `iOSPanicReader.exe` собирается автоматически:
+Программа собирается автоматически:
 
-* **Releases** — стабильные версии (справа на странице репозитория);
-* **Actions → «Сборка exe» → последний запуск → Artifacts** — сборка последнего коммита.
+* **Releases** (справа на странице репозитория) — стабильные версии;
+* **Actions → «Сборка» → последний запуск → Artifacts** — сборка последнего коммита.
 
-Для работы с телефоном нужен драйвер Apple: приложение **Apple Devices** из Microsoft Store
-(или iTunes).
+| Система | Файл | Что ещё нужно |
+|---|---|---|
+| Windows 10/11 | `iOSPanicReader.exe` | драйвер Apple: приложение **Apple Devices** из Microsoft Store (или iTunes) |
+| Mac (Apple Silicon, M1 и новее) | `iOSPanicReader-macOS.zip` | ничего — драйвер встроен в macOS |
+
+### Первый запуск на Mac
+
+Программа не подписана сертификатом Apple, поэтому macOS при первом запуске её блокирует.
+Распакуйте zip, перенесите `iOSPanicReader.app` в «Программы», затем **правый клик → Открыть →
+Открыть**. Если macOS всё равно не даёт открыть — выполните в Терминале:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/iOSPanicReader.app
+```
+
+На Mac с процессором Intel запускайте из исходников (`start.command`).
 
 ## Как пользоваться
 
-1. Запустите `iOSPanicReader.exe`.
+1. Запустите программу.
 2. Подключите iPhone, разблокируйте его и нажмите «Доверять».
 3. Программа сама:
    * покажет модель, iOS, серийный номер, IMEI, состояние аккумулятора и циклы;
@@ -47,7 +61,8 @@ python ios_panic_reader.py
 python ios_panic_reader.py --cli путь\к\логам
 ```
 
-Собрать exe локально — `build.bat`. Тесты — `python -m unittest discover -s tests`.
+Собрать локально: Windows — `build.bat`, Mac — `./build_mac.sh`. Запуск из исходников на Mac —
+двойной клик по `start.command`. Тесты — `python -m unittest discover -s tests`.
 
 ## Свои ошибки
 
@@ -59,7 +74,7 @@ python ios_panic_reader.py --cli путь\к\логам
 * `ios_panic_reader.py` — точка входа
 * `gui.py` — окно программы
 * `core.py` — разбор логов, вывод о проблемах, таблица деталей
-* `device.py` — связь с iPhone (pymobiledevice3)
+* `device.py` — связь с iPhone (pymobiledevice3, работает на Windows и macOS)
 * `knowledge_base.py` — справочник ошибок
 
 ## Ограничения
