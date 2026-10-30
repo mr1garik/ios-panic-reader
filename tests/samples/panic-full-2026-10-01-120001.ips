@@ -1,0 +1,2 @@
+{"bug_type":"210","timestamp":"2026-10-01 12:03:10.00 +0300","os_version":"iPhone OS 18.6 (22G86)"}
+{"build":"iPhone OS 18.6 (22G86)","product":"iPhone14,5","panicString":"panic(cpu 4 caller 0xfffffff01b2c): userspace watchdog timeout: no successful checkins from com.apple.thermalmonitord in 180 seconds\nservice returned not alive with context : is_alive_func returned unhealthy : current menu: Missing sensor(s): mic1 prs0 \nDebugger message: panic","date":"2026-10-01 12:03:10.00 +0300"}
