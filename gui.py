@@ -33,7 +33,9 @@ LEVEL = {
     "green": (C["green"], C["green_bg"], C["green_text"]),
     "gray": (C["gray"], C["gray_bg"], C["muted"]),
 }
-F = "Segoe UI"
+IS_MAC = sys.platform == "darwin"
+IS_WIN = sys.platform == "win32"
+F = "Helvetica Neue" if IS_MAC else "Segoe UI"
 
 
 def font(size=11, bold=False):
@@ -78,11 +80,24 @@ class ScrollFrame(tk.Frame):
         sb.pack(side="right", fill="y")
         self.body.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
         self.canvas.bind("<Configure>", lambda e: self.canvas.itemconfigure(self._win, width=e.width))
-        self.canvas.bind("<Enter>", lambda e: self.canvas.bind_all("<MouseWheel>", self._wheel))
-        self.canvas.bind("<Leave>", lambda e: self.canvas.unbind_all("<MouseWheel>"))
+        self.canvas.bind("<Enter>", lambda e: self._bind_wheel(True))
+        self.canvas.bind("<Leave>", lambda e: self._bind_wheel(False))
+
+    def _bind_wheel(self, on):
+        for ev in ("<MouseWheel>", "<Button-4>", "<Button-5>"):
+            if on:
+                self.canvas.bind_all(ev, self._wheel)
+            else:
+                self.canvas.unbind_all(ev)
 
     def _wheel(self, e):
-        self.canvas.yview_scroll(int(-e.delta / 120), "units")
+        if getattr(e, "num", None) in (4, 5):        # Linux
+            step = -1 if e.num == 4 else 1
+        elif IS_MAC:                                  # macOS: delta = ±1..n
+            step = -e.delta
+        else:                                         # Windows: delta = ±120
+            step = int(-e.delta / 120)
+        self.canvas.yview_scroll(step, "units")
 
     def clear(self):
         for w in self.body.winfo_children():
@@ -90,16 +105,35 @@ class ScrollFrame(tk.Frame):
         self.canvas.yview_moveto(0)
 
 
+class FlatButton(tk.Label):
+    """Кнопка из Label: на macOS обычный tk.Button не умеет цветной фон."""
+
+    def __init__(self, parent, command=None, **kw):
+        kw.setdefault("cursor", "hand2")
+        kw.setdefault("takefocus", 1)
+        kw.pop("relief", None)
+        kw.setdefault("bd", 0)
+        super().__init__(parent, **kw)
+        self.command = command
+        self.bind("<ButtonRelease-1>", self._click)
+        self.bind("<Return>", self._click)
+        self.bind("<space>", self._click)
+        self.bind("<Enter>", lambda e: self.configure(state="active"))
+        self.bind("<Leave>", lambda e: self.configure(state="normal"))
+
+    def _click(self, e=None):
+        if self.command:
+            self.command()
+
+
 def button(parent, text, cmd, primary=False, size=11):
     if primary:
-        b = tk.Button(parent, text=text, command=cmd, font=font(size, True), bg=C["blue"], fg="#ffffff",
-                      activebackground="#1d4ed8", activeforeground="#ffffff", relief="flat",
-                      bd=0, padx=18, pady=9, cursor="hand2")
-    else:
-        b = tk.Button(parent, text=text, command=cmd, font=font(size), bg=C["card"], fg=C["text"],
-                      activebackground=C["gray_bg"], relief="solid", bd=1, padx=16, pady=8,
-                      cursor="hand2", highlightbackground=C["line"])
-    return b
+        return FlatButton(parent, text=text, command=cmd, font=font(size, True), bg=C["blue"], fg="#ffffff",
+                          activebackground="#1d4ed8", activeforeground="#ffffff", padx=18, pady=9,
+                          highlightthickness=0)
+    return FlatButton(parent, text=text, command=cmd, font=font(size), bg=C["card"], fg=C["text"],
+                      activebackground=C["gray_bg"], activeforeground=C["text"], padx=16, pady=8,
+                      highlightthickness=1, highlightbackground="#cfd6df", highlightcolor=C["blue"])
 
 
 def label(parent, text, size=11, bold=False, color=None, bg=None, wrap=0, **kw):
@@ -174,8 +208,8 @@ class App:
         self.nav_buttons = {}
         for key, title in (("phone", "Телефон"), ("parts", "Детали"), ("logs", "Все логи"),
                            ("kb", "Справочник ошибок")):
-            b = tk.Button(nav, text=title, font=font(11), relief="flat", bd=0, padx=16, pady=7,
-                          cursor="hand2", command=lambda k=key: self.show(k))
+            b = FlatButton(nav, text=title, font=font(11), padx=16, pady=7, highlightthickness=1,
+                           highlightbackground="#cfd6df", command=lambda k=key: self.show(k))
             b.pack(side="left", padx=3)
             self.nav_buttons[key] = b
         tk.Frame(root, bg=C["line"], height=1).pack(fill="x")
@@ -217,7 +251,7 @@ class App:
             on = k == key
             b.configure(bg=C["nav_on"] if on else C["card"], fg="#ffffff" if on else C["text"],
                         activebackground=C["nav_on"] if on else C["gray_bg"],
-                        font=font(11, on))
+                        activeforeground="#ffffff" if on else C["text"], font=font(11, on))
         self.current_tab = key
         if key == "parts":
             self.render_parts()
@@ -226,7 +260,7 @@ class App:
     def update_status(self):
         panics = sum(l["is_panic"] for l in self.logs)
         s = {
-            "nodriver": "Служба Apple Mobile Device не найдена",
+            "nodriver": "Служба Apple Mobile Device не найдена" if IS_WIN else "Нет связи с usbmuxd",
             "wait": "Ожидание iPhone…",
             "trust": "iPhone подключён · ожидание подтверждения «Доверять»",
             "unlock": "iPhone подключён · разблокируйте телефон",
@@ -389,22 +423,32 @@ class App:
 
         row = None
         if st == "nodriver":
-            big("Компьютер не видит iPhone", "Не установлен драйвер Apple. Без него Windows не может "
-                "подключиться к телефону.", C["orange"], "⚠")
+            if IS_WIN:
+                big("Компьютер не видит iPhone", "Не установлен драйвер Apple. Без него Windows не может "
+                    "подключиться к телефону.", C["orange"], "⚠")
+                lines = ("1. Установите «Apple Devices» из Microsoft Store (или iTunes)",
+                         "2. Переподключите кабель",
+                         "3. Программа подхватит телефон сама")
+            else:
+                big("Нет связи со службой iPhone", "Программа не может подключиться к службе usbmuxd, "
+                    "через которую компьютер общается с iPhone.", C["orange"], "⚠")
+                lines = ("1. Переподключите кабель (лучше оригинальный)",
+                         "2. Проверьте, видит ли телефон Finder",
+                         "3. Если нет — перезагрузите компьютер")
             steps = tk.Frame(center, bg=C["card"], padx=20, pady=16, highlightbackground=C["line"],
                              highlightthickness=1)
             steps.pack(pady=18, fill="x")
-            for s in ("1. Установите «Apple Devices» из Microsoft Store (или iTunes)",
-                      "2. Переподключите кабель",
-                      "3. Программа подхватит телефон сама"):
+            for s in lines:
                 label(steps, s, 12).pack(anchor="w", pady=2)
             if not device_support():
-                label(steps, "Модуль pymobiledevice3 не найден — используйте собранный .exe "
+                label(steps, "Модуль pymobiledevice3 не найден — используйте собранную программу "
                              "или выполните: pip install pymobiledevice3", 10, color=C["red_text"],
                       wrap=520).pack(anchor="w", pady=(8, 0))
             row = tk.Frame(center, bg=C["bg"])
-            button(row, "Открыть Microsoft Store",
-                   lambda: open_path("ms-windows-store://search/?query=Apple%20Devices"), True).pack(side="left", padx=5)
+            if IS_WIN:
+                button(row, "Открыть Microsoft Store",
+                       lambda: open_path("ms-windows-store://search/?query=Apple%20Devices"),
+                       True).pack(side="left", padx=5)
         elif st in ("wait", "start", "denied"):
             if st == "denied":
                 big("На iPhone нажали «Не доверять»", "Отключите и снова подключите кабель, затем нажмите "
@@ -759,8 +803,9 @@ class App:
                  "Вылет приложения": "Приложения", "Ошибка iTunes / восстановления": "Ошибки iTunes",
                  "Симптомы телефона": "Симптомы", "Логи и версии iOS": "Логи и iOS"}
         for cat in ["Все", "Симптомы телефона"] + [c_ for c_ in CATEGORIES if c_ != "Симптомы телефона"]:
-            b = tk.Button(chips, text=short.get(cat, cat), font=font(10), relief="flat", bd=0, padx=14,
-                          pady=5, cursor="hand2", command=lambda c_=cat: self._kb_pick(c_))
+            b = FlatButton(chips, text=short.get(cat, cat), font=font(10), padx=14, pady=5,
+                           highlightthickness=1, highlightbackground="#cfd6df",
+                           command=lambda c_=cat: self._kb_pick(c_))
             b.pack(side="left", padx=3)
             self.chip_buttons[cat] = b
 
@@ -787,7 +832,8 @@ class App:
         for c_, b in self.chip_buttons.items():
             on = c_ == cat
             b.configure(bg=C["blue"] if on else C["card"], fg="#ffffff" if on else C["text"],
-                        activebackground=C["blue"] if on else C["gray_bg"])
+                        activebackground=C["blue"] if on else C["gray_bg"],
+                        activeforeground="#ffffff" if on else C["text"])
         self._kb_refresh()
 
     def _kb_refresh(self):
@@ -846,10 +892,12 @@ class App:
 
 
 def run_gui(initial_paths=()):
+    if IS_WIN:
+        try:
+            import ctypes
+            ctypes.windll.shcore.SetProcessDpiAwareness(1)   # чёткий текст на экранах с масштабом
+        except Exception:
+            pass
     root = tk.Tk()
-    try:
-        root.tk.call("tk", "scaling", 1.25)
-    except tk.TclError:
-        pass
     App(root, initial_paths)
     root.mainloop()
