@@ -37,7 +37,8 @@ jobs:
       - name: Проверка запуска (консольный режим)
         shell: pwsh
         run: |
-          $p = Start-Process dist\iOSPanicReader.exe -ArgumentList "--cli","tests\samples" -PassThru -Wait
+          $p = Start-Process dist\iOSPanicReader.exe -ArgumentList "--cli","tests\samples" -PassThru
+          if (-not $p.WaitForExit(180000)) { Stop-Process -Id $p.Id -Force; Write-Error "Программа зависла"; exit 1 }
           if ($p.ExitCode -ne 0) { exit 1 }
 
       - uses: actions/upload-artifact@v4
