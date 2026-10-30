@@ -12,9 +12,15 @@ import sys
 
 # В exe без консоли stdout = None — некоторые библиотеки пытаются туда писать
 if sys.stdout is None:
-    sys.stdout = open(os.devnull, "w")
+    sys.stdout = open(os.devnull, "w", encoding="utf-8")
 if sys.stderr is None:
-    sys.stderr = open(os.devnull, "w")
+    sys.stderr = open(os.devnull, "w", encoding="utf-8")
+# Консоль Windows по умолчанию не в UTF-8 — без этого русский текст в --cli падает
+for _s in (sys.stdout, sys.stderr):
+    try:
+        _s.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 
 import core  # noqa: E402
 
