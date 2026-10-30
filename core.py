@@ -520,3 +520,40 @@ def _plural_panic(n):
     if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14:
         return "паники"
     return "паник"
+
+
+# ---------------------------------------------------------------------------
+# Время логов: до/после ремонта, паники по дням
+# ---------------------------------------------------------------------------
+def log_local_dt(info):
+    """Дата лога в местном времени компьютера (без часового пояса) или None."""
+    d = _parse_date(info.get("date", ""))
+    if d is None:
+        return None
+    if d.tzinfo is not None:
+        d = d.astimezone().replace(tzinfo=None)
+    return d
+
+
+def logs_since(logs, since):
+    """Логи, записанные после момента since (логи без даты отбрасываются)."""
+    out = []
+    for l in logs:
+        d = log_local_dt(l)
+        if d is not None and d >= since:
+            out.append(l)
+    return out
+
+
+def panics_by_day(logs, days=30, end=None):
+    """[(дата, число паник)] за последние days дней, заканчивая днём end."""
+    from datetime import timedelta
+    end = (end or datetime.now()).date()
+    counts = Counter()
+    for l in logs:
+        if l["is_panic"]:
+            d = log_local_dt(l)
+            if d is not None:
+                counts[d.date()] += 1
+    return [(end - timedelta(days=i), counts.get(end - timedelta(days=i), 0))
+            for i in range(days - 1, -1, -1)]
