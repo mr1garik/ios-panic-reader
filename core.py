@@ -27,9 +27,11 @@ def logs_root():
 
 
 def load_user_kb():
-    """Свои записи из user_kb.json рядом с программой."""
-    path = os.path.join(app_dir(), "user_kb.json")
-    if not os.path.isfile(path):
+    """Свои записи из user_kb.json: в папке данных (Документы/iOSPanicReader — переживает
+    обновления) или, по-старому, рядом с программой."""
+    path = next((p for p in (os.path.join(os.path.dirname(logs_root()), "user_kb.json"),
+                             os.path.join(app_dir(), "user_kb.json")) if os.path.isfile(p)), None)
+    if not path:
         return
     try:
         with open(path, encoding="utf-8") as f:
