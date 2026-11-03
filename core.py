@@ -8,7 +8,8 @@ import sys
 from collections import Counter
 from datetime import datetime
 
-from knowledge_base import BUG_TYPES, FILE_KINDS, KB, PRODUCTS, sensor_info
+from knowledge_base import (BUG_TYPES, CONFIDENCE, FILE_KINDS, I2C_BUSES, KB, PRODUCTS, SENSORS,
+                            i2c_parts, sensor_info, source_url)
 
 APP_TITLE = "iOS Panic Reader"
 LOG_EXTENSIONS = (".ips", ".panic", ".log", ".txt", ".synced", ".beta", ".crash", ".diag")
@@ -78,7 +79,29 @@ def file_kind(path):
 
 
 def parse_log(path):
-    text = _read_text(path)
+    return parse_text(_read_text(path), path)
+
+
+def parse_pasted(text, product=""):
+    """Разбор текста паники, вставленного вручную (например, скопированного с телефона)."""
+    text = text.strip()
+    if text and not text.startswith("{") and "panic(" in text:
+        # голый panicString без JSON — оборачиваем, чтобы разбор пошёл обычным путём
+        text = json.dumps({"bug_type": "210"}) + "\n" + json.dumps({"panicString": text, "product": product})
+    info = parse_text(text, "вставленный текст")
+    if product and not info["product"]:
+        info["product"] = product
+        info["model"] = PRODUCTS.get(product, product)
+    if text and not info["panic"] and not info["exception"]:
+        # просто кусок текста: ищем в нём всё, что знает база
+        info["panic"] = text
+        info["is_panic"] = True
+        info["findings"] = []
+        analyze(info)
+    return info
+
+
+def parse_text(text, path):
     info = {
         "file": path, "raw": text, "header": {}, "body": {}, "product": "", "model": "",
         "os": "", "date": "", "bug_type": "", "panic": "", "process": "", "exception": "",
@@ -251,6 +274,12 @@ def build_report(info):
             out.append("")
     else:
         out.append("  Известных шаблонов не найдено. Посмотри текст ниже или исходный лог.")
+        out.append("")
+
+    for bus, rows in i2c_hints(info):
+        out.append(f"ШИНА {bus.upper()} У ЭТОЙ МОДЕЛИ:")
+        for r in rows:
+            out.append(f"  • {r['parts']}  (источник: {source_url(r['source'])})")
         out.append("")
 
     if info["panic"]:
@@ -574,3 +603,77 @@ def panics_by_day(logs, days=30, end=None):
                 counts[d.date()] += 1
     return [(end - timedelta(days=i), counts.get(end - timedelta(days=i), 0))
             for i in range(days - 1, -1, -1)]
+
+
+# ---------------------------------------------------------------------------
+# Шины I2C и поиск по базе
+# ---------------------------------------------------------------------------
+def i2c_hints(info):
+    """[(шина, [строки таблицы])] для шин, упомянутых в панике, если модель есть в таблице."""
+    if not info.get("panic") or not info.get("product"):
+        return []
+    out = []
+    for bus in dict.fromkeys(m.lower() for m in re.findall(r"\b(i2c\d+)", info["panic"], re.I)):
+        rows = i2c_parts(bus, info["product"])
+        if rows:
+            out.append((bus, rows))
+    return out
+
+
+def _words(q):
+    return [w for w in re.split(r"\s+", q.lower().strip()) if w]
+
+
+def _entry_text(e):
+    return " ".join(str(e.get(k, "")) for k in ("id", "title", "node", "symptoms", "cause", "fix", "models",
+                                                 "ios", "keywords")) + " " + " ".join(e.get("patterns", []))
+
+
+def search_db(query):
+    """Поиск по базе: все слова запроса должны встретиться. Возвращает [(тип, ключ, заголовок, раздел)]:
+    тип — entry (ключ — индекс в KB), sensor (ключ — имя датчика), i2c (ключ — индекс в I2C_BUSES).
+    Если запрос похож на текст паники — сначала то, что база находит в нём по шаблонам."""
+    words = _words(query)
+    if not words:
+        return []
+    res, seen = [], set()
+    if len(query) > 40 or "panic" in query.lower():
+        for e, _ in parse_pasted(query)["findings"]:
+            i = KB.index(e)
+            res.append(("entry", i, e["title"], e["cat"]))
+            seen.add(i)
+    scored = []
+    for i, e in enumerate(KB):
+        if i in seen:
+            continue
+        hay = _entry_text(e).lower()
+        if all(w in hay for w in words):
+            scored.append((0 if all(w in e["title"].lower() for w in words) else 1, i, e))
+    for _, i, e in sorted(scored, key=lambda x: x[:2]):
+        res.append(("entry", i, e["title"], e["cat"]))
+    for k, d in SENSORS.items():
+        hay = (k + " " + " ".join(str(v) for v in d.values() if isinstance(v, str))).lower()
+        if all(w in hay for w in words):
+            res.append(("sensor", k, f"Датчик {k} — {d['name']}", "Датчики (Missing sensor)"))
+    for i, b in enumerate(I2C_BUSES):
+        models = " ".join(PRODUCTS.get(m, m) + " " + m for m in b["models"])
+        hay = f"{b['bus']} i2c шина {b['parts']} {models}".lower()
+        if all(w in hay for w in words):
+            names = ", ".join(dict.fromkeys(PRODUCTS.get(m, m) for m in b["models"]))
+            res.append(("i2c", i, f"Шина {b['bus']} — {names}", "Шины I2C"))
+    return res
+
+
+def search_logs(logs, query):
+    """Логи, в тексте которых есть все слова запроса (по паникам, процессам, исключениям)."""
+    words = _words(query)
+    if not words:
+        return []
+    out = []
+    for l in logs:
+        hay = " ".join([l["panic"], l["process"], l["exception"], l["kind"], l["model"], l["os"],
+                        os.path.basename(l["file"]), " ".join(e["title"] for e, _ in l["findings"]),
+                        " ".join(l["missing_sensors"])]).lower()
+        if all(w in hay for w in words):
+            out.append(l)
+    return out

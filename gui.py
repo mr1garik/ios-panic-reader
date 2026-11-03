@@ -14,7 +14,7 @@ import tkinter.font as tkfont
 
 import core
 from core import (APP_TITLE, build_report, build_summary, build_verdict, collect_files,
-                  logs_root, main_cause, parse_log, parts_table)
+                  logs_root, main_cause, parse_log, parse_pasted, parts_table)
 from device import DeviceWatcher, device_support
 from history import History, phone_key
 import report_pdf
@@ -289,9 +289,9 @@ class App:
         self.nav_title = label(nav, "iOS Panic Reader", 13, True)
         self.nav_title.pack(side="left", padx=(0, px(20)))
         self.nav_buttons = {}
-        self.nav_long = {"kb": ("Справочник ошибок", "Справочник")}
+        self.nav_long = {"kb": ("Поиск ошибок", "Поиск")}
         for i, (key, title) in enumerate((("phone", "Телефон"), ("parts", "Детали"), ("logs", "Все логи"),
-                                          ("history", "История"), ("kb", "Справочник ошибок")), 1):
+                                          ("history", "История"), ("kb", "Поиск ошибок")), 1):
             b = FlatButton(nav, text=title, font=font(11), padx=px(16), pady=px(7), highlightthickness=1,
                            highlightbackground="#cfd6df", command=lambda k=key: self.show(k))
             b.pack(side="left", padx=px(3))
@@ -692,6 +692,7 @@ class App:
                     self.known.clear()
                     self.part_filter = None
                     self.after_repair = True
+                    self.archive = None   # архив пополнился — для поиска перечитаем
                     self.load([self.dev["dir"]], quiet=True)
                     self.prev_visit = self.history.add_visit(
                         self.dev, build_verdict(self.view_logs(), self.dev), self.view_logs())
@@ -702,6 +703,11 @@ class App:
                     if self.phone_state != "result":
                         self.phone_state = "wait"
                         self.render_phone()
+                elif kind == "archive_ready":
+                    self.archive, self.archive_busy = ev[1], False
+                    self.update_status()
+                    if self.current_tab == "kb":
+                        self._kb_refresh()
                 elif kind.startswith("update_"):
                     self._update_event(kind, ev[1])
                 elif kind == "erased":
@@ -1378,8 +1384,10 @@ class App:
 
     def show_log(self):
         l = self._selected_log()
-        if not l:
-            return
+        if l:
+            text_fill(self.log_text, self._log_parts(l))
+
+    def _log_parts(self, l):
         parts = [(f"{str(l['date'])[:19]} · {l['kind']}\n", "small"), (self._log_title(l) + "\n", "h1")]
         if l["missing_sensors"]:
             parts.append(("ТЕЛЕФОН НЕ ВИДИТ ДАТЧИКИ\n", "cap"))
@@ -1403,7 +1411,10 @@ class App:
         if l["panic"]:
             first = next((x.strip() for x in l["panic"].splitlines() if x.strip()), "")
             parts += [("\nПЕРВАЯ СТРОКА ПАНИКИ\n", "cap"), (first[:400] + "\n", "mono")]
-        text_fill(self.log_text, parts)
+        for bus, rows in core.i2c_hints(l):
+            parts.append((f"ШИНА {bus.upper()} У ЭТОЙ МОДЕЛИ\n", "cap"))
+            parts += [(f"• {r['parts']}\n", "body") for r in rows]
+        return parts
 
     def _popup(self, title, content):
         w = self.popup(title)
@@ -1558,25 +1569,44 @@ class App:
         self.render_phone()
         self.show("phone")
 
-    # ------------------------------------------------------------- экран «Справочник»
+    # ------------------------------------------------------------- экран «Поиск»
     def _build_kb(self):
         root = tk.Frame(self.content, bg=C["bg"], padx=px(16), pady=px(14))
+        self.archive = None          # все логи из папки Logs (строится при первом поиске по архиву)
+        self.archive_busy = False
+        self.search_results = {}     # iid → ("entry"|"sensor"|"i2c"|"log", ключ)
+
         bar = tk.Frame(root, bg=C["bg"])
         bar.pack(fill="x")
-        label(bar, "Что случилось с телефоном?", 12, True, bg=C["bg"]).pack(side="left")
+        label(bar, "Поиск по ошибкам и паникам", 14, True, bg=C["bg"]).pack(side="left")
+        button(bar, "Разобрать текст паники…", self.paste_panic, True, size=10).pack(side="right")
+        row = tk.Frame(root, bg=C["bg"])
+        row.pack(fill="x", pady=(px(8), 0))
         self.kb_q = tk.StringVar()
-        ttk.Entry(bar, textvariable=self.kb_q, width=40, font=font(11)).pack(side="left", padx=px(10))
-        label(bar, "например: перезагружается, 4013, mic1, нет сети", 10, color=C["muted"],
-              bg=C["bg"]).pack(side="left")
+        ent = ttk.Entry(row, textvariable=self.kb_q, font=font(12))
+        ent.pack(side="left", fill="x", expand=True, ipady=px(3))
+        self.root.bind_all(f"<{MOD}-f>", lambda e: (self.show("kb"), ent.focus_set()))
+        label(root, "Код ошибки, слово, датчик, процесс или строка из паники. Например: 4013, mic1, "
+                    "перезагружается, SEP, i2c3, SpringBoard", 10, color=C["muted"], bg=C["bg"],
+              wrap=700).pack(anchor="w", pady=(px(4), 0))
+
+        opts = tk.Frame(root, bg=C["bg"])
+        opts.pack(fill="x", pady=(px(8), 0))
+        self.search_scope = tk.StringVar(value="base_logs")
+        for val, txt in (("base", "Только база"), ("base_logs", "База + открытые логи"),
+                         ("all", "База + все логи в архиве")):
+            tk.Radiobutton(opts, text=txt, value=val, variable=self.search_scope, bg=C["bg"],
+                           activebackground=C["bg"], font=font(10),
+                           command=self._kb_refresh).pack(side="left", padx=(0, px(14)))
 
         chips = tk.Frame(root, bg=C["bg"])
-        chips.pack(fill="x", pady=px(10))
+        chips.pack(fill="x", pady=px(8))
         self.kb_cat = "Все"
         self.chip_buttons = {}
         short = {"Паника ядра": "Паники", "Датчики (Missing sensor)": "Датчики",
                  "Вылет приложения": "Приложения", "Ошибка iTunes / восстановления": "Ошибки iTunes",
-                 "Симптомы телефона": "Симптомы", "Логи и версии iOS": "Логи и iOS"}
-        for cat in ["Все", "Симптомы телефона"] + [c_ for c_ in CATEGORIES if c_ != "Симптомы телефона"]:
+                 "Симптомы телефона": "Симптомы", "Логи и версии iOS": "Логи и iOS", "Шины I2C": "Шины I2C"}
+        for cat in ["Все", "Симптомы телефона"] + [c_ for c_ in CATEGORIES if c_ != "Симптомы телефона"] + ["Шины I2C"]:
             b = FlatButton(chips, text=short.get(cat, cat), font=font(10), padx=px(14), pady=px(5),
                            highlightthickness=1, highlightbackground="#cfd6df",
                            command=lambda c_=cat: self._kb_pick(c_))
@@ -1584,23 +1614,40 @@ class App:
             self.chip_buttons[cat] = b
 
         paned = ttk.PanedWindow(root, orient="horizontal")
-        split_panes(paned, 0.4)
+        split_panes(paned, 0.42)
         paned.pack(fill="both", expand=True)
         left = tk.Frame(paned, bg=C["card"])
-        self.ktree = ttk.Treeview(left, columns=("title",), show="headings", selectmode="browse")
-        self.ktree.heading("title", text="Ошибка / симптом")
-        self.ktree.column("title", width=px(360))
+        self.ktree = ttk.Treeview(left, columns=("where",), show="tree headings", selectmode="browse")
+        self.ktree.heading("#0", text="Найдено")
+        self.ktree.heading("where", text="Раздел / телефон")
+        self.ktree.column("#0", width=px(330), stretch=True)
+        self.ktree.column("where", width=px(160), stretch=False)
+        for lvl in ("red", "orange", "gray"):
+            self.ktree.tag_configure(lvl, foreground=LEVEL[lvl][2])
+        self.ktree.tag_configure("group", font=font(10, True))
         sb = ttk.Scrollbar(left, orient="vertical", command=self.ktree.yview)
         self.ktree.configure(yscrollcommand=sb.set)
         self.ktree.pack(side="left", fill="both", expand=True)
         sb.pack(side="right", fill="y")
-        paned.add(left, weight=2)
-        fr, self.kb_text = text_view(paned)
-        paned.add(fr, weight=3)
+        paned.add(left, weight=1)
+        right = tk.Frame(paned, bg=C["card"])
+        fr, self.kb_text = text_view(right)
+        fr.pack(fill="both", expand=True)
+        rb = tk.Frame(right, bg=C["card"], padx=px(12), pady=px(8))
+        rb.pack(fill="x")
+        self.kb_raw_btn = button(rb, "Исходный текст лога", self._kb_open_raw, size=10)
+        paned.add(right, weight=1)
         self.ktree.bind("<<TreeviewSelect>>", lambda e: self._kb_show())
-        self.kb_q.trace_add("write", lambda *_: self._kb_refresh())
+        self._kb_after = None
+        self.kb_q.trace_add("write", lambda *_: self._kb_schedule())
         self._kb_pick("Все")
         return root
+
+    def _kb_schedule(self):
+        # поиск после паузы в наборе, чтобы не искать на каждую букву
+        if self._kb_after:
+            self.root.after_cancel(self._kb_after)
+        self._kb_after = self.root.after(250, self._kb_refresh)
 
     def _kb_pick(self, cat):
         self.kb_cat = cat
@@ -1611,33 +1658,103 @@ class App:
                         activeforeground="#ffffff" if on else C["text"])
         self._kb_refresh()
 
+    def _archive_logs(self):
+        """Все логи из папки архива; первый раз читаются в фоне."""
+        if self.archive is not None:
+            return self.archive
+        if not self.archive_busy:
+            self.archive_busy = True
+            self.status.set("Читаю архив логов для поиска…")
+
+            def work():
+                logs = []
+                for f in collect_files([logs_root()]):
+                    try:
+                        logs.append(parse_log(f))
+                    except Exception:
+                        pass
+                self.events.put(("archive_ready", logs))
+            threading.Thread(target=work, daemon=True).start()
+        return None
+
     def _kb_refresh(self):
+        self._kb_after = None
         self.ktree.delete(*self.ktree.get_children())
-        q = self.kb_q.get().lower().strip()
+        self.search_results = {}
+        q = self.kb_q.get().strip()
         cat = self.kb_cat
-        for i, e in enumerate(KB):
-            if cat != "Все" and e["cat"] != cat:
-                continue
-            hay = " ".join(str(e.get(k, "")) for k in ("title", "node", "symptoms", "cause", "fix",
-                                                        "models", "ios")) + " " + " ".join(e.get("patterns", []))
-            if q and q not in hay.lower():
-                continue
-            self.ktree.insert("", "end", iid=f"kb:{i}", values=(e["title"],))
-        if cat in ("Все", "Датчики (Missing sensor)"):
-            for k, d in SENSORS.items():
-                if q and q not in (k + " " + " ".join(d.values())).lower():
-                    continue
-                self.ktree.insert("", "end", iid=f"s:{k}", values=(f"Датчик {k} — {d['name']}",))
-        kids = self.ktree.get_children()
-        if kids:
-            self.ktree.selection_set(kids[0])
+        # база
+        if q:
+            rows = core.search_db(q)
+        else:
+            rows = [("entry", i, e["title"], e["cat"]) for i, e in enumerate(KB)]
+            rows += [("sensor", k, f"Датчик {k} — {d['name']}", "Датчики (Missing sensor)") for k, d in SENSORS.items()]
+            rows += [("i2c", i, f"Шина {b['bus']} — " + ", ".join(dict.fromkeys(PRODUCTS.get(m, m) for m in b["models"])),
+                      "Шины I2C") for i, b in enumerate(core.I2C_BUSES)]
+        rows = [r for r in rows if cat == "Все" or r[3] == cat]
+        g_db = self.ktree.insert("", "end", text=f"В базе ошибок ({len(rows)})", open=True, tags=("group",))
+        for n, (typ, key, title, c_) in enumerate(rows):
+            iid = f"{typ}:{key}"
+            self.ktree.insert(g_db, "end", iid=iid, text=title, values=(c_,))
+            self.search_results[iid] = (typ, key)
+        # логи
+        scope = self.search_scope.get()
+        if q and scope != "base":
+            pool = self.logs
+            if scope == "all":
+                arch = self._archive_logs()
+                if arch is None:
+                    self.ktree.insert("", "end", text="В логах: читаю архив…", tags=("group",))
+                    return self._kb_select_first()
+                known = {l["file"] for l in pool}
+                pool = pool + [l for l in arch if l["file"] not in known]
+            found = sorted(core.search_logs(pool, q), key=lambda l: str(l["date"]), reverse=True)
+            g_logs = self.ktree.insert("", "end", text=f"В логах ({len(found)})", open=True, tags=("group",))
+            for n, l in enumerate(found[:500]):
+                iid = f"log:{n}"
+                phone = os.path.basename(os.path.dirname(l["file"])) if scope == "all" else (l["model"] or "")
+                self.ktree.insert(g_logs, "end", iid=iid, tags=(self._log_level(l),),
+                                  text=f"{str(l['date'])[:16]}  {self._log_title(l)}", values=(phone,))
+                self.search_results[iid] = ("log", l)
+        self._kb_select_first()
+
+    def _kb_select_first(self):
+        for g in self.ktree.get_children():
+            kids = self.ktree.get_children(g)
+            if kids:
+                self.ktree.selection_set(kids[0])
+                self.ktree.see(kids[0])
+                return
+        text_fill(self.kb_text, [("Ничего не найдено. Попробуйте другое слово или код.\n", "body")])
+
+    def _entry_parts(self, e):
+        parts = [(e["cat"] + "\n", "small"), (e["title"] + "\n", "h1"),
+                 ("УЗЕЛ\n", "cap"), (e["node"] + "\n", "body")]
+        if e.get("models"):
+            parts += [("МОДЕЛИ\n", "cap"), (e["models"] + "\n", "body")]
+        if e.get("ios"):
+            parts += [("ВЕРСИИ iOS\n", "cap"), (e["ios"] + "\n", "body")]
+        parts += [("КАК ВЕДЁТ СЕБЯ ТЕЛЕФОН\n", "cap"), (e["symptoms"] + "\n", "body"),
+                  ("ПОЧЕМУ\n", "cap"), (e["cause"] + "\n", "body"),
+                  ("ЧТО ДЕЛАТЬ\n", "cap"), (e["fix"] + "\n", "body")]
+        n = sum(1 for l in self.logs for fe, _ in l["findings"] if fe is e)
+        if n:
+            parts.append((f"\nВстречается в открытых логах: {n} раз(а)\n", "red"))
+        if e.get("patterns"):
+            parts += [("КАК ВЫГЛЯДИТ В ЛОГЕ\n", "cap"), ("  ".join(e["patterns"]) + "\n", "mono")]
+        if e.get("confidence"):
+            parts += [("НАДЁЖНОСТЬ\n", "cap"), (core.CONFIDENCE.get(e["confidence"], e["confidence"]) + "\n", "small")]
+        if e.get("sources"):
+            parts += [("ИСТОЧНИКИ\n", "cap")] + [(core.source_url(s) + "\n", "small") for s in e["sources"]]
+        return parts
 
     def _kb_show(self):
         sel = self.ktree.selection()
-        if not sel:
+        self.kb_raw_btn.pack_forget()
+        if not sel or sel[0] not in self.search_results:
             return
-        typ, key = sel[0].split(":", 1)
-        if typ == "s":
+        typ, key = self.search_results[sel[0]]
+        if typ == "sensor":
             d = SENSORS[key]
             parts = [("Датчики (Missing sensor)\n", "small"), (f"Датчик {key} — {d['name']}\n", "h1"),
                      ("ГДЕ СТОИТ\n", "cap"), (d["where"] + "\n", "body")]
@@ -1647,23 +1764,70 @@ class App:
                       ("КАК ВЕДЁТ СЕБЯ\n", "cap"),
                       ("Если датчика нет, телефон перезагружается каждые ~3 минуты "
                        "(паника thermalmonitord).\n", "body")]
+            if d.get("sources"):
+                parts += [("ИСТОЧНИКИ\n", "cap")] + [(core.source_url(s) + "\n", "small") for s in d["sources"]]
+        elif typ == "i2c":
+            b = core.I2C_BUSES[key]
+            names = ", ".join(f"{PRODUCTS.get(m, m)} ({m})" for m in b["models"])
+            parts = [("Шины I2C\n", "small"), (f"Шина {b['bus']}\n", "h1"), ("МОДЕЛИ\n", "cap"), (names + "\n", "body"),
+                     ("ЧТО НА ЭТОЙ ШИНЕ\n", "cap"), (b["parts"] + "\n", "body"),
+                     ("КАК ПОЛЬЗОВАТЬСЯ\n", "cap"),
+                     ("Если в панике есть эта шина (например, «i2c3::_checkBusStatus SCL is stuck low»), "
+                      "отключайте по одной детали из списка и смотрите, пропадёт ли паника. "
+                      "У других моделей назначение шин другое.\n", "body"),
+                     ("ИСТОЧНИК\n", "cap"), (core.source_url(b["source"]) + "\n", "small")]
+        elif typ == "log":
+            parts = self._log_parts(key)
+            self.kb_raw_btn.pack(side="left")
         else:
-            e = KB[int(key)]
-            parts = [(e["cat"] + "\n", "small"), (e["title"] + "\n", "h1"),
-                     ("УЗЕЛ\n", "cap"), (e["node"] + "\n", "body")]
-            if e.get("models"):
-                parts += [("МОДЕЛИ\n", "cap"), (e["models"] + "\n", "body")]
-            if e.get("ios"):
-                parts += [("ВЕРСИИ iOS\n", "cap"), (e["ios"] + "\n", "body")]
-            parts += [("КАК ВЕДЁТ СЕБЯ ТЕЛЕФОН\n", "cap"), (e["symptoms"] + "\n", "body"),
-                      ("ПОЧЕМУ\n", "cap"), (e["cause"] + "\n", "body"),
-                      ("ЧТО ДЕЛАТЬ\n", "cap"), (e["fix"] + "\n", "body")]
-            n = sum(1 for l in self.logs for fe, _ in l["findings"] if fe is e)
-            if n:
-                parts.append((f"\nВстречается в загруженных логах: {n} раз(а)\n", "red"))
-            if e.get("patterns"):
-                parts += [("КАК ВЫГЛЯДИТ В ЛОГЕ\n", "cap"), ("  ".join(e["patterns"]) + "\n", "mono")]
+            parts = self._entry_parts(KB[key])
         text_fill(self.kb_text, parts)
+
+    def _kb_open_raw(self):
+        sel = self.ktree.selection()
+        if sel and sel[0] in self.search_results and self.search_results[sel[0]][0] == "log":
+            l = self.search_results[sel[0]][1]
+            self._popup(os.path.basename(l["file"]), l["raw"])
+
+    def paste_panic(self):
+        """Окно: вставить текст паники (например, скопированный с телефона) и сразу получить разбор."""
+        w = self.popup("Разобрать текст паники", 0.7, 0.75)
+        w.configure(padx=px(18), pady=px(14))
+        label(w, "Вставьте текст паники или лога", 14, True).pack(anchor="w")
+        label(w, "На iPhone: Настройки → Конфиденциальность и безопасность → Аналитика и улучшения → "
+                 "Данные аналитики → файл panic-full… → кнопка «Поделиться» → скопируйте текст.",
+              10, color=C["muted"], wrap=600).pack(anchor="w", pady=(px(2), px(8)))
+        top = tk.Frame(w, bg=C["card"])
+        top.pack(fill="x")
+        label(top, "Модель (необязательно, для подсказок по шинам I2C):", 10).pack(side="left")
+        models = [""] + [f"{v} ({k})" for k, v in sorted(PRODUCTS.items(), key=lambda kv: kv[1])]
+        model = ttk.Combobox(top, values=models, state="readonly", width=34, font=font(10))
+        model.pack(side="left", padx=px(8))
+        t = tk.Text(w, height=12, font=font(10, family=MONO), wrap="word", bd=1, relief="solid",
+                    highlightthickness=0, padx=px(8), pady=px(6))
+        t.pack(fill="both", expand=True, pady=px(8))
+        t.focus_set()
+        row = tk.Frame(w, bg=C["card"])
+        row.pack(fill="x")
+
+        def paste():
+            try:
+                t.insert("insert", self.root.clipboard_get())
+            except tk.TclError:
+                pass
+
+        def analyze():
+            text = t.get("1.0", "end").strip()
+            if not text:
+                return
+            m = re.search(r"\(([^()]+)\)$", model.get())
+            info = parse_pasted(text, m.group(1) if m else "")
+            w.destroy()
+            self._popup("Разбор вставленного текста", build_report(info))
+
+        button(row, "Вставить из буфера", paste, size=10).pack(side="left")
+        button(row, "Разобрать", analyze, True, size=10).pack(side="right")
+        button(row, "Отмена", w.destroy, size=10).pack(side="right", padx=px(8))
 
 
 def run_gui(initial_paths=()):
