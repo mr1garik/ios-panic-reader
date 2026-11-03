@@ -1,0 +1,1774 @@
+{
+ "meta": {
+  "name": "База ошибок iOS Panic Reader",
+  "version": 2,
+  "updated": "2026-11-03",
+  "note": "Подсказки — ориентир для диагностики, не окончательный диагноз. Расположение датчиков и шин зависит от модели.",
+  "sources": {
+   "ifixit_kp": "https://www.ifixit.com/Wiki/iPhone_Kernel_Panics",
+   "ifixit_ms": "https://www.ifixit.com/Answers/View/869455/Kernel+Panic+Missing+sensor(s)",
+   "ifixit_tg": "https://www.ifixit.com/Answers/View/743040/Missing+Sensor(s):+TG0B+and+TG0V",
+   "ifixit_11": "https://www.ifixit.com/Answers/View/645543/iPhone+11+REBOOT+LOOP+-+THERMALMONITORD",
+   "ifixit_smc": "https://www.ifixit.com/Wiki/iPhone_SMC_Panic_Assertion_Failed",
+   "ifixit_i2c0": "https://www.ifixit.com/Answers/View/763538/[+Solved]+Panic+Full+i2c0+CheckBusStatus+SCL+is+stuck+low+issue",
+   "ifixit_i2c3": "https://www.ifixit.com/Answers/View/843331/i2c3::_checkBusStatus+SCL+is+stuck+low;+last+write+status+00010110",
+   "ifixit_se": "https://www.ifixit.com/Answers/View/770579/panic+log+-+crash+analysis+help",
+   "ifixit_xs": "https://www.ifixit.com/Answers/View/755923/iPhone+random+restarts+and+bootloops",
+   "gsm": "https://forum.gsmhosting.com/vbb/f631/panicfull-analytics-error-2945058/",
+   "vcc": "https://vccboardrepairs.com/panic-log-list/",
+   "rewa": "https://rewa.tech/iphone-restart-log-analysis/",
+   "arbor": "https://arbormacrepair.com/resources/iphone-boot-loop-3-minute-restart/",
+   "aneeskokadan": "https://aneeskokadan.com/apple-panic-errors-beginners-guide/",
+   "apple_restore": "https://support.apple.com/en-us/HT201444",
+   "apple_crash": "https://developer.apple.com/documentation/xcode/identifying-the-cause-of-common-crashes",
+   "apple_sigkill": "https://developer.apple.com/documentation/xcode/sigkill"
+  },
+  "confidence_levels": {
+   "apple": "документация Apple",
+   "common": "многократно подтверждается в сервисах и на iFixit",
+   "reported": "по сообщениям сервисов — проверяйте по полному логу и симптомам"
+  }
+ },
+ "categories": [
+  "Паника ядра",
+  "Датчики (Missing sensor)",
+  "Вылет приложения",
+  "Ошибка iTunes / восстановления",
+  "Симптомы телефона",
+  "Логи и версии iOS"
+ ],
+ "products": {
+  "iPhone7,2": "iPhone 6",
+  "iPhone7,1": "iPhone 6 Plus",
+  "iPhone8,1": "iPhone 6s",
+  "iPhone8,2": "iPhone 6s Plus",
+  "iPhone8,4": "iPhone SE (1st)",
+  "iPhone9,1": "iPhone 7",
+  "iPhone9,3": "iPhone 7",
+  "iPhone9,2": "iPhone 7 Plus",
+  "iPhone9,4": "iPhone 7 Plus",
+  "iPhone10,1": "iPhone 8",
+  "iPhone10,4": "iPhone 8",
+  "iPhone10,2": "iPhone 8 Plus",
+  "iPhone10,5": "iPhone 8 Plus",
+  "iPhone10,3": "iPhone X",
+  "iPhone10,6": "iPhone X",
+  "iPhone11,2": "iPhone XS",
+  "iPhone11,4": "iPhone XS Max",
+  "iPhone11,6": "iPhone XS Max",
+  "iPhone11,8": "iPhone XR",
+  "iPhone12,1": "iPhone 11",
+  "iPhone12,3": "iPhone 11 Pro",
+  "iPhone12,5": "iPhone 11 Pro Max",
+  "iPhone12,8": "iPhone SE (2nd)",
+  "iPhone13,1": "iPhone 12 mini",
+  "iPhone13,2": "iPhone 12",
+  "iPhone13,3": "iPhone 12 Pro",
+  "iPhone13,4": "iPhone 12 Pro Max",
+  "iPhone14,4": "iPhone 13 mini",
+  "iPhone14,5": "iPhone 13",
+  "iPhone14,2": "iPhone 13 Pro",
+  "iPhone14,3": "iPhone 13 Pro Max",
+  "iPhone14,6": "iPhone SE (3rd)",
+  "iPhone14,7": "iPhone 14",
+  "iPhone14,8": "iPhone 14 Plus",
+  "iPhone15,2": "iPhone 14 Pro",
+  "iPhone15,3": "iPhone 14 Pro Max",
+  "iPhone15,4": "iPhone 15",
+  "iPhone15,5": "iPhone 15 Plus",
+  "iPhone16,1": "iPhone 15 Pro",
+  "iPhone16,2": "iPhone 15 Pro Max",
+  "iPhone17,3": "iPhone 16",
+  "iPhone17,4": "iPhone 16 Plus",
+  "iPhone17,1": "iPhone 16 Pro",
+  "iPhone17,2": "iPhone 16 Pro Max",
+  "iPhone17,5": "iPhone 16e",
+  "iPhone18,3": "iPhone 17",
+  "iPhone18,1": "iPhone 17 Pro",
+  "iPhone18,2": "iPhone 17 Pro Max",
+  "iPhone18,4": "iPhone Air"
+ },
+ "bug_types": {
+  "210": "Kernel panic (panic-full)",
+  "409": "Kernel panic (panic-base / watchdog)",
+  "110": "Зависание (hang)",
+  "109": "Вылет приложения (старый формат)",
+  "309": "Вылет приложения",
+  "298": "JetsamEvent — нехватка памяти",
+  "385": "ExcResource — превышение ресурсов",
+  "288": "Stackshot (stacks)",
+  "115": "Stackshot / tailspin",
+  "187": "Вылет системного процесса",
+  "211": "Analytics (сводная аналитика)",
+  "313": "Аналитика / диагностика",
+  "151": "Шлейф/аксессуар (диагностика)"
+ },
+ "file_kinds": [
+  [
+   "panic-full",
+   "Паника ядра (полный лог)"
+  ],
+  [
+   "panic-base",
+   "Паника ядра (краткий лог)"
+  ],
+  [
+   "JetsamEvent",
+   "Нехватка памяти (Jetsam)"
+  ],
+  [
+   "ExcResource",
+   "Превышение ресурсов (CPU/память/диск)"
+  ],
+  [
+   "^stacks",
+   "Снимок стеков (зависание)"
+  ],
+  [
+   "LowBattery",
+   "Выключение по низкому заряду"
+  ],
+  [
+   "ResetCounter",
+   "Счётчик перезагрузок"
+  ],
+  [
+   "Analytics",
+   "Сводная аналитика"
+  ],
+  [
+   "SiriSearch|xp_amp|log-aggregated|DiagnosticLogs",
+   "Служебная статистика"
+  ],
+  [
+   "\\.ips$|\\.crash$",
+   "Отчёт о сбое"
+  ]
+ ],
+ "sensors": {
+  "mic1": {
+   "name": "Нижний микрофон",
+   "where": "Шлейф зарядки (Lightning / USB-C) с нижним микрофоном.",
+   "models": "iPhone 8 / X / XS / XR / 11 / 12 / 13 / 14 — почти всегда шлейф зарядки, его разъём на плате или окисление разъёма. iPhone 15+ — нижний шлейф USB-C.",
+   "fix": "Переподключить/почистить разъём шлейфа зарядки, поставить заведомо рабочий шлейф. Если не помогло — проверить разъём на плате и линии от него. Частые причины — влага и механическое повреждение шлейфа.",
+   "sources": [
+    "vcc"
+   ]
+  },
+  "mic2": {
+   "name": "Верхний / фронтальный микрофон",
+   "where": "Верхний шлейф (фронтальная камера, датчик приближения, разговорный динамик).",
+   "models": "Зависит от модели: на X–14 чаще шлейф разговорного динамика / датчиков; на части моделей — шлейф кнопок громкости.",
+   "fix": "Проверить верхний шлейф и его разъём, нет ли следов влаги."
+  },
+  "mic3": {
+   "name": "Микрофон у основной камеры",
+   "where": "Шлейф вспышки / основной камеры.",
+   "models": "Зависит от модели.",
+   "fix": "Проверить шлейф вспышки и микрофона возле камеры."
+  },
+  "mic4": {
+   "name": "Дополнительный микрофон",
+   "where": "Верхний шлейф / шлейф датчиков.",
+   "models": "Зависит от модели.",
+   "fix": "Проверить верхние шлейфы."
+  },
+  "prs0": {
+   "name": "Барометр (датчик давления)",
+   "where": "Шлейф зарядки (на большинстве моделей iPhone 8–14 барометр стоит на нём).",
+   "models": "iPhone 8 / X / XS / XR / 11 / 12 / 13 / 14. Часто вместе с mic1.",
+   "fix": "Заменить/переподключить шлейф зарядки. Если mic1 и prs0 вместе — почти наверняка шлейф зарядки или его разъём.",
+   "sources": [
+    "vcc",
+    "arbor"
+   ]
+  },
+  "tg0b": {
+   "name": "Термодатчик аккумулятора",
+   "where": "Аккумулятор или контроллер аккумулятора / микросхема зарядки (Tigris).",
+   "models": "iPhone X и новее.",
+   "fix": "Поставить заведомо исправный аккумулятор, проверить разъём аккумулятора. Если не помогло — цепи контроллера аккумулятора на плате. Частая причина — неоригинальный аккумулятор.",
+   "sources": [
+    "ifixit_tg",
+    "gsm"
+   ]
+  },
+  "tg0v": {
+   "name": "Термодатчик аккумулятора",
+   "where": "Аккумулятор.",
+   "models": "iPhone X и новее.",
+   "fix": "Проверить аккумулятор и его разъём.",
+   "sources": [
+    "ifixit_tg"
+   ]
+  },
+  "tg0c": {
+   "name": "Датчик аккумулятора",
+   "where": "Аккумулятор.",
+   "models": "",
+   "fix": "Проверить аккумулятор и его разъём."
+  },
+  "tp0z": {
+   "name": "Термодатчик на плате",
+   "where": "Системная плата / цепь питания.",
+   "models": "",
+   "fix": "Диагностика платы, цепи питания."
+  },
+  "ts0p": {
+   "name": "Термодатчик платы",
+   "where": "Системная плата / PMU.",
+   "models": "",
+   "fix": "Диагностика платы."
+  },
+  "tc0p": {
+   "name": "Термодатчик процессора",
+   "where": "Процессор / плата.",
+   "models": "",
+   "fix": "Диагностика платы, процессора."
+  }
+ },
+ "entries": [
+  {
+   "id": "thermalmonitord",
+   "cat": "Паника ядра",
+   "title": "Watchdog: thermalmonitord (перезагрузка каждые 3 минуты)",
+   "patterns": [
+    "no successful checkins from com\\.apple\\.thermalmonitord"
+   ],
+   "node": "Датчики / шлейфы / аккумулятор",
+   "symptoms": "Телефон включается, работает ~3 минуты (180 секунд) и перезагружается. Повторяется по кругу. В DFU/Recovery работает нормально.",
+   "cause": "Служба thermalmonitord опрашивает все датчики температуры и микрофоны. Если хотя бы одного нет, служба не отчитывается watchdog-у, и через 180 с система вызывает панику.",
+   "fix": "Найди в тексте паники строку «Missing sensor(s): …» — там список отсутствующих датчиков. Чаще всего: mic1/prs0 — шлейф зарядки, TG0B/TG0V — аккумулятор. Если строки нет — проверяй по очереди шлейф зарядки, аккумулятор, верхний шлейф. Датчик из списка — не всегда сломанная деталь: проверяйте и разъём, и линии к нему (известен случай на iPhone 11, когда виновата была коррозия в разъёме шлейфа громкости и замкнутая шина i2c1). Восстановление iOS при такой панике часто обрывается ошибкой 4013 — сначала сделайте резервную копию.",
+   "models": "iPhone 8 и новее (особенно 11–14)",
+   "ios": "iOS 11 и новее",
+   "sources": [
+    "arbor",
+    "ifixit_11",
+    "ifixit_ms",
+    "vcc"
+   ],
+   "confidence": "common",
+   "keywords": "перезагрузка каждые 3 минуты 180 секунд циклическая перезагрузка датчик"
+  },
+  {
+   "id": "missing_sensor",
+   "cat": "Датчики (Missing sensor)",
+   "title": "Missing sensor(s) — система не видит датчик",
+   "patterns": [
+    "Missing sensor\\(s\\)"
+   ],
+   "node": "Датчики",
+   "symptoms": "Обычно — перезагрузка каждые ~3 минуты.",
+   "cause": "Датчик из списка не отвечает: оборван шлейф, плохой контакт в разъёме, неоригинальная или повреждённая деталь, окисление после влаги.",
+   "fix": "Смотри расшифровку каждого датчика в отчёте. Сначала меняй/переподключай деталь, на которой стоит датчик, потом проверяй разъём на плате.",
+   "models": "iPhone 8 и новее",
+   "ios": "iOS 11 и новее",
+   "sources": [
+    "gsm",
+    "ifixit_ms",
+    "ifixit_tg",
+    "vcc"
+   ],
+   "confidence": "common",
+   "keywords": "нет датчика missing sensor"
+  },
+  {
+   "id": "wd_springboard",
+   "cat": "Паника ядра",
+   "title": "Watchdog: SpringBoard / backboardd",
+   "patterns": [
+    "no successful checkins from (com\\.apple\\.)?(SpringBoard|backboardd)"
+   ],
+   "node": "ПО / дисплей / тач",
+   "symptoms": "Зависание интерфейса, затем перезагрузка. Бывает после обновления или твиков.",
+   "cause": "Интерфейс не отвечает дольше допустимого. Чаще всего — программная проблема, реже дисплей/тач-контроллер, NAND.",
+   "fix": "Удалить твики/профили, обновить или восстановить iOS. Если повторяется после восстановления — проверить дисплей и память.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "wd_wifid",
+   "cat": "Паника ядра",
+   "title": "Watchdog: wifid / bluetoothd",
+   "patterns": [
+    "no successful checkins from (com\\.apple\\.)?(wifid|bluetoothd|WirelessRadioManager)"
+   ],
+   "node": "Wi-Fi / Bluetooth модуль",
+   "symptoms": "Перезагрузки, серый Wi-Fi/Bluetooth, Wi-Fi не включается.",
+   "cause": "Служба Wi-Fi/BT зависла — модуль не отвечает (пайка, питание модуля, сам модуль).",
+   "fix": "Сбросить настройки сети; если не помогло — диагностика Wi-Fi модуля и его питания.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "wd_commcenter",
+   "cat": "Паника ядра",
+   "title": "Watchdog: CommCenter",
+   "patterns": [
+    "no successful checkins from (com\\.apple\\.)?CommCenter"
+   ],
+   "node": "Модем",
+   "symptoms": "Нет сети / «Поиск», перезагрузки.",
+   "cause": "Служба связи не может достучаться до модема.",
+   "fix": "Проверить SIM или профиль eSIM (на моделях без SIM-лотка — только eSIM), затем модем, его питание и память модема.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "wd_mediaserverd",
+   "cat": "Паника ядра",
+   "title": "Watchdog: mediaserverd / audiomxd",
+   "patterns": [
+    "no successful checkins from (com\\.apple\\.)?(mediaserverd|audiomxd)"
+   ],
+   "node": "Аудиоподсистема",
+   "symptoms": "Перезагрузки при звонке, записи видео, проигрывании звука; нет звука.",
+   "cause": "Аудиосервис завис — аудиокодек, усилитель, динамики или микрофоны.",
+   "fix": "Проверить аудиокодек, динамики, микрофоны, шлейфы.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "wd_locationd",
+   "cat": "Паника ядра",
+   "title": "Watchdog: locationd",
+   "patterns": [
+    "no successful checkins from (com\\.apple\\.)?locationd"
+   ],
+   "node": "Геолокация / датчики движения",
+   "symptoms": "Перезагрузки, не работает компас/геолокация.",
+   "cause": "locationd не получает данные от GPS/модема или датчиков.",
+   "fix": "Проверить модем/GPS и датчики (AOP).",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "wd_generic",
+   "cat": "Паника ядра",
+   "title": "Userspace watchdog timeout (другой процесс)",
+   "patterns": [
+    "userspace watchdog timeout"
+   ],
+   "node": "Зависший системный процесс",
+   "symptoms": "Зависание и перезагрузка.",
+   "cause": "Системный процесс не отчитался watchdog-у вовремя. Имя процесса указано после «no successful checkins from».",
+   "fix": "Смотри, какой процесс указан — по нему определяется узел. Не останавливайтесь на слове «watchdog»: причина обычно названа дальше в тексте.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "sep",
+   "cat": "Паника ядра",
+   "title": "SEP Panic (Secure Enclave)",
+   "patterns": [
+    "SEP Panic",
+    "SEP ROM",
+    "sep panic",
+    "AppleSEPManager.*panic",
+    "SEPOS"
+   ],
+   "node": "Secure Enclave / Face ID / Touch ID / процессор",
+   "symptoms": "Перезагрузки или бутлуп, Face ID / Touch ID не работает, иногда не принимает пароль.",
+   "cause": "Сбой Secure Enclave: не отвечает биометрия, неоригинальный модуль Face ID/Touch ID, проблема с процессором или NAND (после перепайки/замены). «SEP ROM» — повреждение связи процессора и Secure Enclave.",
+   "fix": "Отключить модуль Face ID/Touch ID и проверить, ушла ли паника. Восстановить iOS. Если остаётся — процессор/NAND.",
+   "sources": [
+    "aneeskokadan",
+    "vcc"
+   ],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "faceid",
+   "cat": "Паника ядра",
+   "title": "Face ID (Pearl / Romeo / Juliet)",
+   "patterns": [
+    "ApplePearl",
+    "\\bPearl\\b",
+    "\\bRomeo\\b",
+    "\\bJuliet\\b"
+   ],
+   "node": "Модуль Face ID",
+   "symptoms": "«Face ID недоступен», перезагрузки при попытке разблокировки.",
+   "cause": "Romeo — проектор точек, Juliet — ИК-камера. Повреждение модуля, шлейфа, влага, неоригинальный модуль.",
+   "fix": "Проверить шлейф Face ID, верхний шлейф, модуль. Face ID привязан к плате.",
+   "models": "iPhone X и новее",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "touchid",
+   "cat": "Паника ядра",
+   "title": "Touch ID (Mesa)",
+   "patterns": [
+    "AppleMesa",
+    "\\bMesa\\b"
+   ],
+   "node": "Touch ID / кнопка Home",
+   "symptoms": "Touch ID не работает, ошибка 53 при восстановлении.",
+   "cause": "Сканер отпечатка не совпадает с платой или повреждён шлейф.",
+   "fix": "Проверить шлейф кнопки Home. Сканер привязан к плате.",
+   "models": "iPhone 5s–8, SE",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "aop",
+   "cat": "Паника ядра",
+   "title": "AOP PANIC (Always-On Processor)",
+   "patterns": [
+    "AOP PANIC",
+    "AOP2? panic",
+    "\\bAOP\\b",
+    "AppleSPU",
+    "SPU panic"
+   ],
+   "node": "Датчики движения / приближения / кнопки",
+   "symptoms": "Перезагрузки, не работает автоповорот, компас, датчик приближения, Hey Siri.",
+   "cause": "AOP — сопроцессор, который постоянно опрашивает датчики (акселерометр, гироскоп, датчик приближения, микрофоны для «Привет, Siri»). Если датчик/шлейф не отвечает — паника.",
+   "fix": "Проверить верхний шлейф (датчик приближения), шлейф кнопок, шлейф зарядки; затем датчики движения на плате. Смотрите слова рядом с AOP: «PressureController» — барометр на шлейфе зарядки, «prox» — датчик приближения (верхний шлейф).",
+   "sources": [
+    "aneeskokadan",
+    "vcc"
+   ],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "smc",
+   "cat": "Паника ядра",
+   "title": "SMC PANIC",
+   "patterns": [
+    "SMC PANIC",
+    "AppleSMC(?!Charger)",
+    "SMC ASSERT"
+   ],
+   "node": "SMC / питание",
+   "symptoms": "Перезагрузки, особенно при зарядке или нагрузке.",
+   "cause": "SMC не получил ожидаемый ответ от одного из датчиков, или контроллер питания зафиксировал отклонение. Частые подозреваемые — цепи зарядки, аккумулятор, датчики. На iPhone 13 и новее такие паники обычно означают аппаратную неисправность.",
+   "fix": "Проверить аккумулятор, шлейф зарядки, затем цепи питания.",
+   "sources": [
+    "ifixit_smc",
+    "vcc"
+   ],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "pmu",
+   "cat": "Паника ядра",
+   "title": "Контроллер питания (PMU / SPMI)",
+   "patterns": [
+    "AppleDialogSPMIPMU",
+    "AppleSPMIPMU",
+    "\\bSPMI\\b",
+    "\\bPMU\\b",
+    "spmi"
+   ],
+   "node": "Контроллер питания",
+   "symptoms": "Внезапные выключения, перезагрузки, не включается.",
+   "cause": "Нет связи с PMU по шине SPMI или PMU сообщил об ошибке.",
+   "fix": "Сначала заменить аккумулятор (самое простое), затем диагностика PMU и линий питания.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "brownout",
+   "cat": "Паника ядра",
+   "title": "Просадка напряжения (brownout / UVLO)",
+   "patterns": [
+    "[Bb]rownout",
+    "UVLO",
+    "undervoltage"
+   ],
+   "node": "Аккумулятор / питание",
+   "symptoms": "Выключается при нагрузке (камера, игра, вспышка) или на 20–40% заряда.",
+   "cause": "Напряжение аккумулятора проседает ниже порога — изношенный аккумулятор.",
+   "fix": "Заменить аккумулятор. Проверить ёмкость и циклы.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "battery",
+   "cat": "Паника ядра",
+   "title": "Контроллер аккумулятора",
+   "patterns": [
+    "AppleSmartBattery",
+    "BatteryManager",
+    "gas ?gauge"
+   ],
+   "node": "Аккумулятор",
+   "symptoms": "Неверный процент заряда, выключения, «Важное сообщение об аккумуляторе».",
+   "cause": "Нет связи с контроллером аккумулятора или он неисправен.",
+   "fix": "Заменить аккумулятор, проверить разъём.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "nand",
+   "cat": "Паника ядра",
+   "title": "NAND / контроллер памяти (ANS2 / NVMe)",
+   "patterns": [
+    "ANS2",
+    "AppleANS",
+    "IONVMe",
+    "AppleNVMe",
+    "\\bnvme\\b",
+    "NVMe",
+    "\\bNAND\\b",
+    "\\bnand\\b"
+   ],
+   "node": "Память NAND",
+   "symptoms": "Бутлуп на яблоке, ошибки 9/4013/4014 при восстановлении, зависания, медленная работа.",
+   "cause": "Сбой контроллера памяти или самой NAND: износ, отвал после падения, перегрев, некачественная перепайка, проблемы питания памяти.",
+   "fix": "Восстановить iOS через DFU. Если ошибка остаётся — диагностика NAND и её питания.",
+   "sources": [
+    "aneeskokadan",
+    "vcc"
+   ],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "initproc",
+   "cat": "Паника ядра",
+   "title": "initproc exited (не запускается система)",
+   "patterns": [
+    "initproc exited"
+   ],
+   "node": "ПО / NAND",
+   "symptoms": "Бутлуп на логотипе.",
+   "cause": "Не удалось запустить launchd — повреждена система (прерванное обновление, джейлбрейк) или проблема с памятью.",
+   "fix": "Восстановить через DFU. Если повторяется на чистой прошивке — NAND.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "zone",
+   "cat": "Паника ядра",
+   "title": "Повреждение памяти ядра (zone / kalloc)",
+   "patterns": [
+    "zone_require",
+    "zalloc",
+    "kalloc",
+    "zone map exhausted",
+    "memory corruption"
+   ],
+   "node": "ПО (реже RAM)",
+   "symptoms": "Случайные перезагрузки.",
+   "cause": "Ошибка в ядре или драйвере; иногда твики/джейлбрейк; редко — оперативная память.",
+   "fix": "Обновить/восстановить iOS.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "baseband",
+   "cat": "Паника ядра",
+   "title": "Модем (Baseband)",
+   "patterns": [
+    "AppleBaseband",
+    "[Bb]aseband",
+    "BBPCI",
+    "bbreport",
+    "AppleConvergedIPC",
+    "\\bACIPC\\b"
+   ],
+   "node": "Модем",
+   "symptoms": "Нет сети, «Нет SIM», «Поиск», перезагрузки, IMEI не отображается.",
+   "cause": "Модем не отвечает: питание модема, пайка, память модема, после влаги/падения.",
+   "fix": "Проверить SIM-лоток и SIM (если лотка нет — профиль eSIM в Настройки → Сотовая связь), сбросить настройки сети, восстановить iOS. Если IMEI пустой — модем/его питание.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "pcie",
+   "cat": "Паника ядра",
+   "title": "PCIe link down (Wi-Fi или модем)",
+   "patterns": [
+    "apcie",
+    "PCIe",
+    "link down"
+   ],
+   "node": "Wi-Fi или модем",
+   "symptoms": "Перезагрузки, серый Wi-Fi или нет сети.",
+   "cause": "Потеря связи по шине PCIe с Wi-Fi модулем или модемом.",
+   "fix": "Определить устройство по соседним строкам паники (WLAN — Wi-Fi, BB — модем).",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "wlan",
+   "cat": "Паника ядра",
+   "title": "Wi-Fi модуль (WLAN)",
+   "patterns": [
+    "AppleBCMWLAN",
+    "AppleOLYHAL",
+    "\\bWLAN\\b",
+    "wlan"
+   ],
+   "node": "Wi-Fi / Bluetooth модуль",
+   "symptoms": "Серый Wi-Fi, Wi-Fi не включается, перезагрузки.",
+   "cause": "Модуль Wi-Fi не отвечает — пайка, питание модуля, сам модуль.",
+   "fix": "Сброс настроек сети, восстановление; затем диагностика модуля.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "nfc",
+   "cat": "Паника ядра",
+   "title": "NFC (Stockholm)",
+   "patterns": [
+    "Stockholm",
+    "\\bNFC\\b"
+   ],
+   "node": "NFC модуль",
+   "symptoms": "Не работает Apple Pay, перезагрузки.",
+   "cause": "Модуль NFC (Stockholm) не отвечает.",
+   "fix": "Диагностика NFC модуля и его линий.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "uwb",
+   "cat": "Паника ядра",
+   "title": "UWB чип U1 (Rose)",
+   "patterns": [
+    "AppleRose",
+    "\\bRose\\b",
+    "\\bUWB\\b"
+   ],
+   "node": "Чип U1",
+   "symptoms": "Перезагрузки.",
+   "cause": "Чип сверхширокополосной связи не отвечает.",
+   "fix": "Диагностика U1 и его питания.",
+   "models": "iPhone 11 и новее",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "charger",
+   "cat": "Паника ядра",
+   "title": "Цепь зарядки",
+   "patterns": [
+    "AppleSMCCharger",
+    "ChargerIC",
+    "[Cc]harger"
+   ],
+   "node": "Зарядка",
+   "symptoms": "Не заряжается, перезагрузка при подключении зарядки.",
+   "cause": "Контроллер заряда, шлейф зарядки, разъём.",
+   "fix": "Проверить кабель/блок, разъём (грязь), шлейф зарядки, контроллер заряда.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "tristar",
+   "cat": "Паника ядра",
+   "title": "Контроллер USB (Tristar / Hydra / ACE / HPM)",
+   "patterns": [
+    "[Tt]ri[Ss]tar",
+    "Hydra",
+    "AppleHPM",
+    "\\bHPM\\b",
+    "\\bACE\\d*\\b",
+    "AppleTypeCPhy"
+   ],
+   "node": "Контроллер USB / Lightning",
+   "symptoms": "«Аксессуар не поддерживается», не заряжается, не видит компьютер, быстрая разрядка.",
+   "cause": "Контроллер Lightning/USB-C (Tristar / Hydra / ACE) повреждён, часто после некачественной зарядки.",
+   "fix": "Проверить шлейф зарядки и разъём, затем контроллер на плате.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "i2c_stuck",
+   "cat": "Паника ядра",
+   "title": "I2C: «SCL/SDA is stuck low» — линия шины замкнута",
+   "patterns": [
+    "(SCL|SDA) is stuck low",
+    "_checkBusStatus"
+   ],
+   "node": "Шина I2C (шлейф / разъём / деталь на шине)",
+   "symptoms": "Перезагрузки, иногда не работает деталь на этой шине (камера, тач, звук).",
+   "cause": "Одна из линий шины I2C притянута к земле: окисление или влага в разъёме, повреждённый шлейф, неисправная деталь на шине. Номер шины в начале строки (i2c0, i2c3…) — какая именно.",
+   "fix": "Отключайте по одной детали этой шины и смотрите, пропадёт ли паника. Осмотрите разъёмы на коррозию. Если отключение деталей не помогает — линия на плате.",
+   "sources": [
+    "ifixit_i2c0",
+    "ifixit_i2c3",
+    "ifixit_xs"
+   ],
+   "confidence": "common",
+   "keywords": "шина i2c замыкание коррозия влага"
+  },
+  {
+   "id": "i2c",
+   "cat": "Паника ядра",
+   "title": "Шина I2C",
+   "patterns": [
+    "i2c\\d+",
+    "AppleS\\w*I2C",
+    "\\bI2C\\b"
+   ],
+   "node": "Устройство на шине I2C",
+   "symptoms": "Перезагрузки, может не работать камера/звук/датчик.",
+   "cause": "Устройство на шине I2C не отвечает. Номер шины (i2c0, i2c1…) и имя устройства в тексте паники указывают узел, но назначение шин разное у разных моделей — смотрите таблицу шин в базе.",
+   "fix": "Посмотреть по схеме модели, что висит на этой шине, и проверить эту деталь/шлейф.",
+   "sources": [
+    "ifixit_i2c0",
+    "ifixit_i2c3",
+    "ifixit_se",
+    "rewa"
+   ],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "camera",
+   "cat": "Паника ядра",
+   "title": "Камера (ISP)",
+   "patterns": [
+    "AppleH\\d+CamIn",
+    "\\bISP\\b",
+    "isp panic",
+    "AppleH\\d+Cam"
+   ],
+   "node": "Камера",
+   "symptoms": "Чёрный экран в камере, перезагрузка при запуске камеры.",
+   "cause": "Модуль камеры, её шлейф или процессор изображения.",
+   "fix": "Отключить камеры по очереди и проверить; заменить шлейф/модуль.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "audio",
+   "cat": "Паника ядра",
+   "title": "Аудиокодек / усилитель",
+   "patterns": [
+    "AppleCS\\d+",
+    "CS42L",
+    "Cirrus",
+    "AppleTAS",
+    "AppleSN\\d+"
+   ],
+   "node": "Аудио",
+   "symptoms": "Нет звука, не слышно собеседника, серая кнопка динамика, перезагрузки при звонке.",
+   "cause": "Аудиокодек или усилитель, часто после падения.",
+   "fix": "Диагностика аудиокодека/усилителя.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "taptic",
+   "cat": "Паника ядра",
+   "title": "Taptic Engine",
+   "patterns": [
+    "[Hh]aptic",
+    "Taptic"
+   ],
+   "node": "Вибромотор (Taptic Engine)",
+   "symptoms": "Нет вибрации, перезагрузки.",
+   "cause": "Taptic Engine или его шлейф/драйвер.",
+   "fix": "Проверить Taptic Engine и разъём.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "touch",
+   "cat": "Паника ядра",
+   "title": "Тачскрин",
+   "patterns": [
+    "AppleMultitouch",
+    "multitouch"
+   ],
+   "node": "Тач / дисплей",
+   "symptoms": "Тач не работает или фантомные нажатия, перезагрузки.",
+   "cause": "Тач-панель, шлейф дисплея, контроллер тача.",
+   "fix": "Проверить с другим (оригинальным) дисплеем.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "display",
+   "cat": "Паника ядра",
+   "title": "Дисплей (DCP / IOMFB)",
+   "patterns": [
+    "IOMobileFramebuffer",
+    "AppleCLCD",
+    "IOMFB",
+    "\\bDCP\\b",
+    "AppleDCP"
+   ],
+   "node": "Дисплей",
+   "symptoms": "Мерцание, чёрный экран, перезагрузки.",
+   "cause": "Дисплей, шлейф дисплея, контроллер дисплея.",
+   "fix": "Проверить с другим дисплеем, проверить разъём.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "gpu",
+   "cat": "Паника ядра",
+   "title": "GPU (AGX)",
+   "patterns": [
+    "AppleAGX",
+    "\\bAGX\\b",
+    "\\bGPU\\b"
+   ],
+   "node": "Графика",
+   "symptoms": "Зависания в играх, артефакты.",
+   "cause": "Обычно ПО; реже процессор.",
+   "fix": "Обновить/восстановить iOS.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "sensors_motion",
+   "cat": "Паника ядра",
+   "title": "Датчики движения / приближения",
+   "patterns": [
+    "[Gg]yro",
+    "[Aa]ccel",
+    "[Cc]ompass",
+    "[Pp]roximity",
+    "\\bALS\\b"
+   ],
+   "node": "Датчики",
+   "symptoms": "Не работает автоповорот, экран не гаснет при звонке.",
+   "cause": "Датчик или шлейф с ним не отвечает.",
+   "fix": "Проверить верхний шлейф (приближение) и датчики на плате.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "dart",
+   "cat": "Паника ядра",
+   "title": "DART (IOMMU)",
+   "patterns": [
+    "\\bDART\\b",
+    "dart-",
+    "AppleT\\d+DART"
+   ],
+   "node": "Периферия (сопутствующая ошибка)",
+   "symptoms": "Перезагрузки.",
+   "cause": "Периферийное устройство обратилось к запрещённой памяти. Имя после «dart-» указывает устройство (например, dart-isp — камера, dart-ans — NAND). Примеры: «dart-apcie» — шина PCIe (Wi-Fi или модем), «dart-dispo» — тракт дисплея.",
+   "fix": "Смотри имя устройства после dart-.",
+   "sources": [
+    "vcc"
+   ],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "thermal",
+   "cat": "Паника ядра",
+   "title": "Перегрев",
+   "patterns": [
+    "thermal (shutdown|emergency)",
+    "overheat",
+    "AppleDieTemp"
+   ],
+   "node": "Охлаждение / питание",
+   "symptoms": "Выключается от перегрева, сильно греется.",
+   "cause": "Перегрев процессора или аккумулятора; КЗ по питанию.",
+   "fix": "Проверить ток потребления, аккумулятор, нет ли КЗ.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "soc_wdt",
+   "cat": "Паника ядра",
+   "title": "SoC watchdog reset",
+   "patterns": [
+    "Unexpected SoC",
+    "SoC watchdog",
+    "AppleARMWatchdogTimer",
+    "wdt reset"
+   ],
+   "node": "Процессор / питание / NAND",
+   "symptoms": "Внезапные перезагрузки без явной причины.",
+   "cause": "Процессор завис полностью, сработал аппаратный сторожевой таймер.",
+   "fix": "Восстановить iOS; если повторяется — питание, NAND, процессор.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "roswell",
+   "cat": "Паника ядра",
+   "title": "Roswell — контроллер тача",
+   "patterns": [
+    "[Rr]oswell"
+   ],
+   "node": "Тач / шлейф дисплея",
+   "symptoms": "Перезагрузки, тач может не работать.",
+   "cause": "Не отвечает контроллер тача (Roswell) на шлейфе дисплея.",
+   "fix": "Проверить шлейф и разъём дисплея, поставить заведомо исправный дисплей.",
+   "sources": [
+    "ifixit_i2c3"
+   ],
+   "confidence": "reported",
+   "keywords": "тач дисплей"
+  },
+  {
+   "id": "speaker_top",
+   "cat": "Паника ядра",
+   "title": "audio-speaker — динамик на шине I2C",
+   "patterns": [
+    "audio-speaker(-top|-bottom)?"
+   ],
+   "node": "Динамик / его усилитель",
+   "symptoms": "Перезагрузки, нет звука из динамика.",
+   "cause": "Не отвечает усилитель динамика (имя устройства в тексте паники).",
+   "fix": "Проверить динамик, его шлейф и разъём.",
+   "sources": [
+    "ifixit_se"
+   ],
+   "confidence": "reported",
+   "keywords": "динамик звук"
+  },
+  {
+   "id": "aop_pressure",
+   "cat": "Паника ядра",
+   "title": "PressureController — барометр",
+   "patterns": [
+    "PressureController"
+   ],
+   "node": "Барометр (шлейф зарядки)",
+   "symptoms": "Перезагрузки.",
+   "cause": "Не отвечает барометр — на большинстве моделей он на шлейфе зарядки.",
+   "fix": "Переподключить или заменить шлейф зарядки.",
+   "sources": [
+    "vcc"
+   ],
+   "confidence": "reported",
+   "keywords": "барометр давление prs0"
+  },
+  {
+   "id": "tigris",
+   "cat": "Паника ядра",
+   "title": "Tigris / PPM — микросхема зарядки",
+   "patterns": [
+    "[Tt]igris",
+    "Apple ?PPM\\b"
+   ],
+   "node": "Зарядка (Tigris, Tristar)",
+   "symptoms": "Паника во время зарядки, не заряжается, перезагружается на зарядке.",
+   "cause": "Сбой связи с микросхемой зарядки Tigris или контроллером Lightning/USB. Рядом с TG0B может означать, что телефон не видит аккумулятор.",
+   "fix": "Проверить кабель и блок, шлейф зарядки, аккумулятор, затем микросхему зарядки на плате.",
+   "sources": [
+    "gsm",
+    "vcc"
+   ],
+   "confidence": "reported",
+   "keywords": "зарядка не заряжается tristar"
+  },
+  {
+   "id": "data_abort",
+   "cat": "Паника ядра",
+   "title": "Kernel data abort",
+   "patterns": [
+    "[Kk]ernel data abort"
+   ],
+   "node": "ПО (реже RAM/процессор)",
+   "symptoms": "Случайные перезагрузки.",
+   "cause": "Ядро обратилось к недопустимому адресу. Чаще ПО, твики, джейлбрейк; реже оперативная память/процессор.",
+   "fix": "Обновить/восстановить iOS. Если на чистой системе повторяется с разными адресами — плата.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "fetch_abort",
+   "cat": "Паника ядра",
+   "title": "Kernel instruction fetch abort",
+   "patterns": [
+    "[Kk]ernel instruction fetch abort",
+    "prefetch abort"
+   ],
+   "node": "ПО / процессор",
+   "symptoms": "Случайные перезагрузки.",
+   "cause": "Ошибка выполнения кода ядра.",
+   "fix": "Восстановить iOS; затем плата.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "jailbreak",
+   "cat": "Паника ядра",
+   "title": "Следы джейлбрейка / твиков",
+   "patterns": [
+    "[Ss]ubstrate",
+    "Substitute",
+    "ElleKit",
+    "[Jj]ailbreak",
+    "unc0ver",
+    "checkra1n",
+    "palera1n",
+    "Dopamine"
+   ],
+   "node": "ПО",
+   "symptoms": "Перезагрузки, бутлуп.",
+   "cause": "Твики или джейлбрейк вызывают сбои.",
+   "fix": "Удалить джейлбрейк, восстановить iOS.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "wdt_generic",
+   "cat": "Паника ядра",
+   "title": "Сработал watchdog",
+   "patterns": [
+    "\\bWDT\\b",
+    "watchdog"
+   ],
+   "node": "Зависание",
+   "symptoms": "Зависание и перезагрузка.",
+   "cause": "Сторожевой таймер — что-то не ответило вовремя.",
+   "fix": "Смотри текст паники — какой процесс/драйвер указан. Не останавливайтесь на слове «watchdog»: причина обычно названа дальше в тексте.",
+   "sources": [],
+   "confidence": "common",
+   "keywords": ""
+  },
+  {
+   "id": "exc_bad_access",
+   "cat": "Вылет приложения",
+   "title": "EXC_BAD_ACCESS (SIGSEGV / SIGBUS)",
+   "patterns": [
+    "EXC_BAD_ACCESS"
+   ],
+   "node": "Приложение",
+   "symptoms": "Приложение закрывается сразу или при определённом действии.",
+   "cause": "Приложение обратилось к недопустимой памяти — ошибка в приложении.",
+   "fix": "Обновить/переустановить приложение. Если вылетают все приложения — проверить память/iOS.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "exc_crash",
+   "cat": "Вылет приложения",
+   "title": "EXC_CRASH (SIGABRT)",
+   "patterns": [
+    "EXC_CRASH",
+    "SIGABRT"
+   ],
+   "node": "Приложение",
+   "symptoms": "Приложение закрывается.",
+   "cause": "Приложение само прервало работу (необработанная ошибка).",
+   "fix": "Обновить/переустановить приложение.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "exc_breakpoint",
+   "cat": "Вылет приложения",
+   "title": "EXC_BREAKPOINT (SIGTRAP)",
+   "patterns": [
+    "EXC_BREAKPOINT",
+    "SIGTRAP"
+   ],
+   "node": "Приложение",
+   "symptoms": "Приложение закрывается.",
+   "cause": "Ошибка в коде приложения (Swift trap).",
+   "fix": "Обновить приложение.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "exc_resource",
+   "cat": "Вылет приложения",
+   "title": "EXC_RESOURCE",
+   "patterns": [
+    "EXC_RESOURCE"
+   ],
+   "node": "Приложение / ресурсы",
+   "symptoms": "Приложение закрывается при долгой работе, телефон греется.",
+   "cause": "Превышен лимит CPU, памяти или записи на диск.",
+   "fix": "Обновить приложение; если массово — проверить iOS.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "exc_guard",
+   "cat": "Вылет приложения",
+   "title": "EXC_GUARD",
+   "patterns": [
+    "EXC_GUARD"
+   ],
+   "node": "Приложение",
+   "symptoms": "Приложение закрывается.",
+   "cause": "Нарушение защищённого ресурса.",
+   "fix": "Обновить приложение.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "code_8badf00d",
+   "cat": "Вылет приложения",
+   "title": "0x8badf00d — приложение зависло",
+   "patterns": [
+    "8badf00d"
+   ],
+   "node": "Приложение / медленная память",
+   "symptoms": "Приложение долго запускается и закрывается.",
+   "cause": "Watchdog убил приложение: не запустилось или не ответило вовремя. Если массово у всех приложений — медленная/неисправная NAND. В отчёте: Termination Reason — Namespace SPRINGBOARD, Code 0x8badf00d.",
+   "fix": "Переустановить приложение; при массовых случаях — освободить место, проверить NAND.",
+   "sources": [
+    "apple_crash"
+   ],
+   "confidence": "apple",
+   "keywords": ""
+  },
+  {
+   "id": "code_c00010ff",
+   "cat": "Вылет приложения",
+   "title": "0xc00010ff — закрыто из-за перегрева",
+   "patterns": [
+    "c00010ff"
+   ],
+   "node": "Температура",
+   "symptoms": "Приложения закрываются в жару/при нагрузке.",
+   "cause": "Система закрыла приложение из-за перегрева.",
+   "fix": "Проверить нагрев, аккумулятор, ток потребления.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "code_dead10cc",
+   "cat": "Вылет приложения",
+   "title": "0xdead10cc",
+   "patterns": [
+    "dead10cc"
+   ],
+   "node": "Приложение",
+   "symptoms": "Приложение закрывается в фоне.",
+   "cause": "Приложение удерживало файл/базу данных при уходе в фон. В отчёте: Termination Reason — Namespace RUNNINGBOARD, Code 0xdead10cc.",
+   "fix": "Ошибка приложения — обновить.",
+   "sources": [
+    "apple_sigkill"
+   ],
+   "confidence": "apple",
+   "keywords": ""
+  },
+  {
+   "id": "code_deadfa11",
+   "cat": "Вылет приложения",
+   "title": "0xdeadfa11 — принудительное закрытие",
+   "patterns": [
+    "deadfa11"
+   ],
+   "node": "Пользователь",
+   "symptoms": "—",
+   "cause": "Пользователь принудительно перезагрузил/закрыл зависшее приложение.",
+   "fix": "—",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "code_baadca11",
+   "cat": "Вылет приложения",
+   "title": "0xbaadca11 / 0xbad22222",
+   "patterns": [
+    "baadca11",
+    "bad22222"
+   ],
+   "node": "Приложение",
+   "symptoms": "Приложение закрывается.",
+   "cause": "Нарушение правил работы в фоне (VoIP и т.п.).",
+   "fix": "Обновить приложение.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "jetsam",
+   "cat": "Вылет приложения",
+   "title": "Jetsam — нехватка оперативной памяти",
+   "patterns": [
+    "JetsamEvent",
+    "\\bjetsam\\b"
+   ],
+   "node": "RAM / ПО",
+   "symptoms": "Приложения перезапускаются при переключении, вылетают в фоне.",
+   "cause": "iOS выгружает приложения, когда не хватает RAM. Нормально в небольших количествах.",
+   "fix": "Если очень часто — перезагрузить, обновить iOS, удалить тяжёлые приложения.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "itunes_1",
+   "cat": "Ошибка iTunes / восстановления",
+   "title": "Ошибка 1 / -1",
+   "patterns": [],
+   "node": "Модем",
+   "symptoms": "Восстановление прерывается.",
+   "cause": "Чаще всего проблема модема или прошивка не подходит к модели.",
+   "fix": "Проверить прошивку; при повторе — модем и его питание.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "itunes_9",
+   "cat": "Ошибка iTunes / восстановления",
+   "title": "Ошибка 9",
+   "patterns": [],
+   "node": "Связь / NAND / процессор",
+   "symptoms": "Телефон отключается во время восстановления.",
+   "cause": "Устройство неожиданно потеряло связь: кабель/порт, либо NAND, процессор, питание.",
+   "fix": "Сменить кабель и USB-порт (лучше задний на ПК). Если повторяется — NAND/плата. Официальный совет Apple: обновить iTunes или macOS, повторить, попробовать другой компьютер; если ошибка повторяется — обратиться в сервис.",
+   "sources": [
+    "apple_restore"
+   ],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "itunes_14",
+   "cat": "Ошибка iTunes / восстановления",
+   "title": "Ошибка 14",
+   "patterns": [],
+   "node": "Прошивка / кабель / NAND",
+   "symptoms": "Ошибка во время записи прошивки.",
+   "cause": "Повреждённый файл прошивки, плохой кабель, мало места, иногда NAND.",
+   "fix": "Скачать прошивку заново, сменить кабель, восстановить через DFU.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "itunes_17",
+   "cat": "Ошибка iTunes / восстановления",
+   "title": "Ошибка 17",
+   "patterns": [],
+   "node": "ПО",
+   "symptoms": "—",
+   "cause": "Попытка обновления с изменённой прошивки или блок сервера.",
+   "fix": "Восстановить через DFU, проверить файл hosts.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "itunes_21",
+   "cat": "Ошибка iTunes / восстановления",
+   "title": "Ошибка 21",
+   "patterns": [],
+   "node": "Аккумулятор / DFU",
+   "symptoms": "—",
+   "cause": "Проблема с режимом DFU или с питанием/аккумулятором.",
+   "fix": "Зарядить/заменить аккумулятор, повторить в DFU.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "itunes_27_29",
+   "cat": "Ошибка iTunes / восстановления",
+   "title": "Ошибка 27 / 29",
+   "patterns": [],
+   "node": "Аккумулятор",
+   "symptoms": "—",
+   "cause": "Часто — неоригинальный или неисправный аккумулятор; также устаревший iTunes.",
+   "fix": "Обновить iTunes, поставить другой аккумулятор.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "itunes_40",
+   "cat": "Ошибка iTunes / восстановления",
+   "title": "Ошибка 40",
+   "patterns": [],
+   "node": "NAND",
+   "symptoms": "—",
+   "cause": "Часто связана с памятью NAND.",
+   "fix": "Повторить в DFU; диагностика NAND.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "itunes_53",
+   "cat": "Ошибка iTunes / восстановления",
+   "title": "Ошибка 53",
+   "patterns": [],
+   "node": "Touch ID",
+   "symptoms": "Не восстанавливается после замены кнопки Home.",
+   "cause": "Сканер Touch ID не совпадает с платой.",
+   "fix": "Вернуть родную кнопку Home / шлейф.",
+   "models": "iPhone 6 / 6s / 7 / 8",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "itunes_56",
+   "cat": "Ошибка iTunes / восстановления",
+   "title": "Ошибка 56",
+   "patterns": [],
+   "node": "Touch ID / NFC / модем",
+   "symptoms": "—",
+   "cause": "Аппаратная проблема Touch ID, NFC или модема.",
+   "fix": "Диагностика этих узлов.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "itunes_1015",
+   "cat": "Ошибка iTunes / восстановления",
+   "title": "Ошибка 1015",
+   "patterns": [],
+   "node": "Модем / ПО",
+   "symptoms": "—",
+   "cause": "Попытка установить более старую iOS (даунгрейд) или проблема модема.",
+   "fix": "Ставить только подписанную актуальную прошивку.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "itunes_16xx",
+   "cat": "Ошибка iTunes / восстановления",
+   "title": "Ошибки 1600–1611, 1667–1669",
+   "patterns": [],
+   "node": "Режим DFU / USB",
+   "symptoms": "—",
+   "cause": "Проблемы входа в режим DFU/Recovery или USB-соединения.",
+   "fix": "Повторить вход в DFU, сменить кабель/порт, переустановить драйвер.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "itunes_2001",
+   "cat": "Ошибка iTunes / восстановления",
+   "title": "Ошибки 2001–2011",
+   "patterns": [],
+   "node": "USB",
+   "symptoms": "—",
+   "cause": "Проблемы USB: кабель, порт, драйвер Apple Mobile Device.",
+   "fix": "Другой кабель/порт, переустановить iTunes / Apple Devices.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "itunes_3194",
+   "cat": "Ошибка iTunes / восстановления",
+   "title": "Ошибки 3004 / 3014 / 3194",
+   "patterns": [],
+   "node": "Сеть / серверы Apple",
+   "symptoms": "—",
+   "cause": "Нет связи с сервером подписи gs.apple.com или прошивка больше не подписывается.",
+   "fix": "Проверить интернет, файл hosts, антивирус; ставить актуальную прошивку.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "itunes_4005",
+   "cat": "Ошибка iTunes / восстановления",
+   "title": "Ошибка 4005",
+   "patterns": [],
+   "node": "NAND / питание / кабель",
+   "symptoms": "—",
+   "cause": "Критическая ошибка восстановления: часто NAND, питание, кабель.",
+   "fix": "Сменить кабель/ПК, повторить в DFU; затем диагностика платы. Официальный совет Apple: обновить iTunes или macOS, повторить, попробовать другой компьютер; если ошибка повторяется — обратиться в сервис.",
+   "sources": [
+    "apple_restore"
+   ],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "itunes_4013",
+   "cat": "Ошибка iTunes / восстановления",
+   "title": "Ошибки 4013 / 4014",
+   "patterns": [],
+   "node": "Связь / NAND / процессор",
+   "symptoms": "Телефон перезагружается/отключается во время восстановления.",
+   "cause": "Потеря соединения: кабель/порт, или аппаратно — NAND, процессор, питание.",
+   "fix": "Сменить кабель/порт, восстановить через DFU. Если стабильно повторяется — плата. Официальный совет Apple: обновить iTunes или macOS, повторить, попробовать другой компьютер; если ошибка повторяется — обратиться в сервис.",
+   "sources": [
+    "apple_restore"
+   ],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "itunes_9006",
+   "cat": "Ошибка iTunes / восстановления",
+   "title": "Ошибка 9006",
+   "patterns": [],
+   "node": "Сеть",
+   "symptoms": "—",
+   "cause": "Загрузка прошивки прервана (сеть, антивирус).",
+   "fix": "Скачать прошивку вручную, отключить антивирус.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "itunes_e8000015",
+   "cat": "Ошибка iTunes / восстановления",
+   "title": "0xE8000015 / 0xE800000A",
+   "patterns": [],
+   "node": "USB / доверие",
+   "symptoms": "iTunes не видит телефон.",
+   "cause": "Устройство не распознано или не доверено, проблемы драйвера.",
+   "fix": "Разблокировать iPhone, нажать «Доверять», переустановить драйвер.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "sym_3min",
+   "cat": "Симптомы телефона",
+   "title": "Перезагружается каждые 3 минуты",
+   "patterns": [],
+   "node": "Датчики / шлейфы",
+   "symptoms": "Включается, работает ~3 минуты, перезагружается.",
+   "cause": "Отсутствует датчик (thermalmonitord). Самые частые причины: шлейф зарядки (mic1/prs0), аккумулятор (TG0B/TG0V).",
+   "fix": "Снять panic-full и посмотреть Missing sensor(s). Перед восстановлением сделайте резервную копию: при аппаратной панике восстановление часто обрывается ошибкой 4013.",
+   "sources": [
+    "arbor",
+    "ifixit_ms"
+   ],
+   "confidence": "reported",
+   "keywords": "перезагружается каждые 3 минуты циклически"
+  },
+  {
+   "id": "sym_bootloop",
+   "cat": "Симптомы телефона",
+   "title": "Бутлуп (циклическая перезагрузка на яблоке)",
+   "patterns": [],
+   "node": "ПО / NAND / SEP / аккумулятор",
+   "symptoms": "Не загружается дальше логотипа.",
+   "cause": "Повреждённая система, NAND, SEP, слабый аккумулятор, отсутствующий датчик.",
+   "fix": "Восстановить через DFU; смотреть паники; поставить другой аккумулятор.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "sym_load_off",
+   "cat": "Симптомы телефона",
+   "title": "Выключается под нагрузкой / на 20–30%",
+   "patterns": [],
+   "node": "Аккумулятор",
+   "symptoms": "Резко выключается при камере, игре, на холоде.",
+   "cause": "Износ аккумулятора — напряжение проседает.",
+   "fix": "Проверить здоровье и циклы аккумулятора, заменить.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "sym_no_power",
+   "cat": "Симптомы телефона",
+   "title": "Не включается",
+   "patterns": [],
+   "node": "Аккумулятор / плата",
+   "symptoms": "Нет реакции на кнопку и зарядку.",
+   "cause": "Разряженный/мёртвый аккумулятор, КЗ на плате, PMU.",
+   "fix": "Зарядить 30 мин оригинальной зарядкой, проверить ток потребления на блоке питания.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "sym_hot",
+   "cat": "Симптомы телефона",
+   "title": "Греется в покое / быстро садится",
+   "patterns": [],
+   "node": "ПО / утечка / модем",
+   "symptoms": "Нагрев без нагрузки, быстрый разряд.",
+   "cause": "После обновления iOS индексирует данные (норма 1–2 дня); иначе — утечка тока, модем постоянно ищет сеть, изношенный аккумулятор.",
+   "fix": "Подождать после обновления, проверить «Аккумулятор» в настройках, ток покоя.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "sym_no_network",
+   "cat": "Симптомы телефона",
+   "title": "Нет сети / «Поиск» / «Нет SIM»",
+   "patterns": [],
+   "node": "Модем / SIM / антенны",
+   "symptoms": "Не ловит сеть, не видит SIM, пустой IMEI.",
+   "cause": "SIM-лоток и контакты SIM (или профиль eSIM), антенны, модем.",
+   "fix": "Другая SIM или переустановка eSIM у оператора, сброс настроек сети, восстановление, затем модем. Модели только с eSIM (без лотка): iPhone 14 и новее для США, iPhone Air, часть iPhone 17 — у них искать проблему в лотке не нужно.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "sym_wifi_grey",
+   "cat": "Симптомы телефона",
+   "title": "Серый Wi-Fi / Bluetooth",
+   "patterns": [],
+   "node": "Wi-Fi модуль",
+   "symptoms": "Переключатель Wi-Fi неактивен.",
+   "cause": "Wi-Fi модуль не инициализируется: пайка, питание.",
+   "fix": "Сброс настроек сети; если не помогло — модуль.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "sym_no_audio",
+   "cat": "Симптомы телефона",
+   "title": "Не слышно в разговоре / меня не слышат",
+   "patterns": [],
+   "node": "Аудио",
+   "symptoms": "Проблемы со звуком при звонке.",
+   "cause": "Микрофоны, динамики, их шлейфы, аудиокодек.",
+   "fix": "Записать диктофон с каждого микрофона, проверить шлейфы.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "sym_faceid",
+   "cat": "Симптомы телефона",
+   "title": "Face ID недоступен",
+   "patterns": [],
+   "node": "Face ID",
+   "symptoms": "Сообщение «Face ID недоступен».",
+   "cause": "Повреждён проектор точек, ИК-камера, шлейф, влага.",
+   "fix": "Диагностика модуля Face ID (привязан к плате).",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "sym_no_charge",
+   "cat": "Симптомы телефона",
+   "title": "Не заряжается / «Аксессуар не поддерживается»",
+   "patterns": [],
+   "node": "Зарядка / Tristar / Hydra",
+   "symptoms": "Нет зарядки или заряжается с перебоями.",
+   "cause": "Грязь в разъёме, кабель, шлейф зарядки, контроллер USB.",
+   "fix": "Почистить разъём, другой кабель, шлейф, затем контроллер.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "sym_unknown_part",
+   "cat": "Симптомы телефона",
+   "title": "«Неизвестная деталь» / важное сообщение об аккумуляторе",
+   "patterns": [],
+   "node": "Сериализация деталей",
+   "symptoms": "Сообщение в Настройки → Основные → Об этом устройстве.",
+   "cause": "Деталь заменена на неоригинальную или не откалибрована. Аккумулятор — с iPhone XS, дисплей — с iPhone 11, камера — с iPhone 12.",
+   "fix": "На работу обычно не влияет. С iOS 17.x/18 появилась «История деталей и обслуживания» и калибровка оригинальных деталей.",
+   "ios": "iOS 13 и новее",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "sym_touch",
+   "cat": "Симптомы телефона",
+   "title": "Тач не работает / фантомные нажатия",
+   "patterns": [],
+   "node": "Дисплей",
+   "symptoms": "Экран нажимается сам или не реагирует.",
+   "cause": "Повреждённый или некачественный дисплей, шлейф.",
+   "fix": "Проверить с другим дисплеем.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "sym_no_vibro",
+   "cat": "Симптомы телефона",
+   "title": "Нет вибрации",
+   "patterns": [],
+   "node": "Taptic Engine",
+   "symptoms": "Нет вибрации.",
+   "cause": "Taptic Engine или контакт.",
+   "fix": "Проверить в настройках, затем Taptic Engine.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "sym_rotate",
+   "cat": "Симптомы телефона",
+   "title": "Не работает автоповорот / компас / экран не гаснет при звонке",
+   "patterns": [],
+   "node": "Датчики / AOP",
+   "symptoms": "Датчики не работают.",
+   "cause": "Датчик приближения на верхнем шлейфе, датчики движения на плате.",
+   "fix": "Проверить верхний шлейф, затем плату.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "sym_camera",
+   "cat": "Симптомы телефона",
+   "title": "Чёрный экран в камере",
+   "patterns": [],
+   "node": "Камера",
+   "symptoms": "Камера не работает.",
+   "cause": "Модуль камеры, шлейф, ISP.",
+   "fix": "Проверить другие камеры, заменить модуль.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "sym_pc",
+   "cat": "Симптомы телефона",
+   "title": "Компьютер не видит iPhone",
+   "patterns": [],
+   "node": "USB",
+   "symptoms": "Нет в iTunes/программе.",
+   "cause": "Не нажато «Доверять», кабель, драйвер, Tristar/Hydra.",
+   "fix": "Разблокировать, «Доверять», установить iTunes или Apple Devices, другой кабель.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "log_where",
+   "cat": "Логи и версии iOS",
+   "title": "Где находятся логи на iPhone",
+   "patterns": [],
+   "node": "—",
+   "symptoms": "—",
+   "cause": "Настройки → Конфиденциальность и безопасность → Аналитика и улучшения → Данные аналитики. Там файлы panic-full-*, JetsamEvent-*, имя_приложения-*.ips и т.д.",
+   "fix": "Программа снимает их автоматически по USB. Если пусто — включи «Отправлять аналитику iPhone» (логи будут сохраняться).",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "log_formats",
+   "cat": "Логи и версии iOS",
+   "title": "Форматы логов в разных версиях iOS",
+   "patterns": [],
+   "node": "—",
+   "symptoms": "—",
+   "cause": "iOS до 9: паники в виде текста (.panic / .ips с текстом). iOS 10–14: .ips — первая строка JSON-заголовок (bug_type, os_version), дальше JSON с panicString. Вылеты приложений — текст. iOS 15+: вылеты приложений тоже в JSON (.ips, bug_type 309). Новые iOS: кроме panic-full может быть panic-base (сокращённый лог).",
+   "fix": "Программа понимает все эти форматы.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "log_bugtypes",
+   "cat": "Логи и версии iOS",
+   "title": "Что означает bug_type",
+   "patterns": [],
+   "node": "—",
+   "symptoms": "—",
+   "cause": "210 — паника ядра; 409 — паника (watchdog/base); 309/109 — вылет приложения; 298 — Jetsam (нехватка памяти); 385 — превышение ресурсов; 288/115 — снимки стеков; 211 — сводная аналитика.",
+   "fix": "—",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  },
+  {
+   "id": "log_panic_reading",
+   "cat": "Логи и версии iOS",
+   "title": "Как читать panic string",
+   "patterns": [],
+   "node": "—",
+   "symptoms": "—",
+   "cause": "Первая строка — главное: «panic(cpu N caller 0x…): <причина>». Причина — имя драйвера/процесса или текст ошибки. Ниже — версии ПО, «Missing sensor(s)», backtrace. Номер cpu и адреса для диагностики железа обычно не важны.",
+   "fix": "Если несколько паник подряд с одинаковой причиной — это железо. Если причины разные и случайные — чаще ПО или питание/память.",
+   "sources": [],
+   "confidence": "reported",
+   "keywords": ""
+  }
+ ],
+ "i2c_buses": [
+  {
+   "models": [
+    "iPhone11,4",
+    "iPhone11,6"
+   ],
+   "bus": "i2c0",
+   "parts": "основная (широкая) камера, разъём аккумулятора, шлейф зарядки, верхний шлейф датчиков",
+   "source": "ifixit_i2c0"
+  },
+  {
+   "models": [
+    "iPhone11,2",
+    "iPhone11,4",
+    "iPhone11,6",
+    "iPhone11,8"
+   ],
+   "bus": "i2c1",
+   "parts": "вибромотор, датчик освещённости, разговорный динамик, камеры",
+   "source": "rewa"
+  },
+  {
+   "models": [
+    "iPhone11,2"
+   ],
+   "bus": "i2c3",
+   "parts": "контроллер питания дисплея",
+   "source": "ifixit_xs"
+  },
+  {
+   "models": [
+    "iPhone12,5"
+   ],
+   "bus": "i2c3",
+   "parts": "фронтальная камера (J7600), телекамера (J7300), тач (J8100)",
+   "source": "ifixit_i2c3"
+  },
+  {
+   "models": [
+    "iPhone12,8"
+   ],
+   "bus": "i2c2",
+   "parts": "верхний динамик (audio-speaker-top)",
+   "source": "ifixit_se"
+  }
+ ]
+}
