@@ -1,0 +1,2 @@
+{"app_name":"WhatsAppWatchApp","timestamp":"2026-11-01 09:00:00.00 +0300","bug_type":"309","os_version":"Watch OS 12.0 (23R100)","name":"WhatsAppWatchApp"}
+{"procName":"WhatsAppWatchApp","modelCode":"Watch7,3","exception":{"type":"EXC_CRASH","signal":"SIGABRT"}}

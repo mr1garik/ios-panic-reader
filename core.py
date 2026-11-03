@@ -150,25 +150,40 @@ def parse_log(path):
             info["bug_type"] = m.group(1)
 
     info["model"] = PRODUCTS.get(info["product"], info["product"])
+    info["from_watch"] = info["product"].startswith("Watch") or "ProxiedDevice" in path or \
+        bool(re.search(r"\bNano[A-Z]\w*|WatchApp\b|WatchKit", info["process"] or ""))
     if info["kind"] in ("Лог", "Отчёт о сбое") and info["bug_type"] in BUG_TYPES:
         info["kind"] = BUG_TYPES[info["bug_type"]]
+    if info["from_watch"]:
+        info["kind"] += " · Apple Watch"
     info["is_panic"] = bool(info["panic"]) or info["bug_type"] in ("210", "409") or \
         "panic" in os.path.basename(path).lower()
     analyze(info)
     return info
 
 
+APP_CATS = ("Вылет приложения",)
+
+
+def phone_panics(logs):
+    """Паники самого iPhone: логи с часов Apple Watch, которые телефон хранит у себя, не считаются."""
+    return [l for l in logs if l["is_panic"] and not l.get("from_watch")]
+
+
 def analyze(info):
     if info["panic"]:
         hay = info["panic"]
+        entries = KB
+        m = re.search(r"Missing sensor\(s\):\s*([^\n\\\"]+)", hay)
+        if m:
+            info["missing_sensors"] = [s for s in re.split(r"[\s,]+", m.group(1).strip()) if s]
     else:
+        # Не паника: признаки поломок железа здесь не ищем — в аналитике и отчётах о сбоях
+        # слова вроде «baseband» или «WLAN» встречаются всегда и дают ложные тревоги.
         hay = " ".join([info["exception"], os.path.basename(info["file"]), info["raw"][:4000]])
+        entries = [e for e in KB if e["cat"] in APP_CATS]
 
-    m = re.search(r"Missing sensor\(s\):\s*([^\n\\\"]+)", hay)
-    if m:
-        info["missing_sensors"] = [s for s in re.split(r"[\s,]+", m.group(1).strip()) if s]
-
-    for e in KB:
+    for e in entries:
         if e["id"] in ("wd_generic", "wdt_generic") and info["findings"]:
             continue  # общий шаблон — только если ничего конкретнее нет
         for pat in e.get("patterns", []):
@@ -268,7 +283,7 @@ def build_summary(logs, device_info=None):
         out.append("Логов нет.")
         return "\n".join(out)
 
-    panics = [l for l in logs if l["is_panic"]]
+    panics = phone_panics(logs)
     kinds = Counter(l["kind"] for l in logs)
     out.append(f"Всего логов: {len(logs)}, из них паник ядра: {len(panics)}")
     for k, n in kinds.most_common():
@@ -418,7 +433,7 @@ def build_verdict(logs, dev=None):
     """Список проблем для главного экрана, от самой важной.
     Проблема: dict(level='red'|'orange', title, how, why, fix=[...], note, part)."""
     problems = []
-    panics = [l for l in logs if l["is_panic"]]
+    panics = phone_panics(logs)
 
     by_part = {}
     for p in panics:
@@ -479,7 +494,7 @@ def build_verdict(logs, dev=None):
 
 def parts_table(logs, dev=None):
     """Строки для экрана «Детали»: (деталь, данные с телефона, сбои в логах, уровень)."""
-    panics = [l for l in logs if l["is_panic"]]
+    panics = phone_panics(logs)
     fails = {}
     for p in panics:
         part = panic_part(p)

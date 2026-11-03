@@ -35,6 +35,18 @@ class TestParse(unittest.TestCase):
         self.assertEqual(p["process"], "Telegram")
 
 
+class TestFalseAlarms(unittest.TestCase):
+    def test_analytics_mentions_baseband_but_is_not_a_modem_problem(self):
+        (p,) = load("Analytics-2026-11-02-100000.ips.ca.synced")
+        self.assertFalse(p["is_panic"])
+        self.assertEqual(p["findings"], [])
+
+    def test_watch_logs_are_marked_and_not_counted_as_phone_panics(self):
+        (p,) = load("WhatsAppWatchApp-2026-11-01-090000.ips")
+        self.assertTrue(p["from_watch"])
+        self.assertIn("Apple Watch", p["kind"])
+
+
 class TestVerdict(unittest.TestCase):
     def test_repeated_panics_are_red(self):
         logs = [core.parse_log(f) for f in core.collect_files([SAMPLES])]

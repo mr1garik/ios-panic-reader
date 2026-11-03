@@ -1,0 +1,2 @@
+{"bug_type":"211","timestamp":"2026-11-02 10:00:00.00 +0300","os_version":"iPhone OS 27.0.1 (24A446)"}
+{"message":{"baseband":{"state":"idle"},"wlan":{"rssi":-55},"AppleBCMWLAN":1,"CommCenter":"ok"}}
