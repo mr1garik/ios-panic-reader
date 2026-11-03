@@ -52,6 +52,7 @@ class TestDownload(unittest.TestCase):
 
 
 class TestInstallScripts(unittest.TestCase):
+    @unittest.skipIf(sys.platform == "win32", "скрипт для Mac запускается через bash")
     def test_mac_script_swaps_app_and_keeps_data(self):
         d = tempfile.mkdtemp()
         data = os.path.join(d, "Documents", "iOSPanicReader")
@@ -68,7 +69,7 @@ class TestInstallScripts(unittest.TestCase):
             f.write("[]")
         backup = os.path.join(data, "previous", "iOSPanicReader.app")
         script = os.path.join(d, "u.sh")
-        with open(script, "w") as f:
+        with open(script, "w", encoding="utf-8") as f:
             f.write(updater.mac_script(999999, app, new, backup, data, relaunch=False))
         subprocess.run(["/bin/bash", script], check=True, timeout=20)
         with open(os.path.join(app, "Contents", "MacOS", "VERSION")) as f:
