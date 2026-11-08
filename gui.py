@@ -1830,6 +1830,17 @@ class App:
         button(row, "Отмена", w.destroy, size=10).pack(side="right", padx=px(8))
 
 
+def set_window_icon(root):
+    """Иконка окна и панели задач (значок самого файла программы задаётся при сборке)."""
+    base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    path = os.path.join(base, "assets", "icon_256.png")
+    try:
+        root._icon = tk.PhotoImage(file=path)    # ссылку держим, иначе картинку удалит сборщик мусора
+        root.iconphoto(True, root._icon)
+    except (tk.TclError, OSError):
+        pass
+
+
 def run_gui(initial_paths=()):
     if IS_WIN:
         try:
@@ -1838,5 +1849,6 @@ def run_gui(initial_paths=()):
         except Exception:
             pass
     root = tk.Tk()
+    set_window_icon(root)
     App(root, initial_paths)
     root.mainloop()
