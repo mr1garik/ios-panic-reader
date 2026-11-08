@@ -128,6 +128,8 @@ def main():
             break
         time.sleep(1)
     else:
+        log = os.path.join(data, "updates", "update.log")
+        print("журнал установщика:\n" + (read(log) if os.path.exists(log) else "(нет журнала)"))
         fail("установщик не заменил программу за 2 минуты")
     time.sleep(3)
 
@@ -162,6 +164,8 @@ def main():
     if r.returncode != 0 or "обновление не нужно" not in read(out):
         fail("повторная проверка должна сказать, что обновление не нужно")
 
+    log = os.path.join(data, "updates", "update.log")
+    print("журнал установщика:\n" + (read(log) if os.path.exists(log) else "(нет журнала)"))
     print(f"УСПЕХ: {old_version} → {new_version}, данные целы, прошлая версия в previous/")
     httpd.shutdown()
 

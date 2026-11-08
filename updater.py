@@ -182,21 +182,33 @@ def _ps_quote(s):
     return "'" + s.replace("'", "''") + "'"
 
 
-def windows_script(pid, target, new, backup, relaunch):
+def windows_script(pids, target, new, backup, relaunch, log):
+    """PowerShell-установщик. Ждёт завершения всех процессов программы (у exe в один файл их два:
+    загрузчик и сама программа), затем заменяет файл, повторяя попытки, пока он занят.
+    Каждый шаг пишет в журнал log. При ошибке возвращает старую версию."""
+    waits = "\n".join(f"try {{ Wait-Process -Id {p} -Timeout 120 -ErrorAction Stop }} catch {{}}" for p in pids)
     return f"""$ErrorActionPreference = 'Stop'
-try {{ Wait-Process -Id {pid} -Timeout 120 }} catch {{}}
-Start-Sleep -Milliseconds 700
+$log = {_ps_quote(log)}
+function L($m) {{ try {{ Add-Content -LiteralPath $log -Value ((Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + ' ' + $m) -Encoding UTF8 }} catch {{}} }}
+L 'установщик запущен'
+{waits}
+L 'программа закрыта'
 $old = {_ps_quote(target)}; $new = {_ps_quote(new)}; $bak = {_ps_quote(backup)}
-try {{
-  if (Test-Path -LiteralPath $bak) {{ Remove-Item -LiteralPath $bak -Force }}
-  Move-Item -LiteralPath $old -Destination $bak -Force
-  Move-Item -LiteralPath $new -Destination $old -Force
-}} catch {{
-  if (-not (Test-Path -LiteralPath $old) -and (Test-Path -LiteralPath $bak)) {{
-    Move-Item -LiteralPath $bak -Destination $old -Force
-  }}
+if (Test-Path -LiteralPath $bak) {{ Remove-Item -LiteralPath $bak -Force }}
+$moved = $false
+for ($i = 0; $i -lt 60 -and -not $moved; $i++) {{
+  try {{ Move-Item -LiteralPath $old -Destination $bak -Force; $moved = $true }}
+  catch {{ if ($i -eq 0) {{ L ('файл программы занят, жду: ' + $_.Exception.Message) }}; Start-Sleep -Seconds 1 }}
 }}
-if (${'true' if relaunch else 'false'}) {{ Start-Process -FilePath $old }}
+if (-not $moved) {{ L 'не удалось освободить файл программы — обновление отменено, осталась старая версия'; exit 1 }}
+try {{
+  Move-Item -LiteralPath $new -Destination $old -Force
+  L 'новая версия установлена'
+}} catch {{
+  L ('ошибка установки: ' + $_.Exception.Message + ' — возвращаю старую версию')
+  Move-Item -LiteralPath $bak -Destination $old -Force
+}}
+if (${'true' if relaunch else 'false'}) {{ Start-Process -FilePath $old; L 'программа запущена' }}
 Remove-Item -LiteralPath $MyInvocation.MyCommand.Path -Force
 """
 
@@ -208,7 +220,11 @@ def _sh_quote(s):
 def mac_script(pid, target, new, backup, data_dir, relaunch):
     kb_old = os.path.join(target, "Contents", "MacOS", "user_kb.json")
     kb_keep = os.path.join(data_dir, "user_kb.json")
+    log = os.path.join(data_dir, "updates", "update.log")
     return f"""#!/bin/bash
+mkdir -p {_sh_quote(os.path.dirname(log))}
+exec >>{_sh_quote(log)} 2>&1
+echo "$(date '+%Y-%m-%d %H:%M:%S') установщик запущен"
 while kill -0 {pid} 2>/dev/null; do sleep 0.5; done
 sleep 0.5
 APP={_sh_quote(target)}; NEW={_sh_quote(new)}; BAK={_sh_quote(backup)}
@@ -217,8 +233,9 @@ if [ -f {_sh_quote(kb_old)} ] && [ ! -f {_sh_quote(kb_keep)} ]; then cp {_sh_quo
 mkdir -p "$(dirname "$BAK")"
 rm -rf "$BAK"
 if mv "$APP" "$BAK"; then
-  if ! mv "$NEW" "$APP"; then mv "$BAK" "$APP"; fi
-fi
+  if mv "$NEW" "$APP"; then echo "$(date '+%Y-%m-%d %H:%M:%S') новая версия установлена"
+  else mv "$BAK" "$APP"; echo "ошибка установки — возвращена старая версия"; fi
+else echo "не удалось убрать старую версию — обновление отменено"; fi
 xattr -dr com.apple.quarantine "$APP" 2>/dev/null
 {'open "$APP"' if relaunch else ':'}
 rm -f -- "$0"
@@ -235,11 +252,20 @@ def launch_installer(new, data_dir, version, relaunch=True):
     pid = os.getpid()
     if sys.platform == "win32":
         backup = os.path.join(prev, os.path.basename(target))
+        log = os.path.join(data_dir, "updates", "update.log")
+        os.makedirs(os.path.dirname(log), exist_ok=True)
+        # exe «в один файл»: родительский процесс — загрузчик, он тоже держит файл программы
+        pids = [pid, os.getppid()] if getattr(sys, "_MEIPASS", None) and \
+            os.path.dirname(sys._MEIPASS) != os.path.dirname(target) else [pid]
         fd, script = tempfile.mkstemp(suffix=".ps1", prefix="iospr-update-")
         with os.fdopen(fd, "w", encoding="utf-8-sig") as f:
-            f.write(windows_script(pid, target, new, backup, relaunch))
-        subprocess.Popen(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden",
-                          "-File", script], creationflags=0x08000000 | 0x00000008)  # без окна, отдельно
+            f.write(windows_script(pids, target, new, backup, relaunch, log))
+        cmd = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-WindowStyle", "Hidden", "-File", script]
+        no_window, new_group, breakaway = 0x08000000, 0x00000200, 0x01000000
+        try:   # выходим из «задания» родителя, чтобы установщик не закрылся вместе с программой
+            subprocess.Popen(cmd, creationflags=no_window | new_group | breakaway, close_fds=True)
+        except OSError:
+            subprocess.Popen(cmd, creationflags=no_window | new_group, close_fds=True)
     else:
         backup = os.path.join(prev, os.path.basename(target))
         fd, script = tempfile.mkstemp(suffix=".sh", prefix="iospr-update-")

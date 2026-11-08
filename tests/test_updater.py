@@ -82,8 +82,9 @@ class TestInstallScripts(unittest.TestCase):
         self.assertFalse(os.path.exists(script))
 
     def test_windows_script_quotes_paths(self):
-        s = updater.windows_script(1, r"C:\Users\Иван O'Neil\iOSPanicReader.exe", r"C:\x\new.exe",
-                                   r"C:\b\old.exe", True)
+        s = updater.windows_script([1, 2], r"C:\Users\Иван O'Neil\iOSPanicReader.exe", r"C:\x\new.exe",
+                                   r"C:\b\old.exe", True, r"C:\d\update.log")
+        self.assertIn("Wait-Process -Id 2", s)
         self.assertIn("'C:\\Users\\Иван O''Neil\\iOSPanicReader.exe'", s)
         self.assertIn("if ($true)", s)
 
