@@ -118,6 +118,7 @@ python ios_panic_reader.py --cli путь\к\логам
 * `history.py` — история телефонов и ремонтов
 * `report_pdf.py` — PDF-отчёт для клиента
 * `updater.py` — проверка, загрузка и установка обновлений
+* `assets/` — иконка программы (`icon.svg` — исходник, `.ico` для Windows, `.icns` для Mac)
 
 ## Ограничения
 
