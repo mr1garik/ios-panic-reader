@@ -102,7 +102,7 @@ def main():
     with open(os.path.join(srv, "release.json"), "w", encoding="utf-8") as f:
         json.dump(release, f)
 
-    env = dict(os.environ, HOME=home, USERPROFILE=home,
+    env = dict(os.environ, HOME=home, USERPROFILE=home, IOSPR_LANG="ru",
                IOSPR_UPDATE_URL=f"http://127.0.0.1:{port}/release.json")
 
     # версия до обновления

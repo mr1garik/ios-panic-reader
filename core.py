@@ -8,6 +8,8 @@ import sys
 from collections import Counter
 from datetime import datetime
 
+from i18n import _
+
 from knowledge_base import (BUG_TYPES, CONFIDENCE, FILE_KINDS, I2C_BUSES, KB, PRODUCTS, SENSORS,
                             i2c_parts, sensor_info, source_url)
 
@@ -88,7 +90,7 @@ def parse_pasted(text, product=""):
     if text and not text.startswith("{") and "panic(" in text:
         # голый panicString без JSON — оборачиваем, чтобы разбор пошёл обычным путём
         text = json.dumps({"bug_type": "210"}) + "\n" + json.dumps({"panicString": text, "product": product})
-    info = parse_text(text, "вставленный текст")
+    info = parse_text(text, _("вставленный текст"))
     if product and not info["product"]:
         info["product"] = product
         info["model"] = PRODUCTS.get(product, product)
@@ -109,7 +111,7 @@ def parse_text(text, path):
     }
 
     stripped = text.lstrip("﻿").strip()
-    first, _, rest = stripped.partition("\n")
+    first, _sep, rest = stripped.partition("\n")
     header = _try_json(first)
     body = None
     if isinstance(header, dict):
@@ -190,6 +192,11 @@ def parse_text(text, path):
 APP_CATS = ("Вылет приложения",)
 
 
+def tkind(kind):
+    """Вид лога на языке интерфейса (внутри программы он хранится по-русски)."""
+    return " · ".join(_(p) for p in kind.split(" · "))
+
+
 def phone_panics(logs):
     """Паники самого iPhone: логи с часов Apple Watch, которые телефон хранит у себя, не считаются."""
     return [l for l in logs if l["is_panic"] and not l.get("from_watch")]
@@ -221,8 +228,8 @@ def analyze(info):
 def main_cause(info):
     if info["missing_sensors"]:
         names = [sensor_info(s)["name"] for s in info["missing_sensors"]]
-        return "Нет датчика: " + ", ".join(info["missing_sensors"]) + " (" + "; ".join(dict.fromkeys(names)) + ")"
-    for e, _ in info["findings"]:
+        return _("Нет датчика: ") + ", ".join(info["missing_sensors"]) + " (" + "; ".join(dict.fromkeys(names)) + ")"
+    for e, _hit in info["findings"]:
         if e["id"] not in ("wd_generic", "missing_sensor"):
             return e["node"]
     if info["findings"]:
@@ -239,51 +246,51 @@ def device_label(info):
 def build_report(info):
     out = []
     out.append("=" * 72)
-    out.append("Файл:        " + os.path.basename(info["file"]))
-    out.append("Вид лога:    " + info["kind"])
-    out.append("Устройство:  " + device_label(info))
+    out.append(_("Файл:        ") + os.path.basename(info["file"]))
+    out.append(_("Вид лога:    ") + tkind(info["kind"]))
+    out.append(_("Устройство:  ") + device_label(info))
     out.append("iOS:         " + (info["os"] or "—"))
-    out.append("Дата:        " + (str(info["date"]) or "—"))
+    out.append(_("Дата:        ") + (str(info["date"]) or "—"))
     bt = info["bug_type"]
-    out.append("bug_type:    " + (f"{bt} — {BUG_TYPES.get(bt, 'неизвестно')}" if bt else "—"))
+    out.append("bug_type:    " + (f"{bt} — {_(BUG_TYPES.get(bt, 'неизвестно'))}" if bt else "—"))
     if info["process"]:
-        out.append("Процесс:     " + info["process"])
+        out.append(_("Процесс:     ") + info["process"])
     if info["exception"]:
-        out.append("Исключение:  " + info["exception"])
+        out.append(_("Исключение:  ") + info["exception"])
     out.append("")
 
     if info["missing_sensors"]:
-        out.append("ОТСУТСТВУЮЩИЕ ДАТЧИКИ:")
+        out.append(_("ОТСУТСТВУЮЩИЕ ДАТЧИКИ:"))
         for s in info["missing_sensors"]:
             d = sensor_info(s)
             out.append(f"  • {s} — {d['name']}")
-            out.append(f"      Где стоит:   {d['where']}")
+            out.append(_("      Где стоит:   {0}", d['where']))
             if d.get("models"):
-                out.append(f"      По моделям:  {d['models']}")
-            out.append(f"      Что делать:  {d['fix']}")
+                out.append(_("      По моделям:  {0}", d['models']))
+            out.append(_("      Что делать:  {0}", d['fix']))
         out.append("")
 
-    out.append("РАСШИФРОВКА:")
+    out.append(_("РАСШИФРОВКА:"))
     if info["findings"]:
         for i, (e, hit) in enumerate(info["findings"], 1):
-            out.append(f"  {i}. {e['title']}   [найдено: «{hit}»]")
-            out.append(f"     Узел:         {e['node']}")
-            out.append(f"     Как ведёт себя: {e['symptoms']}")
-            out.append(f"     Почему:       {e['cause']}")
-            out.append(f"     Что делать:   {e['fix']}")
+            out.append(_("  {0}. {1}   [найдено: «{2}»]", i, e['title'], hit))
+            out.append(_("     Узел:         {0}", e['node']))
+            out.append(_("     Как ведёт себя: {0}", e['symptoms']))
+            out.append(_("     Почему:       {0}", e['cause']))
+            out.append(_("     Что делать:   {0}", e['fix']))
             out.append("")
     else:
-        out.append("  Известных шаблонов не найдено. Посмотри текст ниже или исходный лог.")
+        out.append(_("  Известных шаблонов не найдено. Посмотри текст ниже или исходный лог."))
         out.append("")
 
     for bus, rows in i2c_hints(info):
-        out.append(f"ШИНА {bus.upper()} У ЭТОЙ МОДЕЛИ:")
+        out.append(_("ШИНА {0} У ЭТОЙ МОДЕЛИ:", bus.upper()))
         for r in rows:
-            out.append(f"  • {r['parts']}  (источник: {source_url(r['source'])})")
+            out.append(_("  • {0}  (источник: {1})", r['parts'], source_url(r['source'])))
         out.append("")
 
     if info["panic"]:
-        out.append("ТЕКСТ ПАНИКИ (panicString):")
+        out.append(_("ТЕКСТ ПАНИКИ (panicString):"))
         out.append(info["panic"].strip()[:6000])
     out.append("")
     return "\n".join(out)
@@ -305,32 +312,33 @@ def _parse_date(s):
 
 def build_summary(logs, device_info=None):
     """Общий вывод по всем логам — что с телефоном."""
-    out = ["СВОДКА ПО ТЕЛЕФОНУ", "=" * 72]
+    out = [_("СВОДКА ПО ТЕЛЕФОНУ"), "=" * 72]
     if device_info:
         for k, v in device_info.items():
             out.append(f"{k + ':':16}{v}")
         out.append("")
     if not logs:
-        out.append("Логов нет.")
+        out.append(_("Логов нет."))
         return "\n".join(out)
 
     panics = phone_panics(logs)
     kinds = Counter(l["kind"] for l in logs)
-    out.append(f"Всего логов: {len(logs)}, из них паник ядра: {len(panics)}")
+    out.append(_("Всего логов: {0}, из них паник ядра: {1}", len(logs), len(panics)))
+    kinds = Counter(tkind(k) for k in kinds.elements())
     for k, n in kinds.most_common():
         out.append(f"  {k}: {n}")
     out.append("")
 
     if panics:
         causes = Counter(main_cause(p) for p in panics)
-        out.append("ЧАСТЫЕ ПРИЧИНЫ ПАНИК:")
+        out.append(_("ЧАСТЫЕ ПРИЧИНЫ ПАНИК:"))
         for c, n in causes.most_common(8):
             out.append(f"  {n:4} × {c}")
         out.append("")
 
         sensors = Counter(s for p in panics for s in p["missing_sensors"])
         if sensors:
-            out.append("ОТСУТСТВУЮЩИЕ ДАТЧИКИ (по всем паникам):")
+            out.append(_("ОТСУТСТВУЮЩИЕ ДАТЧИКИ (по всем паникам):"))
             for s, n in sensors.most_common():
                 d = sensor_info(s)
                 out.append(f"  {n:4} × {s} — {d['name']}: {d['where']}")
@@ -338,7 +346,7 @@ def build_summary(logs, device_info=None):
 
         dates = sorted(d for d in (_parse_date(p["date"]) for p in panics) if d)
         if dates:
-            out.append(f"Первая паника: {dates[0]:%Y-%m-%d %H:%M}   последняя: {dates[-1]:%Y-%m-%d %H:%M}")
+            out.append(_("Первая паника: {0}   последняя: {1}", f"{dates[0]:%Y-%m-%d %H:%M}", f"{dates[-1]:%Y-%m-%d %H:%M}"))
             if len(dates) >= 3:
                 gaps = []
                 for a, b in zip(dates, dates[1:]):
@@ -348,32 +356,31 @@ def build_summary(logs, device_info=None):
                         pass
                 short = [g for g in gaps if 0 < g < 600]
                 if len(short) >= 2:
-                    out.append(f"Паники идут сериями с интервалом ~{int(sorted(short)[len(short)//2])} с "
-                               "→ телефон перезагружается по кругу.")
+                    out.append(_("Паники идут сериями с интервалом ~{0} с → телефон перезагружается по кругу.", int(sorted(short)[len(short)//2])))
             out.append("")
 
         osv = Counter(p["os"] for p in panics if p["os"])
         if len(osv) > 1:
-            out.append("Паники на разных версиях iOS: " + ", ".join(osv) +
-                       " → если причина одна и та же, это железо, а не прошивка.")
+            out.append(_("Паники на разных версиях iOS: ") + ", ".join(osv) +
+                       _(" → если причина одна и та же, это железо, а не прошивка."))
             out.append("")
 
         top, n = causes.most_common(1)[0]
-        out.append("ВЫВОД:")
+        out.append(_("ВЫВОД:"))
         if n >= 3 and n / len(panics) >= 0.6:
-            out.append(f"  Повторяющаяся причина ({n} из {len(panics)}): {top}.")
-            out.append("  Одинаковые паники подряд почти всегда означают аппаратную неисправность этого узла.")
+            out.append(_("  Повторяющаяся причина ({0} из {1}): {2}.", n, len(panics), top))
+            out.append(_("  Одинаковые паники подряд почти всегда означают аппаратную неисправность этого узла."))
         elif len(causes) > 3:
-            out.append("  Причины паник разные — подозрение на ПО, питание (аккумулятор), память или процессор.")
+            out.append(_("  Причины паник разные — подозрение на ПО, питание (аккумулятор), память или процессор."))
         else:
-            out.append(f"  Основная причина: {top}. Открой паники в списке для подробностей.")
+            out.append(_("  Основная причина: {0}. Открой паники в списке для подробностей.", top))
     else:
-        out.append("Паник ядра нет — аппаратных сбоев по логам не видно.")
+        out.append(_("Паник ядра нет — аппаратных сбоев по логам не видно."))
     crashes = [l for l in logs if not l["is_panic"] and l["exception"]]
     if crashes:
         apps = Counter(l["process"] or "?" for l in crashes)
         out.append("")
-        out.append("ВЫЛЕТЫ ПРИЛОЖЕНИЙ:")
+        out.append(_("ВЫЛЕТЫ ПРИЛОЖЕНИЙ:"))
         for a, n in apps.most_common(10):
             out.append(f"  {n:4} × {a}")
     return "\n".join(out)
@@ -383,7 +390,7 @@ def collect_files(paths):
     out = []
     for p in paths:
         if os.path.isdir(p):
-            for root, _, files in os.walk(p):
+            for root, _dirs, files in os.walk(p):
                 for fn in files:
                     if fn.lower().endswith(LOG_EXTENSIONS) or "panic" in fn.lower():
                         out.append(os.path.join(root, fn))
@@ -398,18 +405,18 @@ def collect_files(paths):
 # Детали телефона и общий вывод для главного экрана
 # ---------------------------------------------------------------------------
 PARTS = [
-    ("battery", "Аккумулятор"),
-    ("charge_flex", "Шлейф зарядки (нижний микрофон, барометр)"),
-    ("top_flex", "Верхний шлейф (датчики, микрофон)"),
-    ("display", "Дисплей и тач"),
-    ("camera", "Камеры"),
+    ("battery", _("Аккумулятор")),
+    ("charge_flex", _("Шлейф зарядки (нижний микрофон, барометр)")),
+    ("top_flex", _("Верхний шлейф (датчики, микрофон)")),
+    ("display", _("Дисплей и тач")),
+    ("camera", _("Камеры")),
     ("biometry", "Face ID / Touch ID"),
-    ("baseband", "Модем (сеть, IMEI)"),
+    ("baseband", _("Модем (сеть, IMEI)")),
     ("wifi", "Wi-Fi / Bluetooth / NFC"),
-    ("audio", "Звук (кодек, динамики)"),
-    ("usb", "Контроллер зарядки / USB"),
-    ("board", "Плата (питание, память, процессор)"),
-    ("software", "Программное обеспечение"),
+    ("audio", _("Звук (кодек, динамики)")),
+    ("usb", _("Контроллер зарядки / USB")),
+    ("board", _("Плата (питание, память, процессор)")),
+    ("software", _("Программное обеспечение")),
 ]
 PART_NAMES = dict(PARTS)
 
@@ -447,14 +454,14 @@ def panic_part(info):
     """Какая деталь виновата в этой панике (или None)."""
     if info["missing_sensors"]:
         return sensor_part(info["missing_sensors"][0])
-    for e, _ in info["findings"]:
+    for e, _hit in info["findings"]:
         if e["id"] in KB_PART:
             return KB_PART[e["id"]]
     return None
 
 
 def _main_entry(info):
-    for e, _ in info["findings"]:
+    for e, _hit in info["findings"]:
         if e["id"] in KB_PART or e["id"] == "thermalmonitord":
             return e
     return info["findings"][0][0] if info["findings"] else None
@@ -480,7 +487,7 @@ def build_verdict(logs, dev=None):
         if sensors:
             names = ", ".join(f"{sensor_info(s)['name'].lower()} ({s})" for s in sensors)
             where = sensor_info(sensors.most_common(1)[0][0])
-            why = f"Телефон не видит: {names}. Где стоит: {where['where']}"
+            why = _("Телефон не видит: {0}. Где стоит: {1}", names, where['where'])
             fix = [x.strip() for x in where["fix"].split(". ") if x.strip()]
             how = KB[[k["id"] for k in KB].index("thermalmonitord")]["symptoms"]
         else:
@@ -489,35 +496,35 @@ def build_verdict(logs, dev=None):
             how = e["symptoms"] if e else "—"
         problems.append(dict(
             level=level, part=part, title=PART_NAMES[part], how=how, why=why, fix=fix,
-            note=f"{n} из {len(panics)} {_plural_panic(len(panics))} указывают на эту деталь", count=n))
+            note=_("{0} из {1} {2} указывают на эту деталь", n, len(panics), _plural_panic(len(panics))), count=n))
 
     unknown = by_part.get(None, [])
     if len(unknown) >= 3:
         problems.append(dict(
-            level="orange", part="software", title="Случайные перезагрузки",
-            how="Телефон иногда перезагружается сам.",
-            why="Паники разные и не указывают на одну деталь — чаще ПО, реже питание или память.",
-            fix=["Обновить или восстановить iOS", "Если не помогло — проверить аккумулятор и плату"],
-            note=f"{len(unknown)} паник без явной причины", count=len(unknown)))
+            level="orange", part="software", title=_("Случайные перезагрузки"),
+            how=_("Телефон иногда перезагружается сам."),
+            why=_("Паники разные и не указывают на одну деталь — чаще ПО, реже питание или память."),
+            fix=[_("Обновить или восстановить iOS"), _("Если не помогло — проверить аккумулятор и плату")],
+            note=_("{0} паник без явной причины", len(unknown)), count=len(unknown)))
 
     if dev:
         h = dev.get("battery_health")
         if h is not None and h < 80 and not any(p["part"] == "battery" for p in problems):
             problems.append(dict(
-                level="red", part="battery", title="Аккумулятор изношен",
-                how="Быстро садится, может выключаться на 20–30% заряда или на холоде.",
-                why=f"Ёмкость {h}% от заводской" +
-                    (f", {dev['battery_cycles']} циклов" if dev.get("battery_cycles") else "") +
-                    ". Apple считает нормой не ниже 80%.",
-                fix=["Заменить аккумулятор"], note="по данным контроллера аккумулятора", count=0))
+                level="red", part="battery", title=_("Аккумулятор изношен"),
+                how=_("Быстро садится, может выключаться на 20–30% заряда или на холоде."),
+                why=_("Ёмкость {0}% от заводской", h) +
+                    (_(", {0} циклов", dev['battery_cycles']) if dev.get("battery_cycles") else "") +
+                    _(". Apple считает нормой не ниже 80%."),
+                fix=[_("Заменить аккумулятор")], note=_("по данным контроллера аккумулятора"), count=0))
         if dev.get("is_iphone") and not dev.get("imei") and \
                 not any(p["part"] == "baseband" for p in problems):
             problems.append(dict(
-                level="orange", part="baseband", title="IMEI не прочитан",
-                how="Если в Настройках → Основные → Об этом устройстве IMEI тоже пустой — нет сети.",
-                why="Модем не отдал IMEI. Бывает при неисправном модеме или его питании.",
-                fix=["Проверить IMEI в настройках телефона", "Если пустой — диагностика модема"],
-                note="по данным телефона", count=0))
+                level="orange", part="baseband", title=_("IMEI не прочитан"),
+                how=_("Если в Настройках → Основные → Об этом устройстве IMEI тоже пустой — нет сети."),
+                why=_("Модем не отдал IMEI. Бывает при неисправном модеме или его питании."),
+                fix=[_("Проверить IMEI в настройках телефона"), _("Если пустой — диагностика модема")],
+                note=_("по данным телефона"), count=0))
 
     problems.sort(key=lambda p: (p["level"] != "red", -p["count"]))
     return problems
@@ -534,23 +541,23 @@ def parts_table(logs, dev=None):
     dev = dev or {}
     data = {
         "battery": ", ".join(x for x in (
-            f"ёмкость {dev['battery_health']}%" if dev.get("battery_health") is not None else "",
-            f"{dev['battery_cycles']} циклов" if dev.get("battery_cycles") is not None else "",
-            f"серийный {dev['battery_serial']}" if dev.get("battery_serial") else "") if x),
+            _("ёмкость {0}%", dev['battery_health']) if dev.get("battery_health") is not None else "",
+            _("{0} циклов", dev['battery_cycles']) if dev.get("battery_cycles") is not None else "",
+            _("серийный {0}", dev['battery_serial']) if dev.get("battery_serial") else "") if x),
         "baseband": ", ".join(x for x in (
-            f"IMEI {dev['imei']}" if dev.get("imei") else ("IMEI не прочитан" if dev else ""),
-            f"прошивка модема {dev['baseband']}" if dev.get("baseband") else "") if x),
+            f"IMEI {dev['imei']}" if dev.get("imei") else (_("IMEI не прочитан") if dev else ""),
+            _("прошивка модема {0}", dev['baseband']) if dev.get("baseband") else "") if x),
         "wifi": ", ".join(x for x in (
             f"Wi-Fi {dev['wifi_mac']}" if dev.get("wifi_mac") else "",
             f"BT {dev['bt_mac']}" if dev.get("bt_mac") else "") if x),
-        "board": f"плата {dev['hw_model']}" if dev.get("hw_model") else "",
+        "board": _("плата {0}", dev['hw_model']) if dev.get("hw_model") else "",
         "software": f"iOS {dev['ios']} ({dev.get('build', '')})" if dev.get("ios") else "",
     }
     rows = []
     for pid, name in PARTS:
         c = fails.get(pid)
         n = sum(c.values()) if c else 0
-        fail_text = f"{n} {_plural_panic(n)}: " + "; ".join(k for k, _ in c.most_common(2)) if n else "нет"
+        fail_text = f"{n} {_plural_panic(n)}: " + "; ".join(k for k, _hit in c.most_common(2)) if n else _("нет")
         level = "red" if n >= 3 else ("orange" if n else "green")
         if pid == "battery" and dev.get("battery_health") is not None and dev["battery_health"] < 80:
             level = "red"
@@ -562,10 +569,10 @@ def parts_table(logs, dev=None):
 
 def _plural_panic(n):
     if n % 10 == 1 and n % 100 != 11:
-        return "паника"
+        return _("паника")
     if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14:
-        return "паники"
-    return "паник"
+        return _("паники")
+    return _("паник")
 
 
 # ---------------------------------------------------------------------------
@@ -626,7 +633,7 @@ def _words(q):
 
 def _entry_text(e):
     return " ".join(str(e.get(k, "")) for k in ("id", "title", "node", "symptoms", "cause", "fix", "models",
-                                                 "ios", "keywords")) + " " + " ".join(e.get("patterns", []))
+                                                 "ios", "keywords", "_ru")) + " " + " ".join(e.get("patterns", []))
 
 
 def search_db(query):
@@ -638,7 +645,7 @@ def search_db(query):
         return []
     res, seen = [], set()
     if len(query) > 40 or "panic" in query.lower():
-        for e, _ in parse_pasted(query)["findings"]:
+        for e, _hit in parse_pasted(query)["findings"]:
             i = KB.index(e)
             res.append(("entry", i, e["title"], e["cat"]))
             seen.add(i)
@@ -649,18 +656,18 @@ def search_db(query):
         hay = _entry_text(e).lower()
         if all(w in hay for w in words):
             scored.append((0 if all(w in e["title"].lower() for w in words) else 1, i, e))
-    for _, i, e in sorted(scored, key=lambda x: x[:2]):
+    for _rank, i, e in sorted(scored, key=lambda x: x[:2]):
         res.append(("entry", i, e["title"], e["cat"]))
     for k, d in SENSORS.items():
         hay = (k + " " + " ".join(str(v) for v in d.values() if isinstance(v, str))).lower()
         if all(w in hay for w in words):
-            res.append(("sensor", k, f"Датчик {k} — {d['name']}", "Датчики (Missing sensor)"))
+            res.append(("sensor", k, _("Датчик {0} — {1}", k, d['name']), "Датчики (Missing sensor)"))
     for i, b in enumerate(I2C_BUSES):
         models = " ".join(PRODUCTS.get(m, m) + " " + m for m in b["models"])
-        hay = f"{b['bus']} i2c шина {b['parts']} {models}".lower()
+        hay = _("{0} i2c шина {1} {2}", b['bus'], b['parts'], models).lower()
         if all(w in hay for w in words):
             names = ", ".join(dict.fromkeys(PRODUCTS.get(m, m) for m in b["models"]))
-            res.append(("i2c", i, f"Шина {b['bus']} — {names}", "Шины I2C"))
+            res.append(("i2c", i, _("Шина {0} — {1}", b['bus'], names), _("Шины I2C")))
     return res
 
 
@@ -671,8 +678,8 @@ def search_logs(logs, query):
         return []
     out = []
     for l in logs:
-        hay = " ".join([l["panic"], l["process"], l["exception"], l["kind"], l["model"], l["os"],
-                        os.path.basename(l["file"]), " ".join(e["title"] for e, _ in l["findings"]),
+        hay = " ".join([l["panic"], l["process"], l["exception"], l["kind"], tkind(l["kind"]), l["model"], l["os"],
+                        os.path.basename(l["file"]), " ".join(e["title"] for e, _hit in l["findings"]),
                         " ".join(l["missing_sensors"])]).lower()
         if all(w in hay for w in words):
             out.append(l)

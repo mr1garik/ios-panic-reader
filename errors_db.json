@@ -1,7 +1,7 @@
 {
  "meta": {
   "name": "База ошибок iOS Panic Reader",
-  "version": 2,
+  "version": 3,
   "updated": "2026-11-03",
   "note": "Подсказки — ориентир для диагностики, не окончательный диагноз. Расположение датчиков и шин зависит от модели.",
   "sources": {
@@ -27,7 +27,12 @@
    "apple": "документация Apple",
    "common": "многократно подтверждается в сервисах и на iFixit",
    "reported": "по сообщениям сервисов — проверяйте по полному логу и симптомам"
-  }
+  },
+  "languages": [
+   "ru",
+   "en",
+   "uk"
+  ]
  },
  "categories": [
   "Паника ядра",
@@ -153,25 +158,81 @@
    "fix": "Переподключить/почистить разъём шлейфа зарядки, поставить заведомо рабочий шлейф. Если не помогло — проверить разъём на плате и линии от него. Частые причины — влага и механическое повреждение шлейфа.",
    "sources": [
     "vcc"
-   ]
+   ],
+   "i18n": {
+    "en": {
+     "name": "Bottom microphone",
+     "where": "The charging flex (Lightning / USB-C) with the bottom microphone.",
+     "models": "iPhone 8 / X / XS / XR / 11 / 12 / 13 / 14 — almost always the charging flex, its connector on the board or a corroded connector. iPhone 15+ — the bottom USB-C flex.",
+     "fix": "Reconnect/clean the charging flex connector, fit a known-good flex. If that doesn't help — check the connector on the board and the lines from it. Common causes are liquid damage and mechanical damage to the flex."
+    },
+    "uk": {
+     "name": "Нижній мікрофон",
+     "where": "Шлейф заряджання (Lightning / USB-C) з нижнім мікрофоном.",
+     "models": "iPhone 8 / X / XS / XR / 11 / 12 / 13 / 14 — майже завжди шлейф заряджання, його роз'єм на платі або окислення роз'єму. iPhone 15+ — нижній шлейф USB-C.",
+     "fix": "Перепідключити/почистити роз'єм шлейфа заряджання, поставити свідомо робочий шлейф. Якщо не допомогло — перевірити роз'єм на платі й лінії від нього. Часті причини — волога й механічне пошкодження шлейфа."
+    }
+   }
   },
   "mic2": {
    "name": "Верхний / фронтальный микрофон",
    "where": "Верхний шлейф (фронтальная камера, датчик приближения, разговорный динамик).",
    "models": "Зависит от модели: на X–14 чаще шлейф разговорного динамика / датчиков; на части моделей — шлейф кнопок громкости.",
-   "fix": "Проверить верхний шлейф и его разъём, нет ли следов влаги."
+   "fix": "Проверить верхний шлейф и его разъём, нет ли следов влаги.",
+   "i18n": {
+    "en": {
+     "name": "Top / front microphone",
+     "where": "The top flex (front camera, proximity sensor, earpiece).",
+     "models": "Depends on the model: on X–14 more often the earpiece/sensor flex; on some models the volume button flex.",
+     "fix": "Check the top flex and its connector for signs of liquid."
+    },
+    "uk": {
+     "name": "Верхній / фронтальний мікрофон",
+     "where": "Верхній шлейф (фронтальна камера, датчик наближення, розмовний динамік).",
+     "models": "Залежить від моделі: на X–14 частіше шлейф розмовного динаміка / датчиків; на частині моделей — шлейф кнопок гучності.",
+     "fix": "Перевірити верхній шлейф і його роз'єм, чи немає слідів вологи."
+    }
+   }
   },
   "mic3": {
    "name": "Микрофон у основной камеры",
    "where": "Шлейф вспышки / основной камеры.",
    "models": "Зависит от модели.",
-   "fix": "Проверить шлейф вспышки и микрофона возле камеры."
+   "fix": "Проверить шлейф вспышки и микрофона возле камеры.",
+   "i18n": {
+    "en": {
+     "name": "Microphone near the main camera",
+     "where": "The flash / main camera flex.",
+     "models": "Depends on the model.",
+     "fix": "Check the flash and microphone flex near the camera."
+    },
+    "uk": {
+     "name": "Мікрофон біля основної камери",
+     "where": "Шлейф спалаху / основної камери.",
+     "models": "Залежить від моделі.",
+     "fix": "Перевірити шлейф спалаху й мікрофона біля камери."
+    }
+   }
   },
   "mic4": {
    "name": "Дополнительный микрофон",
    "where": "Верхний шлейф / шлейф датчиков.",
    "models": "Зависит от модели.",
-   "fix": "Проверить верхние шлейфы."
+   "fix": "Проверить верхние шлейфы.",
+   "i18n": {
+    "en": {
+     "name": "Additional microphone",
+     "where": "The top flex / sensor flex.",
+     "models": "Depends on the model.",
+     "fix": "Check the top flex cables."
+    },
+    "uk": {
+     "name": "Додатковий мікрофон",
+     "where": "Верхній шлейф / шлейф датчиків.",
+     "models": "Залежить від моделі.",
+     "fix": "Перевірити верхні шлейфи."
+    }
+   }
   },
   "prs0": {
    "name": "Барометр (датчик давления)",
@@ -181,7 +242,21 @@
    "sources": [
     "vcc",
     "arbor"
-   ]
+   ],
+   "i18n": {
+    "en": {
+     "name": "Barometer (pressure sensor)",
+     "where": "The charging flex (on most iPhone 8–14 models the barometer sits on it).",
+     "models": "iPhone 8 / X / XS / XR / 11 / 12 / 13 / 14. Often together with mic1.",
+     "fix": "Replace/reconnect the charging flex. If mic1 and prs0 appear together — almost certainly the charging flex or its connector."
+    },
+    "uk": {
+     "name": "Барометр (датчик тиску)",
+     "where": "Шлейф заряджання (на більшості моделей iPhone 8–14 барометр стоїть на ньому).",
+     "models": "iPhone 8 / X / XS / XR / 11 / 12 / 13 / 14. Часто разом із mic1.",
+     "fix": "Замінити/перепідключити шлейф заряджання. Якщо mic1 і prs0 разом — майже напевно шлейф заряджання або його роз'єм."
+    }
+   }
   },
   "tg0b": {
    "name": "Термодатчик аккумулятора",
@@ -191,7 +266,21 @@
    "sources": [
     "ifixit_tg",
     "gsm"
-   ]
+   ],
+   "i18n": {
+    "en": {
+     "name": "Battery temperature sensor",
+     "where": "The battery or the battery controller / charging IC (Tigris).",
+     "models": "iPhone X and newer.",
+     "fix": "Fit a known-good battery, check the battery connector. If that doesn't help — the battery controller circuits on the board. A common cause is a non-genuine battery."
+    },
+    "uk": {
+     "name": "Термодатчик акумулятора",
+     "where": "Акумулятор або контролер акумулятора / мікросхема заряджання (Tigris).",
+     "models": "iPhone X і новіші.",
+     "fix": "Поставити свідомо справний акумулятор, перевірити роз'єм акумулятора. Якщо не допомогло — кола контролера акумулятора на платі. Часта причина — неоригінальний акумулятор."
+    }
+   }
   },
   "tg0v": {
    "name": "Термодатчик аккумулятора",
@@ -200,31 +289,93 @@
    "fix": "Проверить аккумулятор и его разъём.",
    "sources": [
     "ifixit_tg"
-   ]
+   ],
+   "i18n": {
+    "en": {
+     "name": "Battery temperature sensor",
+     "where": "The battery.",
+     "models": "iPhone X and newer.",
+     "fix": "Check the battery and its connector."
+    },
+    "uk": {
+     "name": "Термодатчик акумулятора",
+     "where": "Акумулятор.",
+     "models": "iPhone X і новіші.",
+     "fix": "Перевірити акумулятор і його роз'єм."
+    }
+   }
   },
   "tg0c": {
    "name": "Датчик аккумулятора",
    "where": "Аккумулятор.",
    "models": "",
-   "fix": "Проверить аккумулятор и его разъём."
+   "fix": "Проверить аккумулятор и его разъём.",
+   "i18n": {
+    "en": {
+     "name": "Battery sensor",
+     "where": "The battery.",
+     "fix": "Check the battery and its connector."
+    },
+    "uk": {
+     "name": "Датчик акумулятора",
+     "where": "Акумулятор.",
+     "fix": "Перевірити акумулятор і його роз'єм."
+    }
+   }
   },
   "tp0z": {
    "name": "Термодатчик на плате",
    "where": "Системная плата / цепь питания.",
    "models": "",
-   "fix": "Диагностика платы, цепи питания."
+   "fix": "Диагностика платы, цепи питания.",
+   "i18n": {
+    "en": {
+     "name": "Board temperature sensor",
+     "where": "The logic board / power circuit.",
+     "fix": "Diagnose the logic board and power circuit."
+    },
+    "uk": {
+     "name": "Термодатчик на платі",
+     "where": "Системна плата / коло живлення.",
+     "fix": "Діагностика плати, кола живлення."
+    }
+   }
   },
   "ts0p": {
    "name": "Термодатчик платы",
    "where": "Системная плата / PMU.",
    "models": "",
-   "fix": "Диагностика платы."
+   "fix": "Диагностика платы.",
+   "i18n": {
+    "en": {
+     "name": "Board temperature sensor",
+     "where": "The logic board / PMU.",
+     "fix": "Diagnose the logic board."
+    },
+    "uk": {
+     "name": "Термодатчик плати",
+     "where": "Системна плата / PMU.",
+     "fix": "Діагностика плати."
+    }
+   }
   },
   "tc0p": {
    "name": "Термодатчик процессора",
    "where": "Процессор / плата.",
    "models": "",
-   "fix": "Диагностика платы, процессора."
+   "fix": "Диагностика платы, процессора.",
+   "i18n": {
+    "en": {
+     "name": "Processor temperature sensor",
+     "where": "The processor / logic board.",
+     "fix": "Diagnose the logic board and processor."
+    },
+    "uk": {
+     "name": "Термодатчик процесора",
+     "where": "Процесор / плата.",
+     "fix": "Діагностика плати, процесора."
+    }
+   }
   }
  },
  "entries": [
@@ -248,7 +399,27 @@
     "vcc"
    ],
    "confidence": "common",
-   "keywords": "перезагрузка каждые 3 минуты 180 секунд циклическая перезагрузка датчик"
+   "keywords": "перезагрузка каждые 3 минуты 180 секунд циклическая перезагрузка датчик",
+   "i18n": {
+    "en": {
+     "title": "Watchdog: thermalmonitord (restart every 3 minutes)",
+     "node": "Sensors / flex cables / battery",
+     "symptoms": "The phone turns on, works for ~3 minutes (180 seconds) and restarts. It repeats in a loop. In DFU/Recovery it works normally.",
+     "cause": "The thermalmonitord service polls all temperature sensors and microphones. If even one is missing, the service fails to check in with the watchdog, and after 180 s the system panics.",
+     "fix": "Find the line «Missing sensor(s): …» in the panic text — it lists the missing sensors. Most often: mic1/prs0 — charging flex, TG0B/TG0V — battery. If the line is absent, check the charging flex, battery and top flex one by one. The sensor in the list is not always the broken part: check both the connector and the lines to it (there is a known iPhone 11 case where corrosion in the volume flex connector and a shorted i2c1 bus were to blame). Restoring iOS with this panic often fails with error 4013 — make a backup first.",
+     "models": "iPhone 8 and newer (especially 11–14)",
+     "ios": "iOS 11 and newer"
+    },
+    "uk": {
+     "title": "Watchdog: thermalmonitord (перезавантаження кожні 3 хвилини)",
+     "node": "Датчики / шлейфи / акумулятор",
+     "symptoms": "Телефон вмикається, працює ~3 хвилини (180 секунд) і перезавантажується. Повторюється по колу. У DFU/Recovery працює нормально.",
+     "cause": "Служба thermalmonitord опитує всі датчики температури й мікрофони. Якщо бодай одного немає, служба не звітує watchdog-у, і через 180 с система викликає паніку.",
+     "fix": "Знайдіть у тексті паніки рядок «Missing sensor(s): …» — там список відсутніх датчиків. Найчастіше: mic1/prs0 — шлейф заряджання, TG0B/TG0V — акумулятор. Якщо рядка немає — перевіряйте по черзі шлейф заряджання, акумулятор, верхній шлейф. Датчик зі списку — не завжди зламана деталь: перевіряйте і роз'єм, і лінії до нього (відомий випадок на iPhone 11, коли винна була корозія в роз'ємі шлейфа гучності й замкнена шина i2c1). Відновлення iOS за такої паніки часто обривається помилкою 4013 — спершу зробіть резервну копію.",
+     "models": "iPhone 8 і новіші (особливо 11–14)",
+     "ios": "iOS 11 і новіші"
+    }
+   }
   },
   {
    "id": "missing_sensor",
@@ -270,7 +441,27 @@
     "vcc"
    ],
    "confidence": "common",
-   "keywords": "нет датчика missing sensor"
+   "keywords": "нет датчика missing sensor",
+   "i18n": {
+    "en": {
+     "title": "Missing sensor(s) — the system can't see a sensor",
+     "node": "Sensors",
+     "symptoms": "Usually a restart every ~3 minutes.",
+     "cause": "A sensor from the list doesn't respond: broken flex cable, poor contact in the connector, non-genuine or damaged part, corrosion after liquid damage.",
+     "fix": "See the explanation of each sensor in the report. First replace/reconnect the part the sensor is on, then check the connector on the board.",
+     "models": "iPhone 8 and newer",
+     "ios": "iOS 11 and newer"
+    },
+    "uk": {
+     "title": "Missing sensor(s) — система не бачить датчик",
+     "node": "Датчики",
+     "symptoms": "Зазвичай — перезавантаження кожні ~3 хвилини.",
+     "cause": "Датчик зі списку не відповідає: обірваний шлейф, поганий контакт у роз'ємі, неоригінальна або пошкоджена деталь, окислення після вологи.",
+     "fix": "Дивіться розшифрування кожного датчика у звіті. Спершу замінюйте/перепідключайте деталь, на якій стоїть датчик, потім перевіряйте роз'єм на платі.",
+     "models": "iPhone 8 і новіші",
+     "ios": "iOS 11 і новіші"
+    }
+   }
   },
   {
    "id": "wd_springboard",
@@ -285,7 +476,23 @@
    "fix": "Удалить твики/профили, обновить или восстановить iOS. Если повторяется после восстановления — проверить дисплей и память.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Watchdog: SpringBoard / backboardd",
+     "node": "Software / display / touch",
+     "symptoms": "The interface freezes, then the phone restarts. Happens after updates or tweaks.",
+     "cause": "The interface doesn't respond for longer than allowed. Most often a software problem, less often the display/touch controller or NAND.",
+     "fix": "Remove tweaks/profiles, update or restore iOS. If it repeats after a restore — check the display and memory."
+    },
+    "uk": {
+     "title": "Watchdog: SpringBoard / backboardd",
+     "node": "ПЗ / дисплей / тач",
+     "symptoms": "Зависання інтерфейсу, потім перезавантаження. Буває після оновлення або твіків.",
+     "cause": "Інтерфейс не відповідає довше допустимого. Найчастіше — програмна проблема, рідше контролер дисплея/тача, NAND.",
+     "fix": "Видалити твіки/профілі, оновити або відновити iOS. Якщо повторюється після відновлення — перевірити дисплей і пам'ять."
+    }
+   }
   },
   {
    "id": "wd_wifid",
@@ -300,7 +507,23 @@
    "fix": "Сбросить настройки сети; если не помогло — диагностика Wi-Fi модуля и его питания.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Watchdog: wifid / bluetoothd",
+     "node": "Wi-Fi / Bluetooth module",
+     "symptoms": "Restarts, Wi-Fi/Bluetooth greyed out, Wi-Fi won't turn on.",
+     "cause": "The Wi-Fi/BT service hung — the module doesn't respond (soldering, module power, the module itself).",
+     "fix": "Reset network settings; if that doesn't help — diagnose the Wi-Fi module and its power."
+    },
+    "uk": {
+     "title": "Watchdog: wifid / bluetoothd",
+     "node": "Модуль Wi-Fi / Bluetooth",
+     "symptoms": "Перезавантаження, сірий Wi-Fi/Bluetooth, Wi-Fi не вмикається.",
+     "cause": "Служба Wi-Fi/BT зависла — модуль не відповідає (пайка, живлення модуля, сам модуль).",
+     "fix": "Скинути параметри мережі; якщо не допомогло — діагностика модуля Wi-Fi та його живлення."
+    }
+   }
   },
   {
    "id": "wd_commcenter",
@@ -315,7 +538,23 @@
    "fix": "Проверить SIM или профиль eSIM (на моделях без SIM-лотка — только eSIM), затем модем, его питание и память модема.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Watchdog: CommCenter",
+     "node": "Modem",
+     "symptoms": "No service / «Searching», restarts.",
+     "cause": "The telephony service can't reach the modem.",
+     "fix": "Check the SIM or the eSIM profile (on models without a SIM tray — eSIM only), then the modem, its power and the modem memory."
+    },
+    "uk": {
+     "title": "Watchdog: CommCenter",
+     "node": "Модем",
+     "symptoms": "Немає мережі / «Пошук», перезавантаження.",
+     "cause": "Служба зв'язку не може достукатися до модему.",
+     "fix": "Перевірити SIM або профіль eSIM (на моделях без SIM-лотка — лише eSIM), потім модем, його живлення й пам'ять модему."
+    }
+   }
   },
   {
    "id": "wd_mediaserverd",
@@ -330,7 +569,23 @@
    "fix": "Проверить аудиокодек, динамики, микрофоны, шлейфы.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Watchdog: mediaserverd / audiomxd",
+     "node": "Audio subsystem",
+     "symptoms": "Restarts during calls, video recording or audio playback; no sound.",
+     "cause": "The audio service hung — audio codec, amplifier, speakers or microphones.",
+     "fix": "Check the audio codec, speakers, microphones and flex cables."
+    },
+    "uk": {
+     "title": "Watchdog: mediaserverd / audiomxd",
+     "node": "Аудіопідсистема",
+     "symptoms": "Перезавантаження під час дзвінка, запису відео, відтворення звуку; немає звуку.",
+     "cause": "Аудіосервіс завис — аудіокодек, підсилювач, динаміки або мікрофони.",
+     "fix": "Перевірити аудіокодек, динаміки, мікрофони, шлейфи."
+    }
+   }
   },
   {
    "id": "wd_locationd",
@@ -345,7 +600,23 @@
    "fix": "Проверить модем/GPS и датчики (AOP).",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Watchdog: locationd",
+     "node": "Location / motion sensors",
+     "symptoms": "Restarts, compass/location doesn't work.",
+     "cause": "locationd gets no data from the GPS/modem or the sensors.",
+     "fix": "Check the modem/GPS and the sensors (AOP)."
+    },
+    "uk": {
+     "title": "Watchdog: locationd",
+     "node": "Геолокація / датчики руху",
+     "symptoms": "Перезавантаження, не працює компас/геолокація.",
+     "cause": "locationd не отримує даних від GPS/модему або датчиків.",
+     "fix": "Перевірити модем/GPS і датчики (AOP)."
+    }
+   }
   },
   {
    "id": "wd_generic",
@@ -360,7 +631,23 @@
    "fix": "Смотри, какой процесс указан — по нему определяется узел. Не останавливайтесь на слове «watchdog»: причина обычно названа дальше в тексте.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Userspace watchdog timeout (another process)",
+     "node": "Hung system process",
+     "symptoms": "Freeze and restart.",
+     "cause": "A system process didn't check in with the watchdog in time. The process name follows «no successful checkins from».",
+     "fix": "See which process is named — it tells you the component. Don't stop at the word «watchdog»: the cause is usually named further in the text."
+    },
+    "uk": {
+     "title": "Userspace watchdog timeout (інший процес)",
+     "node": "Завислий системний процес",
+     "symptoms": "Зависання й перезавантаження.",
+     "cause": "Системний процес не звітував watchdog-у вчасно. Назву процесу вказано після «no successful checkins from».",
+     "fix": "Дивіться, який процес вказано — за ним визначається вузол. Не зупиняйтеся на слові «watchdog»: причину зазвичай названо далі в тексті."
+    }
+   }
   },
   {
    "id": "sep",
@@ -382,7 +669,23 @@
     "vcc"
    ],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "SEP Panic (Secure Enclave)",
+     "node": "Secure Enclave / Face ID / Touch ID / processor",
+     "symptoms": "Restarts or boot loop, Face ID / Touch ID doesn't work, sometimes the passcode is not accepted.",
+     "cause": "Secure Enclave failure: biometrics not responding, non-genuine Face ID/Touch ID module, a processor or NAND problem (after reballing/replacement). «SEP ROM» — damaged link between the processor and the Secure Enclave.",
+     "fix": "Disconnect the Face ID/Touch ID module and check whether the panic goes away. Restore iOS. If it remains — processor/NAND."
+    },
+    "uk": {
+     "title": "SEP Panic (Secure Enclave)",
+     "node": "Secure Enclave / Face ID / Touch ID / процесор",
+     "symptoms": "Перезавантаження або бутлуп, Face ID / Touch ID не працює, іноді не приймає пароль.",
+     "cause": "Збій Secure Enclave: не відповідає біометрія, неоригінальний модуль Face ID/Touch ID, проблема з процесором або NAND (після перепайки/заміни). «SEP ROM» — пошкодження зв'язку процесора й Secure Enclave.",
+     "fix": "Від'єднати модуль Face ID/Touch ID і перевірити, чи зникла паніка. Відновити iOS. Якщо залишається — процесор/NAND."
+    }
+   }
   },
   {
    "id": "faceid",
@@ -401,7 +704,25 @@
    "models": "iPhone X и новее",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Face ID (Pearl / Romeo / Juliet)",
+     "node": "Face ID module",
+     "symptoms": "«Face ID is not available», restarts when trying to unlock.",
+     "cause": "Romeo is the dot projector, Juliet is the IR camera. Damaged module or flex cable, liquid, non-genuine module.",
+     "fix": "Check the Face ID flex, the top flex and the module. Face ID is paired to the logic board.",
+     "models": "iPhone X and newer"
+    },
+    "uk": {
+     "title": "Face ID (Pearl / Romeo / Juliet)",
+     "node": "Модуль Face ID",
+     "symptoms": "«Face ID недоступний», перезавантаження під час спроби розблокування.",
+     "cause": "Romeo — проєктор точок, Juliet — ІЧ-камера. Пошкодження модуля, шлейфа, волога, неоригінальний модуль.",
+     "fix": "Перевірити шлейф Face ID, верхній шлейф, модуль. Face ID прив'язаний до плати.",
+     "models": "iPhone X і новіші"
+    }
+   }
   },
   {
    "id": "touchid",
@@ -418,7 +739,25 @@
    "models": "iPhone 5s–8, SE",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Touch ID (Mesa)",
+     "node": "Touch ID / Home button",
+     "symptoms": "Touch ID doesn't work, error 53 during restore.",
+     "cause": "The fingerprint sensor doesn't match the logic board or its flex is damaged.",
+     "fix": "Check the Home button flex. The sensor is paired to the logic board.",
+     "models": "iPhone 5s–8, SE"
+    },
+    "uk": {
+     "title": "Touch ID (Mesa)",
+     "node": "Touch ID / кнопка Home",
+     "symptoms": "Touch ID не працює, помилка 53 під час відновлення.",
+     "cause": "Сканер відбитка не збігається з платою або пошкоджено шлейф.",
+     "fix": "Перевірити шлейф кнопки Home. Сканер прив'язаний до плати.",
+     "models": "iPhone 5s–8, SE"
+    }
+   }
   },
   {
    "id": "aop",
@@ -440,7 +779,23 @@
     "vcc"
    ],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "AOP PANIC (Always-On Processor)",
+     "node": "Motion / proximity sensors / buttons",
+     "symptoms": "Restarts; auto-rotate, compass, proximity sensor or Hey Siri don't work.",
+     "cause": "The AOP is a coprocessor that constantly polls the sensors (accelerometer, gyroscope, proximity sensor, microphones for «Hey Siri»). If a sensor/flex doesn't respond — panic.",
+     "fix": "Check the top flex (proximity sensor), the button flex, the charging flex; then the motion sensors on the board. Look at the words next to AOP: «PressureController» — barometer on the charging flex, «prox» — proximity sensor (top flex)."
+    },
+    "uk": {
+     "title": "AOP PANIC (Always-On Processor)",
+     "node": "Датчики руху / наближення / кнопки",
+     "symptoms": "Перезавантаження, не працює автоповорот, компас, датчик наближення, Hey Siri.",
+     "cause": "AOP — співпроцесор, який постійно опитує датчики (акселерометр, гіроскоп, датчик наближення, мікрофони для «Привіт, Siri»). Якщо датчик/шлейф не відповідає — паніка.",
+     "fix": "Перевірити верхній шлейф (датчик наближення), шлейф кнопок, шлейф заряджання; потім датчики руху на платі. Дивіться слова поруч з AOP: «PressureController» — барометр на шлейфі заряджання, «prox» — датчик наближення (верхній шлейф)."
+    }
+   }
   },
   {
    "id": "smc",
@@ -460,7 +815,23 @@
     "vcc"
    ],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "SMC PANIC",
+     "node": "SMC / power",
+     "symptoms": "Restarts, especially when charging or under load.",
+     "cause": "The SMC didn't get the expected response from one of the sensors, or the power controller detected an abnormal condition. Common suspects are charging circuits, the battery and sensors. On iPhone 13 and newer these panics usually mean a hardware fault.",
+     "fix": "Check the battery, the charging flex, then the power circuits."
+    },
+    "uk": {
+     "title": "SMC PANIC",
+     "node": "SMC / живлення",
+     "symptoms": "Перезавантаження, особливо під час заряджання або навантаження.",
+     "cause": "SMC не отримав очікуваної відповіді від одного з датчиків, або контролер живлення зафіксував відхилення. Часті підозрювані — кола заряджання, акумулятор, датчики. На iPhone 13 і новіших такі паніки зазвичай означають апаратну несправність.",
+     "fix": "Перевірити акумулятор, шлейф заряджання, потім кола живлення."
+    }
+   }
   },
   {
    "id": "pmu",
@@ -479,7 +850,23 @@
    "fix": "Сначала заменить аккумулятор (самое простое), затем диагностика PMU и линий питания.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Power controller (PMU / SPMI)",
+     "node": "Power controller",
+     "symptoms": "Sudden shutdowns, restarts, won't turn on.",
+     "cause": "No communication with the PMU over the SPMI bus, or the PMU reported an error.",
+     "fix": "First replace the battery (the simplest step), then diagnose the PMU and power lines."
+    },
+    "uk": {
+     "title": "Контролер живлення (PMU / SPMI)",
+     "node": "Контролер живлення",
+     "symptoms": "Раптові вимкнення, перезавантаження, не вмикається.",
+     "cause": "Немає зв'язку з PMU по шині SPMI або PMU повідомив про помилку.",
+     "fix": "Спершу замінити акумулятор (найпростіше), потім діагностика PMU та ліній живлення."
+    }
+   }
   },
   {
    "id": "brownout",
@@ -496,7 +883,23 @@
    "fix": "Заменить аккумулятор. Проверить ёмкость и циклы.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Voltage drop (brownout / UVLO)",
+     "node": "Battery / power",
+     "symptoms": "Shuts down under load (camera, games, flash) or at 20–40% charge.",
+     "cause": "The battery voltage drops below the threshold — a worn battery.",
+     "fix": "Replace the battery. Check capacity and cycle count."
+    },
+    "uk": {
+     "title": "Просідання напруги (brownout / UVLO)",
+     "node": "Акумулятор / живлення",
+     "symptoms": "Вимикається під навантаженням (камера, гра, спалах) або на 20–40% заряду.",
+     "cause": "Напруга акумулятора просідає нижче порогу — зношений акумулятор.",
+     "fix": "Замінити акумулятор. Перевірити ємність і цикли."
+    }
+   }
   },
   {
    "id": "battery",
@@ -513,7 +916,23 @@
    "fix": "Заменить аккумулятор, проверить разъём.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Battery controller",
+     "node": "Battery",
+     "symptoms": "Wrong charge percentage, shutdowns, «Important Battery Message».",
+     "cause": "No communication with the battery controller, or it is faulty.",
+     "fix": "Replace the battery, check the connector."
+    },
+    "uk": {
+     "title": "Контролер акумулятора",
+     "node": "Акумулятор",
+     "symptoms": "Неправильний відсоток заряду, вимкнення, «Важливе повідомлення про акумулятор».",
+     "cause": "Немає зв'язку з контролером акумулятора або він несправний.",
+     "fix": "Замінити акумулятор, перевірити роз'єм."
+    }
+   }
   },
   {
    "id": "nand",
@@ -538,7 +957,23 @@
     "vcc"
    ],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "NAND / storage controller (ANS2 / NVMe)",
+     "node": "NAND storage",
+     "symptoms": "Boot loop on the Apple logo, errors 9/4013/4014 during restore, freezes, slow performance.",
+     "cause": "Failure of the storage controller or the NAND itself: wear, cracked solder after a drop, overheating, poor reballing, memory power problems.",
+     "fix": "Restore iOS via DFU. If the error persists — diagnose the NAND and its power."
+    },
+    "uk": {
+     "title": "NAND / контролер пам'яті (ANS2 / NVMe)",
+     "node": "Пам'ять NAND",
+     "symptoms": "Бутлуп на яблуку, помилки 9/4013/4014 під час відновлення, зависання, повільна робота.",
+     "cause": "Збій контролера пам'яті або самої NAND: знос, відвал після падіння, перегрів, неякісна перепайка, проблеми живлення пам'яті.",
+     "fix": "Відновити iOS через DFU. Якщо помилка залишається — діагностика NAND та її живлення."
+    }
+   }
   },
   {
    "id": "initproc",
@@ -553,7 +988,23 @@
    "fix": "Восстановить через DFU. Если повторяется на чистой прошивке — NAND.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "initproc exited (the system won't start)",
+     "node": "Software / NAND",
+     "symptoms": "Boot loop on the logo.",
+     "cause": "launchd failed to start — the system is damaged (interrupted update, jailbreak) or there is a memory problem.",
+     "fix": "Restore via DFU. If it repeats on clean firmware — NAND."
+    },
+    "uk": {
+     "title": "initproc exited (система не запускається)",
+     "node": "ПЗ / NAND",
+     "symptoms": "Бутлуп на логотипі.",
+     "cause": "Не вдалося запустити launchd — пошкоджено систему (перерване оновлення, джейлбрейк) або проблема з пам'яттю.",
+     "fix": "Відновити через DFU. Якщо повторюється на чистій прошивці — NAND."
+    }
+   }
   },
   {
    "id": "zone",
@@ -572,7 +1023,23 @@
    "fix": "Обновить/восстановить iOS.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Kernel memory corruption (zone / kalloc)",
+     "node": "Software (rarely RAM)",
+     "symptoms": "Random restarts.",
+     "cause": "A bug in the kernel or a driver; sometimes tweaks/jailbreak; rarely the RAM.",
+     "fix": "Update/restore iOS."
+    },
+    "uk": {
+     "title": "Пошкодження пам'яті ядра (zone / kalloc)",
+     "node": "ПЗ (рідше RAM)",
+     "symptoms": "Випадкові перезавантаження.",
+     "cause": "Помилка в ядрі або драйвері; іноді твіки/джейлбрейк; рідко — оперативна пам'ять.",
+     "fix": "Оновити/відновити iOS."
+    }
+   }
   },
   {
    "id": "baseband",
@@ -592,7 +1059,23 @@
    "fix": "Проверить SIM-лоток и SIM (если лотка нет — профиль eSIM в Настройки → Сотовая связь), сбросить настройки сети, восстановить iOS. Если IMEI пустой — модем/его питание.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Modem (Baseband)",
+     "node": "Modem",
+     "symptoms": "No service, «No SIM», «Searching», restarts, IMEI not shown.",
+     "cause": "The modem doesn't respond: modem power, soldering, modem memory, after liquid damage/a drop.",
+     "fix": "Check the SIM tray and SIM (if there is no tray — the eSIM profile in Settings → Mobile Service), reset network settings, restore iOS. If the IMEI is empty — the modem/its power."
+    },
+    "uk": {
+     "title": "Модем (Baseband)",
+     "node": "Модем",
+     "symptoms": "Немає мережі, «Немає SIM», «Пошук», перезавантаження, IMEI не відображається.",
+     "cause": "Модем не відповідає: живлення модему, пайка, пам'ять модему, після вологи/падіння.",
+     "fix": "Перевірити SIM-лоток і SIM (якщо лотка немає — профіль eSIM у Параметри → Стільниковий зв'язок), скинути параметри мережі, відновити iOS. Якщо IMEI порожній — модем/його живлення."
+    }
+   }
   },
   {
    "id": "pcie",
@@ -609,7 +1092,23 @@
    "fix": "Определить устройство по соседним строкам паники (WLAN — Wi-Fi, BB — модем).",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "PCIe link down (Wi-Fi or modem)",
+     "node": "Wi-Fi or modem",
+     "symptoms": "Restarts, greyed-out Wi-Fi or no service.",
+     "cause": "Lost PCIe link to the Wi-Fi module or the modem.",
+     "fix": "Identify the device from neighbouring panic lines (WLAN — Wi-Fi, BB — modem)."
+    },
+    "uk": {
+     "title": "PCIe link down (Wi-Fi або модем)",
+     "node": "Wi-Fi або модем",
+     "symptoms": "Перезавантаження, сірий Wi-Fi або немає мережі.",
+     "cause": "Втрата зв'язку по шині PCIe з модулем Wi-Fi або модемом.",
+     "fix": "Визначити пристрій за сусідніми рядками паніки (WLAN — Wi-Fi, BB — модем)."
+    }
+   }
   },
   {
    "id": "wlan",
@@ -627,7 +1126,23 @@
    "fix": "Сброс настроек сети, восстановление; затем диагностика модуля.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Wi-Fi module (WLAN)",
+     "node": "Wi-Fi / Bluetooth module",
+     "symptoms": "Greyed-out Wi-Fi, Wi-Fi won't turn on, restarts.",
+     "cause": "The Wi-Fi module doesn't respond — soldering, module power, the module itself.",
+     "fix": "Reset network settings, restore; then diagnose the module."
+    },
+    "uk": {
+     "title": "Модуль Wi-Fi (WLAN)",
+     "node": "Модуль Wi-Fi / Bluetooth",
+     "symptoms": "Сірий Wi-Fi, Wi-Fi не вмикається, перезавантаження.",
+     "cause": "Модуль Wi-Fi не відповідає — пайка, живлення модуля, сам модуль.",
+     "fix": "Скидання параметрів мережі, відновлення; потім діагностика модуля."
+    }
+   }
   },
   {
    "id": "nfc",
@@ -643,7 +1158,23 @@
    "fix": "Диагностика NFC модуля и его линий.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "NFC (Stockholm)",
+     "node": "NFC module",
+     "symptoms": "Apple Pay doesn't work, restarts.",
+     "cause": "The NFC module (Stockholm) doesn't respond.",
+     "fix": "Diagnose the NFC module and its lines."
+    },
+    "uk": {
+     "title": "NFC (Stockholm)",
+     "node": "Модуль NFC",
+     "symptoms": "Не працює Apple Pay, перезавантаження.",
+     "cause": "Модуль NFC (Stockholm) не відповідає.",
+     "fix": "Діагностика модуля NFC та його ліній."
+    }
+   }
   },
   {
    "id": "uwb",
@@ -661,7 +1192,25 @@
    "models": "iPhone 11 и новее",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "U1 UWB chip (Rose)",
+     "node": "U1 chip",
+     "symptoms": "Restarts.",
+     "cause": "The ultra-wideband chip doesn't respond.",
+     "fix": "Diagnose the U1 chip and its power.",
+     "models": "iPhone 11 and newer"
+    },
+    "uk": {
+     "title": "Чип UWB U1 (Rose)",
+     "node": "Чип U1",
+     "symptoms": "Перезавантаження.",
+     "cause": "Чип надширокосмугового зв'язку не відповідає.",
+     "fix": "Діагностика U1 та його живлення.",
+     "models": "iPhone 11 і новіші"
+    }
+   }
   },
   {
    "id": "charger",
@@ -678,7 +1227,23 @@
    "fix": "Проверить кабель/блок, разъём (грязь), шлейф зарядки, контроллер заряда.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Charging circuit",
+     "node": "Charging",
+     "symptoms": "Doesn't charge, restarts when the charger is connected.",
+     "cause": "Charge controller, charging flex, port.",
+     "fix": "Check the cable/adapter, the port (dirt), the charging flex, the charge controller."
+    },
+    "uk": {
+     "title": "Коло заряджання",
+     "node": "Заряджання",
+     "symptoms": "Не заряджається, перезавантаження під час під'єднання зарядки.",
+     "cause": "Контролер заряду, шлейф заряджання, роз'єм.",
+     "fix": "Перевірити кабель/блок, роз'єм (бруд), шлейф заряджання, контролер заряду."
+    }
+   }
   },
   {
    "id": "tristar",
@@ -698,7 +1263,23 @@
    "fix": "Проверить шлейф зарядки и разъём, затем контроллер на плате.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "USB controller (Tristar / Hydra / ACE / HPM)",
+     "node": "USB / Lightning controller",
+     "symptoms": "«Accessory not supported», doesn't charge, not seen by the computer, fast battery drain.",
+     "cause": "The Lightning/USB-C controller (Tristar / Hydra / ACE) is damaged, often after poor-quality charging.",
+     "fix": "Check the charging flex and the port, then the controller on the board."
+    },
+    "uk": {
+     "title": "Контролер USB (Tristar / Hydra / ACE / HPM)",
+     "node": "Контролер USB / Lightning",
+     "symptoms": "«Аксесуар не підтримується», не заряджається, не бачить комп'ютер, швидке розряджання.",
+     "cause": "Контролер Lightning/USB-C (Tristar / Hydra / ACE) пошкоджено, часто після неякісного заряджання.",
+     "fix": "Перевірити шлейф заряджання й роз'єм, потім контролер на платі."
+    }
+   }
   },
   {
    "id": "i2c_stuck",
@@ -718,7 +1299,23 @@
     "ifixit_xs"
    ],
    "confidence": "common",
-   "keywords": "шина i2c замыкание коррозия влага"
+   "keywords": "шина i2c замыкание коррозия влага",
+   "i18n": {
+    "en": {
+     "title": "I2C: «SCL/SDA is stuck low» — bus line shorted",
+     "node": "I2C bus (flex / connector / part on the bus)",
+     "symptoms": "Restarts, sometimes a part on this bus doesn't work (camera, touch, audio).",
+     "cause": "One of the I2C bus lines is pulled to ground: corrosion or liquid in a connector, a damaged flex cable, a faulty part on the bus. The bus number at the start of the line (i2c0, i2c3…) tells you which one.",
+     "fix": "Disconnect the parts on this bus one at a time and see whether the panic goes away. Inspect the connectors for corrosion. If disconnecting parts doesn't help — the line on the board."
+    },
+    "uk": {
+     "title": "I2C: «SCL/SDA is stuck low» — лінію шини замкнено",
+     "node": "Шина I2C (шлейф / роз'єм / деталь на шині)",
+     "symptoms": "Перезавантаження, іноді не працює деталь на цій шині (камера, тач, звук).",
+     "cause": "Одну з ліній шини I2C притягнуто до землі: окислення або волога в роз'ємі, пошкоджений шлейф, несправна деталь на шині. Номер шини на початку рядка (i2c0, i2c3…) — яка саме.",
+     "fix": "Від'єднуйте по одній деталі цієї шини й дивіться, чи зникне паніка. Огляньте роз'єми на корозію. Якщо від'єднання деталей не допомагає — лінія на платі."
+    }
+   }
   },
   {
    "id": "i2c",
@@ -740,7 +1337,23 @@
     "rewa"
    ],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "I2C bus",
+     "node": "Device on the I2C bus",
+     "symptoms": "Restarts, the camera/audio/a sensor may not work.",
+     "cause": "A device on the I2C bus doesn't respond. The bus number (i2c0, i2c1…) and the device name in the panic text point to the component, but bus assignments differ between models — see the bus table in the database.",
+     "fix": "Look up in the model's schematic what is on this bus and check that part/flex."
+    },
+    "uk": {
+     "title": "Шина I2C",
+     "node": "Пристрій на шині I2C",
+     "symptoms": "Перезавантаження, може не працювати камера/звук/датчик.",
+     "cause": "Пристрій на шині I2C не відповідає. Номер шини (i2c0, i2c1…) та ім'я пристрою в тексті паніки вказують вузол, але призначення шин різне в різних моделей — дивіться таблицю шин у базі.",
+     "fix": "Подивитися за схемою моделі, що висить на цій шині, і перевірити цю деталь/шлейф."
+    }
+   }
   },
   {
    "id": "camera",
@@ -758,7 +1371,23 @@
    "fix": "Отключить камеры по очереди и проверить; заменить шлейф/модуль.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Camera (ISP)",
+     "node": "Camera",
+     "symptoms": "Black screen in the camera, restart when opening the camera.",
+     "cause": "The camera module, its flex or the image processor.",
+     "fix": "Disconnect the cameras one by one and test; replace the flex/module."
+    },
+    "uk": {
+     "title": "Камера (ISP)",
+     "node": "Камера",
+     "symptoms": "Чорний екран у камері, перезавантаження під час запуску камери.",
+     "cause": "Модуль камери, її шлейф або процесор зображення.",
+     "fix": "Від'єднати камери по черзі й перевірити; замінити шлейф/модуль."
+    }
+   }
   },
   {
    "id": "audio",
@@ -777,7 +1406,23 @@
    "fix": "Диагностика аудиокодека/усилителя.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Audio codec / amplifier",
+     "node": "Audio",
+     "symptoms": "No sound, can't hear the caller, greyed-out speaker button, restarts during calls.",
+     "cause": "The audio codec or amplifier, often after a drop.",
+     "fix": "Diagnose the audio codec/amplifier."
+    },
+    "uk": {
+     "title": "Аудіокодек / підсилювач",
+     "node": "Аудіо",
+     "symptoms": "Немає звуку, не чути співрозмовника, сіра кнопка динаміка, перезавантаження під час дзвінка.",
+     "cause": "Аудіокодек або підсилювач, часто після падіння.",
+     "fix": "Діагностика аудіокодека/підсилювача."
+    }
+   }
   },
   {
    "id": "taptic",
@@ -793,7 +1438,23 @@
    "fix": "Проверить Taptic Engine и разъём.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Taptic Engine",
+     "node": "Vibration motor (Taptic Engine)",
+     "symptoms": "No vibration, restarts.",
+     "cause": "The Taptic Engine or its flex/driver.",
+     "fix": "Check the Taptic Engine and its connector."
+    },
+    "uk": {
+     "title": "Taptic Engine",
+     "node": "Вібромотор (Taptic Engine)",
+     "symptoms": "Немає вібрації, перезавантаження.",
+     "cause": "Taptic Engine або його шлейф/драйвер.",
+     "fix": "Перевірити Taptic Engine і роз'єм."
+    }
+   }
   },
   {
    "id": "touch",
@@ -809,7 +1470,23 @@
    "fix": "Проверить с другим (оригинальным) дисплеем.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Touchscreen",
+     "node": "Touch / display",
+     "symptoms": "Touch doesn't work or ghost touches, restarts.",
+     "cause": "The touch panel, the display flex, the touch controller.",
+     "fix": "Test with another (genuine) display."
+    },
+    "uk": {
+     "title": "Тачскрин",
+     "node": "Тач / дисплей",
+     "symptoms": "Тач не працює або фантомні натискання, перезавантаження.",
+     "cause": "Тач-панель, шлейф дисплея, контролер тача.",
+     "fix": "Перевірити з іншим (оригінальним) дисплеєм."
+    }
+   }
   },
   {
    "id": "display",
@@ -828,7 +1505,23 @@
    "fix": "Проверить с другим дисплеем, проверить разъём.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Display (DCP / IOMFB)",
+     "node": "Display",
+     "symptoms": "Flicker, black screen, restarts.",
+     "cause": "The display, the display flex, the display controller.",
+     "fix": "Test with another display, check the connector."
+    },
+    "uk": {
+     "title": "Дисплей (DCP / IOMFB)",
+     "node": "Дисплей",
+     "symptoms": "Мерехтіння, чорний екран, перезавантаження.",
+     "cause": "Дисплей, шлейф дисплея, контролер дисплея.",
+     "fix": "Перевірити з іншим дисплеєм, перевірити роз'єм."
+    }
+   }
   },
   {
    "id": "gpu",
@@ -845,7 +1538,23 @@
    "fix": "Обновить/восстановить iOS.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "GPU (AGX)",
+     "node": "Graphics",
+     "symptoms": "Freezes in games, artefacts.",
+     "cause": "Usually software; less often the processor.",
+     "fix": "Update/restore iOS."
+    },
+    "uk": {
+     "title": "GPU (AGX)",
+     "node": "Графіка",
+     "symptoms": "Зависання в іграх, артефакти.",
+     "cause": "Зазвичай ПЗ; рідше процесор.",
+     "fix": "Оновити/відновити iOS."
+    }
+   }
   },
   {
    "id": "sensors_motion",
@@ -864,7 +1573,23 @@
    "fix": "Проверить верхний шлейф (приближение) и датчики на плате.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Motion / proximity sensors",
+     "node": "Sensors",
+     "symptoms": "Auto-rotate doesn't work, the screen doesn't turn off during calls.",
+     "cause": "A sensor or the flex it is on doesn't respond.",
+     "fix": "Check the top flex (proximity) and the sensors on the board."
+    },
+    "uk": {
+     "title": "Датчики руху / наближення",
+     "node": "Датчики",
+     "symptoms": "Не працює автоповорот, екран не гасне під час дзвінка.",
+     "cause": "Датчик або шлейф із ним не відповідає.",
+     "fix": "Перевірити верхній шлейф (наближення) і датчики на платі."
+    }
+   }
   },
   {
    "id": "dart",
@@ -883,7 +1608,23 @@
     "vcc"
    ],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "DART (IOMMU)",
+     "node": "Peripheral (secondary error)",
+     "symptoms": "Restarts.",
+     "cause": "A peripheral device accessed forbidden memory. The name after «dart-» identifies the device (for example, dart-isp — camera, dart-ans — NAND). Examples: «dart-apcie» — PCIe bus (Wi-Fi or modem), «dart-dispo» — display pipeline.",
+     "fix": "Look at the device name after dart-."
+    },
+    "uk": {
+     "title": "DART (IOMMU)",
+     "node": "Периферія (супутня помилка)",
+     "symptoms": "Перезавантаження.",
+     "cause": "Периферійний пристрій звернувся до забороненої пам'яті. Ім'я після «dart-» вказує пристрій (наприклад, dart-isp — камера, dart-ans — NAND). Приклади: «dart-apcie» — шина PCIe (Wi-Fi або модем), «dart-dispo» — тракт дисплея.",
+     "fix": "Дивіться ім'я пристрою після dart-."
+    }
+   }
   },
   {
    "id": "thermal",
@@ -900,7 +1641,23 @@
    "fix": "Проверить ток потребления, аккумулятор, нет ли КЗ.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Overheating",
+     "node": "Cooling / power",
+     "symptoms": "Shuts down from overheating, gets very hot.",
+     "cause": "Processor or battery overheating; a short circuit on a power rail.",
+     "fix": "Check the current draw, the battery, and look for shorts."
+    },
+    "uk": {
+     "title": "Перегрів",
+     "node": "Охолодження / живлення",
+     "symptoms": "Вимикається від перегріву, сильно гріється.",
+     "cause": "Перегрів процесора або акумулятора; КЗ по живленню.",
+     "fix": "Перевірити струм споживання, акумулятор, чи немає КЗ."
+    }
+   }
   },
   {
    "id": "soc_wdt",
@@ -918,7 +1675,23 @@
    "fix": "Восстановить iOS; если повторяется — питание, NAND, процессор.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "SoC watchdog reset",
+     "node": "Processor / power / NAND",
+     "symptoms": "Sudden restarts with no obvious cause.",
+     "cause": "The processor froze completely and the hardware watchdog timer fired.",
+     "fix": "Restore iOS; if it repeats — power, NAND, processor."
+    },
+    "uk": {
+     "title": "SoC watchdog reset",
+     "node": "Процесор / живлення / NAND",
+     "symptoms": "Раптові перезавантаження без явної причини.",
+     "cause": "Процесор повністю завис, спрацював апаратний сторожовий таймер.",
+     "fix": "Відновити iOS; якщо повторюється — живлення, NAND, процесор."
+    }
+   }
   },
   {
    "id": "roswell",
@@ -935,7 +1708,23 @@
     "ifixit_i2c3"
    ],
    "confidence": "reported",
-   "keywords": "тач дисплей"
+   "keywords": "тач дисплей",
+   "i18n": {
+    "en": {
+     "title": "Roswell — touch controller",
+     "node": "Touch / display flex",
+     "symptoms": "Restarts, touch may not work.",
+     "cause": "The touch controller (Roswell) on the display flex doesn't respond.",
+     "fix": "Check the display flex and connector, fit a known-good display."
+    },
+    "uk": {
+     "title": "Roswell — контролер тача",
+     "node": "Тач / шлейф дисплея",
+     "symptoms": "Перезавантаження, тач може не працювати.",
+     "cause": "Не відповідає контролер тача (Roswell) на шлейфі дисплея.",
+     "fix": "Перевірити шлейф і роз'єм дисплея, поставити свідомо справний дисплей."
+    }
+   }
   },
   {
    "id": "speaker_top",
@@ -952,7 +1741,23 @@
     "ifixit_se"
    ],
    "confidence": "reported",
-   "keywords": "динамик звук"
+   "keywords": "динамик звук",
+   "i18n": {
+    "en": {
+     "title": "audio-speaker — speaker on the I2C bus",
+     "node": "Speaker / its amplifier",
+     "symptoms": "Restarts, no sound from the speaker.",
+     "cause": "The speaker amplifier doesn't respond (device name in the panic text).",
+     "fix": "Check the speaker, its flex and connector."
+    },
+    "uk": {
+     "title": "audio-speaker — динамік на шині I2C",
+     "node": "Динамік / його підсилювач",
+     "symptoms": "Перезавантаження, немає звуку з динаміка.",
+     "cause": "Не відповідає підсилювач динаміка (ім'я пристрою в тексті паніки).",
+     "fix": "Перевірити динамік, його шлейф і роз'єм."
+    }
+   }
   },
   {
    "id": "aop_pressure",
@@ -969,7 +1774,23 @@
     "vcc"
    ],
    "confidence": "reported",
-   "keywords": "барометр давление prs0"
+   "keywords": "барометр давление prs0",
+   "i18n": {
+    "en": {
+     "title": "PressureController — barometer",
+     "node": "Barometer (charging flex)",
+     "symptoms": "Restarts.",
+     "cause": "The barometer doesn't respond — on most models it sits on the charging flex.",
+     "fix": "Reconnect or replace the charging flex."
+    },
+    "uk": {
+     "title": "PressureController — барометр",
+     "node": "Барометр (шлейф заряджання)",
+     "symptoms": "Перезавантаження.",
+     "cause": "Не відповідає барометр — на більшості моделей він на шлейфі заряджання.",
+     "fix": "Перепідключити або замінити шлейф заряджання."
+    }
+   }
   },
   {
    "id": "tigris",
@@ -988,7 +1809,23 @@
     "vcc"
    ],
    "confidence": "reported",
-   "keywords": "зарядка не заряжается tristar"
+   "keywords": "зарядка не заряжается tristar",
+   "i18n": {
+    "en": {
+     "title": "Tigris / PPM — charging IC",
+     "node": "Charging (Tigris, Tristar)",
+     "symptoms": "Panic while charging, doesn't charge, restarts on the charger.",
+     "cause": "Lost communication with the Tigris charging IC or the Lightning/USB controller. Next to TG0B it may mean the phone can't see the battery.",
+     "fix": "Check the cable and adapter, the charging flex, the battery, then the charging IC on the board."
+    },
+    "uk": {
+     "title": "Tigris / PPM — мікросхема заряджання",
+     "node": "Заряджання (Tigris, Tristar)",
+     "symptoms": "Паніка під час заряджання, не заряджається, перезавантажується на зарядці.",
+     "cause": "Збій зв'язку з мікросхемою заряджання Tigris або контролером Lightning/USB. Поруч із TG0B може означати, що телефон не бачить акумулятор.",
+     "fix": "Перевірити кабель і блок, шлейф заряджання, акумулятор, потім мікросхему заряджання на платі."
+    }
+   }
   },
   {
    "id": "data_abort",
@@ -1003,7 +1840,23 @@
    "fix": "Обновить/восстановить iOS. Если на чистой системе повторяется с разными адресами — плата.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Kernel data abort",
+     "node": "Software (rarely RAM/processor)",
+     "symptoms": "Random restarts.",
+     "cause": "The kernel accessed an invalid address. Usually software, tweaks, jailbreak; less often RAM/processor.",
+     "fix": "Update/restore iOS. If it repeats on a clean system with different addresses — the logic board."
+    },
+    "uk": {
+     "title": "Kernel data abort",
+     "node": "ПЗ (рідше RAM/процесор)",
+     "symptoms": "Випадкові перезавантаження.",
+     "cause": "Ядро звернулося до неприпустимої адреси. Частіше ПЗ, твіки, джейлбрейк; рідше оперативна пам'ять/процесор.",
+     "fix": "Оновити/відновити iOS. Якщо на чистій системі повторюється з різними адресами — плата."
+    }
+   }
   },
   {
    "id": "fetch_abort",
@@ -1019,7 +1872,23 @@
    "fix": "Восстановить iOS; затем плата.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Kernel instruction fetch abort",
+     "node": "Software / processor",
+     "symptoms": "Random restarts.",
+     "cause": "Error executing kernel code.",
+     "fix": "Restore iOS; then the logic board."
+    },
+    "uk": {
+     "title": "Kernel instruction fetch abort",
+     "node": "ПЗ / процесор",
+     "symptoms": "Випадкові перезавантаження.",
+     "cause": "Помилка виконання коду ядра.",
+     "fix": "Відновити iOS; потім плата."
+    }
+   }
   },
   {
    "id": "jailbreak",
@@ -1041,7 +1910,23 @@
    "fix": "Удалить джейлбрейк, восстановить iOS.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Traces of jailbreak / tweaks",
+     "node": "Software",
+     "symptoms": "Restarts, boot loop.",
+     "cause": "Tweaks or a jailbreak cause the crashes.",
+     "fix": "Remove the jailbreak, restore iOS."
+    },
+    "uk": {
+     "title": "Сліди джейлбрейка / твіків",
+     "node": "ПЗ",
+     "symptoms": "Перезавантаження, бутлуп.",
+     "cause": "Твіки або джейлбрейк викликають збої.",
+     "fix": "Видалити джейлбрейк, відновити iOS."
+    }
+   }
   },
   {
    "id": "wdt_generic",
@@ -1057,7 +1942,23 @@
    "fix": "Смотри текст паники — какой процесс/драйвер указан. Не останавливайтесь на слове «watchdog»: причина обычно названа дальше в тексте.",
    "sources": [],
    "confidence": "common",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Watchdog fired",
+     "node": "Freeze",
+     "symptoms": "Freeze and restart.",
+     "cause": "The watchdog timer — something didn't respond in time.",
+     "fix": "See the panic text — which process/driver is named. Don't stop at the word «watchdog»: the cause is usually named further in the text."
+    },
+    "uk": {
+     "title": "Спрацював watchdog",
+     "node": "Зависання",
+     "symptoms": "Зависання й перезавантаження.",
+     "cause": "Сторожовий таймер — щось не відповіло вчасно.",
+     "fix": "Дивіться текст паніки — який процес/драйвер вказано. Не зупиняйтеся на слові «watchdog»: причину зазвичай названо далі в тексті."
+    }
+   }
   },
   {
    "id": "exc_bad_access",
@@ -1072,7 +1973,23 @@
    "fix": "Обновить/переустановить приложение. Если вылетают все приложения — проверить память/iOS.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "EXC_BAD_ACCESS (SIGSEGV / SIGBUS)",
+     "node": "App",
+     "symptoms": "The app closes immediately or on a certain action.",
+     "cause": "The app accessed invalid memory — a bug in the app.",
+     "fix": "Update/reinstall the app. If all apps crash — check memory/iOS."
+    },
+    "uk": {
+     "title": "EXC_BAD_ACCESS (SIGSEGV / SIGBUS)",
+     "node": "Програма",
+     "symptoms": "Програма закривається одразу або під час певної дії.",
+     "cause": "Програма звернулася до неприпустимої пам'яті — помилка в програмі.",
+     "fix": "Оновити/перевстановити програму. Якщо збоять усі програми — перевірити пам'ять/iOS."
+    }
+   }
   },
   {
    "id": "exc_crash",
@@ -1088,7 +2005,23 @@
    "fix": "Обновить/переустановить приложение.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "EXC_CRASH (SIGABRT)",
+     "node": "App",
+     "symptoms": "The app closes.",
+     "cause": "The app aborted itself (unhandled error).",
+     "fix": "Update/reinstall the app."
+    },
+    "uk": {
+     "title": "EXC_CRASH (SIGABRT)",
+     "node": "Програма",
+     "symptoms": "Програма закривається.",
+     "cause": "Програма сама перервала роботу (необроблена помилка).",
+     "fix": "Оновити/перевстановити програму."
+    }
+   }
   },
   {
    "id": "exc_breakpoint",
@@ -1104,7 +2037,23 @@
    "fix": "Обновить приложение.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "EXC_BREAKPOINT (SIGTRAP)",
+     "node": "App",
+     "symptoms": "The app closes.",
+     "cause": "A bug in the app's code (Swift trap).",
+     "fix": "Update the app."
+    },
+    "uk": {
+     "title": "EXC_BREAKPOINT (SIGTRAP)",
+     "node": "Програма",
+     "symptoms": "Програма закривається.",
+     "cause": "Помилка в коді програми (Swift trap).",
+     "fix": "Оновити програму."
+    }
+   }
   },
   {
    "id": "exc_resource",
@@ -1119,7 +2068,23 @@
    "fix": "Обновить приложение; если массово — проверить iOS.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "EXC_RESOURCE",
+     "node": "App / resources",
+     "symptoms": "The app closes after running for a long time, the phone gets warm.",
+     "cause": "CPU, memory or disk write limit exceeded.",
+     "fix": "Update the app; if it's widespread — check iOS."
+    },
+    "uk": {
+     "title": "EXC_RESOURCE",
+     "node": "Програма / ресурси",
+     "symptoms": "Програма закривається під час тривалої роботи, телефон гріється.",
+     "cause": "Перевищено ліміт CPU, пам'яті або запису на диск.",
+     "fix": "Оновити програму; якщо масово — перевірити iOS."
+    }
+   }
   },
   {
    "id": "exc_guard",
@@ -1134,7 +2099,23 @@
    "fix": "Обновить приложение.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "EXC_GUARD",
+     "node": "App",
+     "symptoms": "The app closes.",
+     "cause": "Violation of a guarded resource.",
+     "fix": "Update the app."
+    },
+    "uk": {
+     "title": "EXC_GUARD",
+     "node": "Програма",
+     "symptoms": "Програма закривається.",
+     "cause": "Порушення захищеного ресурсу.",
+     "fix": "Оновити програму."
+    }
+   }
   },
   {
    "id": "code_8badf00d",
@@ -1151,7 +2132,23 @@
     "apple_crash"
    ],
    "confidence": "apple",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "0x8badf00d — the app hung",
+     "node": "App / slow storage",
+     "symptoms": "The app takes long to launch and closes.",
+     "cause": "The watchdog killed the app: it didn't launch or respond in time. If it happens to all apps — slow/faulty NAND. In the report: Termination Reason — Namespace SPRINGBOARD, Code 0x8badf00d.",
+     "fix": "Reinstall the app; if widespread — free up space, check the NAND."
+    },
+    "uk": {
+     "title": "0x8badf00d — програма зависла",
+     "node": "Програма / повільна пам'ять",
+     "symptoms": "Програма довго запускається й закривається.",
+     "cause": "Watchdog завершив програму: не запустилася або не відповіла вчасно. Якщо масово в усіх програм — повільна/несправна NAND. У звіті: Termination Reason — Namespace SPRINGBOARD, Code 0x8badf00d.",
+     "fix": "Перевстановити програму; за масових випадків — звільнити місце, перевірити NAND."
+    }
+   }
   },
   {
    "id": "code_c00010ff",
@@ -1166,7 +2163,23 @@
    "fix": "Проверить нагрев, аккумулятор, ток потребления.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "0xc00010ff — closed due to overheating",
+     "node": "Temperature",
+     "symptoms": "Apps close in the heat/under load.",
+     "cause": "The system closed the app because of overheating.",
+     "fix": "Check the heating, the battery, the current draw."
+    },
+    "uk": {
+     "title": "0xc00010ff — закрито через перегрів",
+     "node": "Температура",
+     "symptoms": "Програми закриваються в спеку/під навантаженням.",
+     "cause": "Система закрила програму через перегрів.",
+     "fix": "Перевірити нагрівання, акумулятор, струм споживання."
+    }
+   }
   },
   {
    "id": "code_dead10cc",
@@ -1183,7 +2196,23 @@
     "apple_sigkill"
    ],
    "confidence": "apple",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "0xdead10cc",
+     "node": "App",
+     "symptoms": "The app closes in the background.",
+     "cause": "The app held a file/database lock when going to the background. In the report: Termination Reason — Namespace RUNNINGBOARD, Code 0xdead10cc.",
+     "fix": "A bug in the app — update it."
+    },
+    "uk": {
+     "title": "0xdead10cc",
+     "node": "Програма",
+     "symptoms": "Програма закривається у фоні.",
+     "cause": "Програма утримувала файл/базу даних під час переходу у фон. У звіті: Termination Reason — Namespace RUNNINGBOARD, Code 0xdead10cc.",
+     "fix": "Помилка програми — оновити."
+    }
+   }
   },
   {
    "id": "code_deadfa11",
@@ -1198,7 +2227,19 @@
    "fix": "—",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "0xdeadfa11 — force quit",
+     "node": "User",
+     "cause": "The user force-restarted/closed a frozen app."
+    },
+    "uk": {
+     "title": "0xdeadfa11 — примусове закриття",
+     "node": "Користувач",
+     "cause": "Користувач примусово перезавантажив/закрив завислу програму."
+    }
+   }
   },
   {
    "id": "code_baadca11",
@@ -1214,7 +2255,23 @@
    "fix": "Обновить приложение.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "0xbaadca11 / 0xbad22222",
+     "node": "App",
+     "symptoms": "The app closes.",
+     "cause": "Violation of background execution rules (VoIP etc.).",
+     "fix": "Update the app."
+    },
+    "uk": {
+     "title": "0xbaadca11 / 0xbad22222",
+     "node": "Програма",
+     "symptoms": "Програма закривається.",
+     "cause": "Порушення правил роботи у фоні (VoIP тощо).",
+     "fix": "Оновити програму."
+    }
+   }
   },
   {
    "id": "jetsam",
@@ -1230,7 +2287,23 @@
    "fix": "Если очень часто — перезагрузить, обновить iOS, удалить тяжёлые приложения.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Jetsam — low RAM",
+     "node": "RAM / software",
+     "symptoms": "Apps reload when switching, crash in the background.",
+     "cause": "iOS unloads apps when RAM runs out. Normal in small numbers.",
+     "fix": "If very frequent — restart, update iOS, remove heavy apps."
+    },
+    "uk": {
+     "title": "Jetsam — нестача оперативної пам'яті",
+     "node": "RAM / ПЗ",
+     "symptoms": "Програми перезапускаються під час перемикання, збоять у фоні.",
+     "cause": "iOS вивантажує програми, коли бракує RAM. Нормально в невеликих кількостях.",
+     "fix": "Якщо дуже часто — перезавантажити, оновити iOS, видалити важкі програми."
+    }
+   }
   },
   {
    "id": "itunes_1",
@@ -1243,7 +2316,23 @@
    "fix": "Проверить прошивку; при повторе — модем и его питание.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Error 1 / -1",
+     "node": "Modem",
+     "symptoms": "The restore is interrupted.",
+     "cause": "Most often a modem problem or firmware that doesn't match the model.",
+     "fix": "Check the firmware; if it repeats — the modem and its power."
+    },
+    "uk": {
+     "title": "Помилка 1 / -1",
+     "node": "Модем",
+     "symptoms": "Відновлення переривається.",
+     "cause": "Найчастіше проблема модему або прошивка не підходить до моделі.",
+     "fix": "Перевірити прошивку; у разі повтору — модем і його живлення."
+    }
+   }
   },
   {
    "id": "itunes_9",
@@ -1258,7 +2347,23 @@
     "apple_restore"
    ],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Error 9",
+     "node": "Connection / NAND / processor",
+     "symptoms": "The phone disconnects during the restore.",
+     "cause": "The device unexpectedly lost connection: cable/port, or NAND, processor, power.",
+     "fix": "Change the cable and USB port (preferably a rear port on a PC). If it repeats — NAND/logic board. Apple's official advice: update iTunes or macOS, try again, try another computer; if the error repeats — contact a service provider."
+    },
+    "uk": {
+     "title": "Помилка 9",
+     "node": "Зв'язок / NAND / процесор",
+     "symptoms": "Телефон від'єднується під час відновлення.",
+     "cause": "Пристрій несподівано втратив зв'язок: кабель/порт, або NAND, процесор, живлення.",
+     "fix": "Змінити кабель і USB-порт (краще задній на ПК). Якщо повторюється — NAND/плата. Офіційна порада Apple: оновити iTunes або macOS, повторити, спробувати інший комп'ютер; якщо помилка повторюється — звернутися до сервісу."
+    }
+   }
   },
   {
    "id": "itunes_14",
@@ -1271,7 +2376,23 @@
    "fix": "Скачать прошивку заново, сменить кабель, восстановить через DFU.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Error 14",
+     "node": "Firmware / cable / NAND",
+     "symptoms": "Error while writing the firmware.",
+     "cause": "Corrupted firmware file, bad cable, low disk space, sometimes NAND.",
+     "fix": "Download the firmware again, change the cable, restore via DFU."
+    },
+    "uk": {
+     "title": "Помилка 14",
+     "node": "Прошивка / кабель / NAND",
+     "symptoms": "Помилка під час запису прошивки.",
+     "cause": "Пошкоджений файл прошивки, поганий кабель, мало місця, іноді NAND.",
+     "fix": "Завантажити прошивку заново, змінити кабель, відновити через DFU."
+    }
+   }
   },
   {
    "id": "itunes_17",
@@ -1284,7 +2405,21 @@
    "fix": "Восстановить через DFU, проверить файл hosts.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Error 17",
+     "node": "Software",
+     "cause": "Attempt to update from modified firmware, or the server is blocked.",
+     "fix": "Restore via DFU, check the hosts file."
+    },
+    "uk": {
+     "title": "Помилка 17",
+     "node": "ПЗ",
+     "cause": "Спроба оновлення зі зміненої прошивки або блокування сервера.",
+     "fix": "Відновити через DFU, перевірити файл hosts."
+    }
+   }
   },
   {
    "id": "itunes_21",
@@ -1297,7 +2432,21 @@
    "fix": "Зарядить/заменить аккумулятор, повторить в DFU.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Error 21",
+     "node": "Battery / DFU",
+     "cause": "A problem with DFU mode or with power/the battery.",
+     "fix": "Charge/replace the battery, retry in DFU."
+    },
+    "uk": {
+     "title": "Помилка 21",
+     "node": "Акумулятор / DFU",
+     "cause": "Проблема з режимом DFU або з живленням/акумулятором.",
+     "fix": "Зарядити/замінити акумулятор, повторити в DFU."
+    }
+   }
   },
   {
    "id": "itunes_27_29",
@@ -1310,7 +2459,21 @@
    "fix": "Обновить iTunes, поставить другой аккумулятор.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Error 27 / 29",
+     "node": "Battery",
+     "cause": "Often a non-genuine or faulty battery; also an outdated iTunes.",
+     "fix": "Update iTunes, fit another battery."
+    },
+    "uk": {
+     "title": "Помилка 27 / 29",
+     "node": "Акумулятор",
+     "cause": "Часто — неоригінальний або несправний акумулятор; також застарілий iTunes.",
+     "fix": "Оновити iTunes, поставити інший акумулятор."
+    }
+   }
   },
   {
    "id": "itunes_40",
@@ -1323,7 +2486,21 @@
    "fix": "Повторить в DFU; диагностика NAND.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Error 40",
+     "node": "NAND",
+     "cause": "Often related to the NAND storage.",
+     "fix": "Retry in DFU; diagnose the NAND."
+    },
+    "uk": {
+     "title": "Помилка 40",
+     "node": "NAND",
+     "cause": "Часто пов'язана з пам'яттю NAND.",
+     "fix": "Повторити в DFU; діагностика NAND."
+    }
+   }
   },
   {
    "id": "itunes_53",
@@ -1337,7 +2514,25 @@
    "models": "iPhone 6 / 6s / 7 / 8",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Error 53",
+     "node": "Touch ID",
+     "symptoms": "Won't restore after replacing the Home button.",
+     "cause": "The Touch ID sensor doesn't match the logic board.",
+     "fix": "Put back the original Home button / flex.",
+     "models": "iPhone 6 / 6s / 7 / 8"
+    },
+    "uk": {
+     "title": "Помилка 53",
+     "node": "Touch ID",
+     "symptoms": "Не відновлюється після заміни кнопки Home.",
+     "cause": "Сканер Touch ID не збігається з платою.",
+     "fix": "Повернути рідну кнопку Home / шлейф.",
+     "models": "iPhone 6 / 6s / 7 / 8"
+    }
+   }
   },
   {
    "id": "itunes_56",
@@ -1350,7 +2545,21 @@
    "fix": "Диагностика этих узлов.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Error 56",
+     "node": "Touch ID / NFC / modem",
+     "cause": "A hardware problem with Touch ID, NFC or the modem.",
+     "fix": "Diagnose these components."
+    },
+    "uk": {
+     "title": "Помилка 56",
+     "node": "Touch ID / NFC / модем",
+     "cause": "Апаратна проблема Touch ID, NFC або модему.",
+     "fix": "Діагностика цих вузлів."
+    }
+   }
   },
   {
    "id": "itunes_1015",
@@ -1363,7 +2572,21 @@
    "fix": "Ставить только подписанную актуальную прошивку.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Error 1015",
+     "node": "Modem / software",
+     "cause": "Attempt to install an older iOS (downgrade) or a modem problem.",
+     "fix": "Install only signed, current firmware."
+    },
+    "uk": {
+     "title": "Помилка 1015",
+     "node": "Модем / ПЗ",
+     "cause": "Спроба встановити старішу iOS (даунгрейд) або проблема модему.",
+     "fix": "Встановлювати лише підписану актуальну прошивку."
+    }
+   }
   },
   {
    "id": "itunes_16xx",
@@ -1376,7 +2599,21 @@
    "fix": "Повторить вход в DFU, сменить кабель/порт, переустановить драйвер.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Errors 1600–1611, 1667–1669",
+     "node": "DFU mode / USB",
+     "cause": "Problems entering DFU/Recovery mode or with the USB connection.",
+     "fix": "Enter DFU again, change the cable/port, reinstall the driver."
+    },
+    "uk": {
+     "title": "Помилки 1600–1611, 1667–1669",
+     "node": "Режим DFU / USB",
+     "cause": "Проблеми входу в режим DFU/Recovery або USB-з'єднання.",
+     "fix": "Повторити вхід у DFU, змінити кабель/порт, перевстановити драйвер."
+    }
+   }
   },
   {
    "id": "itunes_2001",
@@ -1389,7 +2626,21 @@
    "fix": "Другой кабель/порт, переустановить iTunes / Apple Devices.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Errors 2001–2011",
+     "node": "USB",
+     "cause": "USB problems: cable, port, Apple Mobile Device driver.",
+     "fix": "Another cable/port, reinstall iTunes / Apple Devices."
+    },
+    "uk": {
+     "title": "Помилки 2001–2011",
+     "node": "USB",
+     "cause": "Проблеми USB: кабель, порт, драйвер Apple Mobile Device.",
+     "fix": "Інший кабель/порт, перевстановити iTunes / Apple Devices."
+    }
+   }
   },
   {
    "id": "itunes_3194",
@@ -1402,7 +2653,21 @@
    "fix": "Проверить интернет, файл hosts, антивирус; ставить актуальную прошивку.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Errors 3004 / 3014 / 3194",
+     "node": "Network / Apple servers",
+     "cause": "No connection to the gs.apple.com signing server, or the firmware is no longer signed.",
+     "fix": "Check the internet connection, the hosts file, the antivirus; install current firmware."
+    },
+    "uk": {
+     "title": "Помилки 3004 / 3014 / 3194",
+     "node": "Мережа / сервери Apple",
+     "cause": "Немає зв'язку із сервером підпису gs.apple.com або прошивка більше не підписується.",
+     "fix": "Перевірити інтернет, файл hosts, антивірус; встановлювати актуальну прошивку."
+    }
+   }
   },
   {
    "id": "itunes_4005",
@@ -1417,7 +2682,21 @@
     "apple_restore"
    ],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Error 4005",
+     "node": "NAND / power / cable",
+     "cause": "Critical restore error: often NAND, power, cable.",
+     "fix": "Change the cable/PC, retry in DFU; then diagnose the logic board. Apple's official advice: update iTunes or macOS, try again, try another computer; if the error repeats — contact a service provider."
+    },
+    "uk": {
+     "title": "Помилка 4005",
+     "node": "NAND / живлення / кабель",
+     "cause": "Критична помилка відновлення: часто NAND, живлення, кабель.",
+     "fix": "Змінити кабель/ПК, повторити в DFU; потім діагностика плати. Офіційна порада Apple: оновити iTunes або macOS, повторити, спробувати інший комп'ютер; якщо помилка повторюється — звернутися до сервісу."
+    }
+   }
   },
   {
    "id": "itunes_4013",
@@ -1432,7 +2711,23 @@
     "apple_restore"
    ],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Errors 4013 / 4014",
+     "node": "Connection / NAND / processor",
+     "symptoms": "The phone restarts/disconnects during the restore.",
+     "cause": "Lost connection: cable/port, or hardware — NAND, processor, power.",
+     "fix": "Change the cable/port, restore via DFU. If it consistently repeats — the logic board. Apple's official advice: update iTunes or macOS, try again, try another computer; if the error repeats — contact a service provider."
+    },
+    "uk": {
+     "title": "Помилки 4013 / 4014",
+     "node": "Зв'язок / NAND / процесор",
+     "symptoms": "Телефон перезавантажується/від'єднується під час відновлення.",
+     "cause": "Втрата з'єднання: кабель/порт, або апаратно — NAND, процесор, живлення.",
+     "fix": "Змінити кабель/порт, відновити через DFU. Якщо стабільно повторюється — плата. Офіційна порада Apple: оновити iTunes або macOS, повторити, спробувати інший комп'ютер; якщо помилка повторюється — звернутися до сервісу."
+    }
+   }
   },
   {
    "id": "itunes_9006",
@@ -1445,7 +2740,21 @@
    "fix": "Скачать прошивку вручную, отключить антивирус.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Error 9006",
+     "node": "Network",
+     "cause": "The firmware download was interrupted (network, antivirus).",
+     "fix": "Download the firmware manually, disable the antivirus."
+    },
+    "uk": {
+     "title": "Помилка 9006",
+     "node": "Мережа",
+     "cause": "Завантаження прошивки перервано (мережа, антивірус).",
+     "fix": "Завантажити прошивку вручну, вимкнути антивірус."
+    }
+   }
   },
   {
    "id": "itunes_e8000015",
@@ -1458,7 +2767,23 @@
    "fix": "Разблокировать iPhone, нажать «Доверять», переустановить драйвер.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "0xE8000015 / 0xE800000A",
+     "node": "USB / trust",
+     "symptoms": "iTunes doesn't see the phone.",
+     "cause": "The device isn't recognised or isn't trusted, driver problems.",
+     "fix": "Unlock the iPhone, tap «Trust», reinstall the driver."
+    },
+    "uk": {
+     "title": "0xE8000015 / 0xE800000A",
+     "node": "USB / довіра",
+     "symptoms": "iTunes не бачить телефон.",
+     "cause": "Пристрій не розпізнано або не довірено, проблеми драйвера.",
+     "fix": "Розблокувати iPhone, натиснути «Довіряти», перевстановити драйвер."
+    }
+   }
   },
   {
    "id": "sym_3min",
@@ -1474,7 +2799,23 @@
     "ifixit_ms"
    ],
    "confidence": "reported",
-   "keywords": "перезагружается каждые 3 минуты циклически"
+   "keywords": "перезагружается каждые 3 минуты циклически",
+   "i18n": {
+    "en": {
+     "title": "Restarts every 3 minutes",
+     "node": "Sensors / flex cables",
+     "symptoms": "Turns on, works for ~3 minutes, restarts.",
+     "cause": "A sensor is missing (thermalmonitord). The most common causes: the charging flex (mic1/prs0), the battery (TG0B/TG0V).",
+     "fix": "Pull panic-full and look at Missing sensor(s). Make a backup before restoring: with a hardware panic, the restore often fails with error 4013."
+    },
+    "uk": {
+     "title": "Перезавантажується кожні 3 хвилини",
+     "node": "Датчики / шлейфи",
+     "symptoms": "Вмикається, працює ~3 хвилини, перезавантажується.",
+     "cause": "Відсутній датчик (thermalmonitord). Найчастіші причини: шлейф заряджання (mic1/prs0), акумулятор (TG0B/TG0V).",
+     "fix": "Зняти panic-full і подивитися Missing sensor(s). Перед відновленням зробіть резервну копію: за апаратної паніки відновлення часто обривається помилкою 4013."
+    }
+   }
   },
   {
    "id": "sym_bootloop",
@@ -1487,7 +2828,23 @@
    "fix": "Восстановить через DFU; смотреть паники; поставить другой аккумулятор.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Boot loop (cyclic restart on the Apple logo)",
+     "node": "Software / NAND / SEP / battery",
+     "symptoms": "Doesn't boot past the logo.",
+     "cause": "Damaged system, NAND, SEP, weak battery, missing sensor.",
+     "fix": "Restore via DFU; look at the panics; fit another battery."
+    },
+    "uk": {
+     "title": "Бутлуп (циклічне перезавантаження на яблуку)",
+     "node": "ПЗ / NAND / SEP / акумулятор",
+     "symptoms": "Не завантажується далі логотипа.",
+     "cause": "Пошкоджена система, NAND, SEP, слабкий акумулятор, відсутній датчик.",
+     "fix": "Відновити через DFU; дивитися паніки; поставити інший акумулятор."
+    }
+   }
   },
   {
    "id": "sym_load_off",
@@ -1500,7 +2857,23 @@
    "fix": "Проверить здоровье и циклы аккумулятора, заменить.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Shuts down under load / at 20–30%",
+     "node": "Battery",
+     "symptoms": "Suddenly shuts down when using the camera, gaming, in the cold.",
+     "cause": "Battery wear — the voltage drops.",
+     "fix": "Check battery health and cycles, replace."
+    },
+    "uk": {
+     "title": "Вимикається під навантаженням / на 20–30%",
+     "node": "Акумулятор",
+     "symptoms": "Різко вимикається під час роботи камери, гри, на холоді.",
+     "cause": "Знос акумулятора — напруга просідає.",
+     "fix": "Перевірити стан і цикли акумулятора, замінити."
+    }
+   }
   },
   {
    "id": "sym_no_power",
@@ -1513,7 +2886,23 @@
    "fix": "Зарядить 30 мин оригинальной зарядкой, проверить ток потребления на блоке питания.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Won't turn on",
+     "node": "Battery / logic board",
+     "symptoms": "No response to the button or the charger.",
+     "cause": "Discharged/dead battery, a short on the board, PMU.",
+     "fix": "Charge for 30 min with an original charger, check the current draw on a bench power supply."
+    },
+    "uk": {
+     "title": "Не вмикається",
+     "node": "Акумулятор / плата",
+     "symptoms": "Немає реакції на кнопку й зарядку.",
+     "cause": "Розряджений/мертвий акумулятор, КЗ на платі, PMU.",
+     "fix": "Заряджати 30 хв оригінальною зарядкою, перевірити струм споживання на блоці живлення."
+    }
+   }
   },
   {
    "id": "sym_hot",
@@ -1526,7 +2915,23 @@
    "fix": "Подождать после обновления, проверить «Аккумулятор» в настройках, ток покоя.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Gets warm at rest / drains quickly",
+     "node": "Software / leakage / modem",
+     "symptoms": "Warm without load, fast drain.",
+     "cause": "After an update iOS indexes data (normal for 1–2 days); otherwise — current leakage, the modem constantly searching for a network, a worn battery.",
+     "fix": "Wait after the update, check «Battery» in Settings, the idle current."
+    },
+    "uk": {
+     "title": "Гріється в спокої / швидко сідає",
+     "node": "ПЗ / витік / модем",
+     "symptoms": "Нагрівання без навантаження, швидке розряджання.",
+     "cause": "Після оновлення iOS індексує дані (норма 1–2 дні); інакше — витік струму, модем постійно шукає мережу, зношений акумулятор.",
+     "fix": "Почекати після оновлення, перевірити «Акумулятор» у параметрах, струм спокою."
+    }
+   }
   },
   {
    "id": "sym_no_network",
@@ -1539,7 +2944,23 @@
    "fix": "Другая SIM или переустановка eSIM у оператора, сброс настроек сети, восстановление, затем модем. Модели только с eSIM (без лотка): iPhone 14 и новее для США, iPhone Air, часть iPhone 17 — у них искать проблему в лотке не нужно.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "No service / «Searching» / «No SIM»",
+     "node": "Modem / SIM / antennas",
+     "symptoms": "No network, SIM not detected, empty IMEI.",
+     "cause": "The SIM tray and SIM contacts (or the eSIM profile), antennas, the modem.",
+     "fix": "Another SIM or reinstalling the eSIM with the carrier, reset network settings, restore, then the modem. eSIM-only models (no tray): iPhone 14 and newer for the US, iPhone Air, some iPhone 17 — no need to look for the problem in the tray on these."
+    },
+    "uk": {
+     "title": "Немає мережі / «Пошук» / «Немає SIM»",
+     "node": "Модем / SIM / антени",
+     "symptoms": "Не ловить мережу, не бачить SIM, порожній IMEI.",
+     "cause": "SIM-лоток і контакти SIM (або профіль eSIM), антени, модем.",
+     "fix": "Інша SIM або перевстановлення eSIM в оператора, скидання параметрів мережі, відновлення, потім модем. Моделі лише з eSIM (без лотка): iPhone 14 і новіші для США, iPhone Air, частина iPhone 17 — у них шукати проблему в лотку не потрібно."
+    }
+   }
   },
   {
    "id": "sym_wifi_grey",
@@ -1552,7 +2973,23 @@
    "fix": "Сброс настроек сети; если не помогло — модуль.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Greyed-out Wi-Fi / Bluetooth",
+     "node": "Wi-Fi module",
+     "symptoms": "The Wi-Fi switch is inactive.",
+     "cause": "The Wi-Fi module doesn't initialise: soldering, power.",
+     "fix": "Reset network settings; if that doesn't help — the module."
+    },
+    "uk": {
+     "title": "Сірий Wi-Fi / Bluetooth",
+     "node": "Модуль Wi-Fi",
+     "symptoms": "Перемикач Wi-Fi неактивний.",
+     "cause": "Модуль Wi-Fi не ініціалізується: пайка, живлення.",
+     "fix": "Скидання параметрів мережі; якщо не допомогло — модуль."
+    }
+   }
   },
   {
    "id": "sym_no_audio",
@@ -1565,7 +3002,23 @@
    "fix": "Записать диктофон с каждого микрофона, проверить шлейфы.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Can't hear on calls / the other side can't hear me",
+     "node": "Audio",
+     "symptoms": "Sound problems during calls.",
+     "cause": "Microphones, speakers, their flex cables, the audio codec.",
+     "fix": "Record a voice memo with each microphone, check the flex cables."
+    },
+    "uk": {
+     "title": "Не чути під час розмови / мене не чують",
+     "node": "Аудіо",
+     "symptoms": "Проблеми зі звуком під час дзвінка.",
+     "cause": "Мікрофони, динаміки, їхні шлейфи, аудіокодек.",
+     "fix": "Записати диктофоном з кожного мікрофона, перевірити шлейфи."
+    }
+   }
   },
   {
    "id": "sym_faceid",
@@ -1578,7 +3031,23 @@
    "fix": "Диагностика модуля Face ID (привязан к плате).",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Face ID is not available",
+     "node": "Face ID",
+     "symptoms": "The message «Face ID is not available».",
+     "cause": "Damaged dot projector, IR camera, flex cable, liquid.",
+     "fix": "Diagnose the Face ID module (it is paired to the logic board)."
+    },
+    "uk": {
+     "title": "Face ID недоступний",
+     "node": "Face ID",
+     "symptoms": "Повідомлення «Face ID недоступний».",
+     "cause": "Пошкоджено проєктор точок, ІЧ-камеру, шлейф, волога.",
+     "fix": "Діагностика модуля Face ID (прив'язаний до плати)."
+    }
+   }
   },
   {
    "id": "sym_no_charge",
@@ -1591,7 +3060,23 @@
    "fix": "Почистить разъём, другой кабель, шлейф, затем контроллер.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Doesn't charge / «Accessory not supported»",
+     "node": "Charging / Tristar / Hydra",
+     "symptoms": "No charging or intermittent charging.",
+     "cause": "Dirt in the port, the cable, the charging flex, the USB controller.",
+     "fix": "Clean the port, try another cable, the flex, then the controller."
+    },
+    "uk": {
+     "title": "Не заряджається / «Аксесуар не підтримується»",
+     "node": "Заряджання / Tristar / Hydra",
+     "symptoms": "Немає заряджання або заряджається з перебоями.",
+     "cause": "Бруд у роз'ємі, кабель, шлейф заряджання, контролер USB.",
+     "fix": "Почистити роз'єм, інший кабель, шлейф, потім контролер."
+    }
+   }
   },
   {
    "id": "sym_unknown_part",
@@ -1605,7 +3090,25 @@
    "ios": "iOS 13 и новее",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "«Unknown Part» / Important Battery Message",
+     "node": "Parts serialization",
+     "symptoms": "A message in Settings → General → About.",
+     "cause": "The part was replaced with a non-genuine one or wasn't calibrated. Battery — since iPhone XS, display — since iPhone 11, camera — since iPhone 12.",
+     "fix": "Usually doesn't affect operation. iOS 17.x/18 added «Parts and Service History» and calibration of genuine parts.",
+     "ios": "iOS 13 and newer"
+    },
+    "uk": {
+     "title": "«Невідома деталь» / важливе повідомлення про акумулятор",
+     "node": "Серіалізація деталей",
+     "symptoms": "Повідомлення в Параметри → Загальні → Про пристрій.",
+     "cause": "Деталь замінено на неоригінальну або не відкалібровано. Акумулятор — з iPhone XS, дисплей — з iPhone 11, камера — з iPhone 12.",
+     "fix": "На роботу зазвичай не впливає. З iOS 17.x/18 з'явилася «Історія деталей і обслуговування» та калібрування оригінальних деталей.",
+     "ios": "iOS 13 і новіші"
+    }
+   }
   },
   {
    "id": "sym_touch",
@@ -1618,7 +3121,23 @@
    "fix": "Проверить с другим дисплеем.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Touch doesn't work / ghost touches",
+     "node": "Display",
+     "symptoms": "The screen taps by itself or doesn't respond.",
+     "cause": "A damaged or poor-quality display, the flex cable.",
+     "fix": "Test with another display."
+    },
+    "uk": {
+     "title": "Тач не працює / фантомні натискання",
+     "node": "Дисплей",
+     "symptoms": "Екран натискається сам або не реагує.",
+     "cause": "Пошкоджений або неякісний дисплей, шлейф.",
+     "fix": "Перевірити з іншим дисплеєм."
+    }
+   }
   },
   {
    "id": "sym_no_vibro",
@@ -1631,7 +3150,23 @@
    "fix": "Проверить в настройках, затем Taptic Engine.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "No vibration",
+     "node": "Taptic Engine",
+     "symptoms": "No vibration.",
+     "cause": "The Taptic Engine or its contact.",
+     "fix": "Check the settings, then the Taptic Engine."
+    },
+    "uk": {
+     "title": "Немає вібрації",
+     "node": "Taptic Engine",
+     "symptoms": "Немає вібрації.",
+     "cause": "Taptic Engine або контакт.",
+     "fix": "Перевірити в параметрах, потім Taptic Engine."
+    }
+   }
   },
   {
    "id": "sym_rotate",
@@ -1644,7 +3179,23 @@
    "fix": "Проверить верхний шлейф, затем плату.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Auto-rotate / compass doesn't work / screen doesn't turn off during calls",
+     "node": "Sensors / AOP",
+     "symptoms": "The sensors don't work.",
+     "cause": "The proximity sensor on the top flex, the motion sensors on the board.",
+     "fix": "Check the top flex, then the logic board."
+    },
+    "uk": {
+     "title": "Не працює автоповорот / компас / екран не гасне під час дзвінка",
+     "node": "Датчики / AOP",
+     "symptoms": "Датчики не працюють.",
+     "cause": "Датчик наближення на верхньому шлейфі, датчики руху на платі.",
+     "fix": "Перевірити верхній шлейф, потім плату."
+    }
+   }
   },
   {
    "id": "sym_camera",
@@ -1657,7 +3208,23 @@
    "fix": "Проверить другие камеры, заменить модуль.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Black screen in the camera",
+     "node": "Camera",
+     "symptoms": "The camera doesn't work.",
+     "cause": "The camera module, flex cable, ISP.",
+     "fix": "Check the other cameras, replace the module."
+    },
+    "uk": {
+     "title": "Чорний екран у камері",
+     "node": "Камера",
+     "symptoms": "Камера не працює.",
+     "cause": "Модуль камери, шлейф, ISP.",
+     "fix": "Перевірити інші камери, замінити модуль."
+    }
+   }
   },
   {
    "id": "sym_pc",
@@ -1670,7 +3237,23 @@
    "fix": "Разблокировать, «Доверять», установить iTunes или Apple Devices, другой кабель.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "The computer doesn't see the iPhone",
+     "node": "USB",
+     "symptoms": "Not shown in iTunes/the app.",
+     "cause": "«Trust» wasn't tapped, the cable, the driver, Tristar/Hydra.",
+     "fix": "Unlock, tap «Trust», install iTunes or Apple Devices, try another cable."
+    },
+    "uk": {
+     "title": "Комп'ютер не бачить iPhone",
+     "node": "USB",
+     "symptoms": "Немає в iTunes/програмі.",
+     "cause": "Не натиснуто «Довіряти», кабель, драйвер, Tristar/Hydra.",
+     "fix": "Розблокувати, «Довіряти», встановити iTunes або Apple Devices, інший кабель."
+    }
+   }
   },
   {
    "id": "log_where",
@@ -1683,7 +3266,19 @@
    "fix": "Программа снимает их автоматически по USB. Если пусто — включи «Отправлять аналитику iPhone» (логи будут сохраняться).",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Where the logs are on the iPhone",
+     "cause": "Settings → Privacy & Security → Analytics & Improvements → Analytics Data. There are the panic-full-*, JetsamEvent-*, app_name-*.ips files, etc.",
+     "fix": "The app pulls them automatically over USB. If the list is empty — turn on «Share iPhone Analytics» (logs will be kept)."
+    },
+    "uk": {
+     "title": "Де лежать логи на iPhone",
+     "cause": "Параметри → Приватність і безпека → Аналітика й покращення → Дані аналітики. Там файли panic-full-*, JetsamEvent-*, назва_програми-*.ips тощо.",
+     "fix": "Програма знімає їх автоматично через USB. Якщо порожньо — увімкніть «Надсилати аналітику iPhone» (логи зберігатимуться)."
+    }
+   }
   },
   {
    "id": "log_formats",
@@ -1696,7 +3291,19 @@
    "fix": "Программа понимает все эти форматы.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "Log formats in different iOS versions",
+     "cause": "Before iOS 9: panics as text (.panic / .ips with text). iOS 10–14: .ips — the first line is a JSON header (bug_type, os_version), then JSON with panicString. App crashes — text. iOS 15+: app crashes are JSON too (.ips, bug_type 309). Newer iOS: besides panic-full there may be panic-base (a shortened log).",
+     "fix": "The app understands all these formats."
+    },
+    "uk": {
+     "title": "Формати логів у різних версіях iOS",
+     "cause": "iOS до 9: паніки у вигляді тексту (.panic / .ips з текстом). iOS 10–14: .ips — перший рядок JSON-заголовок (bug_type, os_version), далі JSON із panicString. Збої програм — текст. iOS 15+: збої програм теж у JSON (.ips, bug_type 309). Нові iOS: крім panic-full може бути panic-base (скорочений лог).",
+     "fix": "Програма розуміє всі ці формати."
+    }
+   }
   },
   {
    "id": "log_bugtypes",
@@ -1709,7 +3316,17 @@
    "fix": "—",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "What bug_type means",
+     "cause": "210 — kernel panic; 409 — panic (watchdog/base); 309/109 — app crash; 298 — Jetsam (low memory); 385 — resource limit exceeded; 288/115 — stack snapshots; 211 — summary analytics."
+    },
+    "uk": {
+     "title": "Що означає bug_type",
+     "cause": "210 — паніка ядра; 409 — паніка (watchdog/base); 309/109 — збій програми; 298 — Jetsam (нестача пам'яті); 385 — перевищення ресурсів; 288/115 — знімки стеків; 211 — зведена аналітика."
+    }
+   }
   },
   {
    "id": "log_panic_reading",
@@ -1722,7 +3339,19 @@
    "fix": "Если несколько паник подряд с одинаковой причиной — это железо. Если причины разные и случайные — чаще ПО или питание/память.",
    "sources": [],
    "confidence": "reported",
-   "keywords": ""
+   "keywords": "",
+   "i18n": {
+    "en": {
+     "title": "How to read a panic string",
+     "cause": "The first line matters most: «panic(cpu N caller 0x…): <cause>». The cause is a driver/process name or an error text. Below are software versions, «Missing sensor(s)», the backtrace. The cpu number and addresses usually don't matter for hardware diagnostics.",
+     "fix": "If several panics in a row have the same cause — it's hardware. If the causes are different and random — more often software or power/memory."
+    },
+    "uk": {
+     "title": "Як читати panic string",
+     "cause": "Перший рядок — головне: «panic(cpu N caller 0x…): <причина>». Причина — ім'я драйвера/процесу або текст помилки. Нижче — версії ПЗ, «Missing sensor(s)», backtrace. Номер cpu й адреси для діагностики заліза зазвичай не важливі.",
+     "fix": "Якщо кілька панік поспіль з однаковою причиною — це залізо. Якщо причини різні й випадкові — частіше ПЗ або живлення/пам'ять."
+    }
+   }
   }
  ],
  "i2c_buses": [
@@ -1733,7 +3362,15 @@
    ],
    "bus": "i2c0",
    "parts": "основная (широкая) камера, разъём аккумулятора, шлейф зарядки, верхний шлейф датчиков",
-   "source": "ifixit_i2c0"
+   "source": "ifixit_i2c0",
+   "i18n": {
+    "en": {
+     "parts": "main (wide) camera, battery connector, charging flex, top sensor flex"
+    },
+    "uk": {
+     "parts": "основна (широка) камера, роз'єм акумулятора, шлейф заряджання, верхній шлейф датчиків"
+    }
+   }
   },
   {
    "models": [
@@ -1744,7 +3381,15 @@
    ],
    "bus": "i2c1",
    "parts": "вибромотор, датчик освещённости, разговорный динамик, камеры",
-   "source": "rewa"
+   "source": "rewa",
+   "i18n": {
+    "en": {
+     "parts": "vibration motor, ambient light sensor, earpiece, cameras"
+    },
+    "uk": {
+     "parts": "вібромотор, датчик освітленості, розмовний динамік, камери"
+    }
+   }
   },
   {
    "models": [
@@ -1752,7 +3397,15 @@
    ],
    "bus": "i2c3",
    "parts": "контроллер питания дисплея",
-   "source": "ifixit_xs"
+   "source": "ifixit_xs",
+   "i18n": {
+    "en": {
+     "parts": "display power controller"
+    },
+    "uk": {
+     "parts": "контролер живлення дисплея"
+    }
+   }
   },
   {
    "models": [
@@ -1760,7 +3413,15 @@
    ],
    "bus": "i2c3",
    "parts": "фронтальная камера (J7600), телекамера (J7300), тач (J8100)",
-   "source": "ifixit_i2c3"
+   "source": "ifixit_i2c3",
+   "i18n": {
+    "en": {
+     "parts": "front camera (J7600), telephoto camera (J7300), touch (J8100)"
+    },
+    "uk": {
+     "parts": "фронтальна камера (J7600), телекамера (J7300), тач (J8100)"
+    }
+   }
   },
   {
    "models": [
@@ -1768,7 +3429,15 @@
    ],
    "bus": "i2c2",
    "parts": "верхний динамик (audio-speaker-top)",
-   "source": "ifixit_se"
+   "source": "ifixit_se",
+   "i18n": {
+    "en": {
+     "parts": "top speaker (audio-speaker-top)"
+    },
+    "uk": {
+     "parts": "верхній динамік (audio-speaker-top)"
+    }
+   }
   }
  ]
 }
