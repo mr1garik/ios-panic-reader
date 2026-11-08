@@ -27,6 +27,8 @@ import threading
 import time
 
 NEW_VERSION = "9.9.9"
+for _s in (sys.stdout, sys.stderr):       # консоль Windows по умолчанию не в UTF-8
+    _s.reconfigure(encoding="utf-8", errors="replace")
 IS_WIN = sys.platform == "win32"
 
 
