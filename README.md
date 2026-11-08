@@ -90,7 +90,9 @@ python ios_panic_reader.py --cli путь\к\логам
 Новый релиз выходит сам: поменяйте номер в файле `VERSION` и текст в `RELEASE_NOTES.md` —
 после сборки GitHub опубликует релиз с файлами для Windows и Mac.
 
-Собрать локально: Windows — `build.bat`, Mac — `./build_mac.sh`. Запуск из исходников на Mac —
+Собрать локально: Windows — `build.bat`, Mac — `./build_mac.sh` (оба вызывают `python build.py`).
+Каждая сборка на GitHub проверяет автообновление по-настоящему: собранная программа обновляет
+сама себя до тестовой версии 9.9.9 на Windows и Mac, и проверяется, что данные пользователя целы. Запуск из исходников на Mac —
 двойной клик по `start.command`. Тесты — `python -m unittest discover -s tests`.
 
 ## База ошибок

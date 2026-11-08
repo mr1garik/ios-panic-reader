@@ -19,7 +19,8 @@ import urllib.request
 from datetime import datetime
 
 REPO = "mr1garik/ios-panic-reader"
-API_LATEST = f"https://api.github.com/repos/{REPO}/releases/latest"
+# Адрес можно подменить переменной окружения — только для автотеста обновления
+API_LATEST = os.environ.get("IOSPR_UPDATE_URL") or f"https://api.github.com/repos/{REPO}/releases/latest"
 RELEASES_PAGE = f"https://github.com/{REPO}/releases"
 ASSET_WINDOWS = "iOSPanicReader.exe"
 ASSET_MAC = "iOSPanicReader-macOS.zip"
@@ -247,6 +248,29 @@ def launch_installer(new, data_dir, version, relaunch=True):
         os.chmod(script, 0o755)
         subprocess.Popen(["/bin/bash", script], start_new_session=True,
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def update_now(data_dir, log=print, relaunch=False):
+    """Проверить, скачать и поставить обновление без окна (для командной строки и автотеста).
+    Возвращает новую версию или None, если обновлять нечего."""
+    log(f"текущая версия: {current_version()}")
+    info = check_latest()
+    log(f"на сервере: {info['version']}")
+    if not is_newer(info["version"], current_version()):
+        log("обновление не нужно")
+        return None
+    reason = check_writable()
+    if reason:
+        raise RuntimeError(reason)
+    if not info["asset"]:
+        raise RuntimeError(f"в релизе нет файла {asset_name()}")
+    path = downloaded_path(data_dir, info["version"])
+    download(info["asset"], path)
+    log(f"скачано и проверено: {path}")
+    new = prepare(path, data_dir)
+    launch_installer(new, data_dir, current_version(), relaunch=relaunch)
+    log("установщик запущен, программа завершается")
+    return info["version"]
 
 
 def download_dir(data_dir):

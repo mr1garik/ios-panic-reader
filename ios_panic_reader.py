@@ -25,9 +25,31 @@ for _s in (sys.stdout, sys.stderr):
 import core  # noqa: E402
 
 
+def _out(args):
+    """--out ФАЙЛ: куда писать результат (у программы без консоли нет вывода на экран)."""
+    if "--out" in args:
+        path = args[args.index("--out") + 1]
+        f = open(path, "w", encoding="utf-8")
+        return lambda msg: (f.write(msg + "\n"), f.flush())
+    return print
+
+
 def main():
-    core.load_user_kb()
     args = sys.argv[1:]
+    if args and args[0] == "--version":
+        import updater
+        _out(args)(updater.current_version())
+        return
+    if args and args[0] == "--update":
+        import updater
+        log = _out(args)
+        try:
+            updater.update_now(os.path.dirname(core.logs_root()), log)
+        except Exception as e:
+            log(f"ОШИБКА: {e.__class__.__name__}: {e}")
+            sys.exit(1)
+        return
+    core.load_user_kb()
     if args and args[0] == "--cli":
         parsed = [core.parse_log(f) for f in core.collect_files(args[1:])]
         print(core.build_summary(parsed))

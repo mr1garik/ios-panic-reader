@@ -28,11 +28,14 @@ jobs:
         run: python -m unittest discover -s tests -v
 
       - name: Сборка iOSPanicReader.exe
-        run: >
-          python -m PyInstaller --noconfirm --onefile --noconsole --name iOSPanicReader --icon assets/icon.ico
-          --collect-all pymobiledevice3
-          --hidden-import gui --hidden-import core --hidden-import device --hidden-import knowledge_base --hidden-import history --hidden-import report_pdf --hidden-import updater --collect-all reportlab --collect-data certifi --add-data VERSION:. --add-data errors_db.json:. --add-data assets/icon_256.png:assets
-          ios_panic_reader.py
+        run: python build.py
+
+      - name: Сборка тестовой «новой» версии 9.9.9
+        run: python build.py --dist dist-next --version 9.9.9
+
+      - name: Проверка автообновления (старая версия обновляется до 9.9.9)
+        timeout-minutes: 10
+        run: python tests/e2e_update.py --old dist/iOSPanicReader.exe --new dist-next/iOSPanicReader.exe
 
       - name: Проверка запуска (консольный режим)
         shell: pwsh
@@ -69,12 +72,14 @@ jobs:
         run: python -m unittest discover -s tests -v
 
       - name: Сборка iOSPanicReader.app
-        run: >
-          python -m PyInstaller --noconfirm --windowed --name iOSPanicReader --icon assets/icon.icns
-          --osx-bundle-identifier com.mr1garik.iospanicreader
-          --collect-all pymobiledevice3
-          --hidden-import gui --hidden-import core --hidden-import device --hidden-import knowledge_base --hidden-import history --hidden-import report_pdf --hidden-import updater --collect-all reportlab --collect-data certifi --add-data VERSION:. --add-data errors_db.json:. --add-data assets/icon_256.png:assets
-          ios_panic_reader.py
+        run: python build.py
+
+      - name: Сборка тестовой «новой» версии 9.9.9
+        run: python build.py --dist dist-next --version 9.9.9
+
+      - name: Проверка автообновления (старая версия обновляется до 9.9.9)
+        timeout-minutes: 10
+        run: python tests/e2e_update.py --old dist/iOSPanicReader.app --new dist-next/iOSPanicReader.app
 
       - name: Проверка запуска (консольный режим)
         run: dist/iOSPanicReader.app/Contents/MacOS/iOSPanicReader --cli tests/samples > /dev/null
