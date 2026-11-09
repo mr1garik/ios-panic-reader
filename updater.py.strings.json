@@ -1,0 +1,16 @@
+[
+"$ErrorActionPreference = 'Stop'\n$log = {0}\nfunction L($m) {{ try {{ Add-Content -LiteralPath $log -Value ((Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + ' ' + $m) -Encoding UTF8 }} catch {{}} }}\nL 'установщик запущен'\n{1}\nL 'программа закрыта'\n$old = {2}; $new = {3}; $bak = {4}\nif (Test-Path -LiteralPath $bak) {{ Remove-Item -LiteralPath $bak -Force }}\n$moved = $false\nfor ($i = 0; $i -lt 60 -and -not $moved; $i++) {{\n  try {{ Move-Item -LiteralPath $old -Destination $bak -Force; $moved = $true }}\n  catch {{ if ($i -eq 0) {{ L ('файл программы занят, жду: ' + $_.Exception.Message) }}; Start-Sleep -Seconds 1 }}\n}}\nif (-not $moved) {{ L 'не удалось освободить файл программы — обновление отменено, осталась старая версия'; exit 1 }}\ntry {{\n  Move-Item -LiteralPath $new -Destination $old -Force\n  L 'новая версия установлена'\n}} catch {{\n  L ('ошибка установки: ' + $_.Exception.Message + ' — возвращаю старую версию')\n  Move-Item -LiteralPath $bak -Destination $old -Force\n}}\nif (${5}) {{ Start-Process -FilePath $old; L 'программа запущена' }}\nRemove-Item -LiteralPath $MyInvocation.MyCommand.Path -Force\n",
+"#!/bin/bash\nmkdir -p {0}\nexec >>{1} 2>&1\necho \"$(date '+%Y-%m-%d %H:%M:%S') установщик запущен\"\nwhile kill -0 {2} 2>/dev/null; do sleep 0.5; done\nsleep 0.5\nAPP={3}; NEW={4}; BAK={5}\n# свои ошибки, если лежали внутри программы, переносим к данным\nif [ -f {6} ] && [ ! -f {7} ]; then cp {8} {9}; fi\nmkdir -p \"$(dirname \"$BAK\")\"\nrm -rf \"$BAK\"\nif mv \"$APP\" \"$BAK\"; then\n  if mv \"$NEW\" \"$APP\"; then echo \"$(date '+%Y-%m-%d %H:%M:%S') новая версия установлена\"\n  else mv \"$BAK\" \"$APP\"; echo \"ошибка установки — возвращена старая версия\"; fi\nelse echo \"не удалось убрать старую версию — обновление отменено\"; fi\nxattr -dr com.apple.quarantine \"$APP\" 2>/dev/null\n{10}\nrm -f -- \"$0\"\n",
+"Программа запущена из исходников — обновите её через git pull или скачайте новую версию.",
+"Не удалось найти, где установлена программа.",
+"Нет прав на запись в папку «{0}». Перенесите программу в папку пользователя.",
+"текущая версия: {0}",
+"на сервере: {0}",
+"скачано и проверено: {0}",
+"установщик запущен, программа завершается",
+"файл скачан не полностью ({0} из {1} байт)",
+"контрольная сумма не совпала — файл повреждён",
+"обновление не нужно",
+"в релизе нет файла {0}",
+"в архиве нет программы .app"
+]

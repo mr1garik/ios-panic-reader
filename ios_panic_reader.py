@@ -23,6 +23,7 @@ for _s in (sys.stdout, sys.stderr):
         pass
 
 import core  # noqa: E402
+from i18n import _  # noqa: E402
 
 
 def _out(args):
@@ -46,7 +47,7 @@ def main():
         try:
             updater.update_now(os.path.dirname(core.logs_root()), log)
         except Exception as e:
-            log(f"ОШИБКА: {e.__class__.__name__}: {e}")
+            log(_("ОШИБКА: {0}: {1}", e.__class__.__name__, e))
             sys.exit(1)
         return
     core.load_user_kb()
@@ -55,9 +56,9 @@ def main():
         print(core.build_summary(parsed))
         print()
         for p in core.build_verdict(parsed):
-            print(f"[{'ВАЖНО' if p['level'] == 'red' else 'НЕ СРОЧНО'}] {p['title']} — {p['note']}")
-            print("  Почему:", p["why"])
-            print("  Что делать:", "; ".join(p["fix"]))
+            print(f"[{_("ВАЖНО") if p['level'] == 'red' else _("НЕ СРОЧНО")}] {p['title']} — {p['note']}")
+            print(_("  Почему:"), p["why"])
+            print(_("  Что делать:"), "; ".join(p["fix"]))
         print()
         for info in parsed:
             print(core.build_report(info))

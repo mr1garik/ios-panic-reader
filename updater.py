@@ -18,6 +18,8 @@ import tempfile
 import urllib.request
 from datetime import datetime
 
+from i18n import _
+
 REPO = "mr1garik/ios-panic-reader"
 # Адрес можно подменить переменной окружения — только для автотеста обновления
 API_LATEST = os.environ.get("IOSPR_UPDATE_URL") or f"https://api.github.com/repos/{REPO}/releases/latest"
@@ -112,11 +114,11 @@ def download(asset, dest, progress=None):
                 progress(done, total)
     if asset.get("size") and done != asset["size"]:
         os.remove(tmp)
-        raise IOError(f"файл скачан не полностью ({done} из {asset['size']} байт)")
+        raise IOError(_("файл скачан не полностью ({0} из {1} байт)", done, asset['size']))
     digest = asset.get("digest", "")
     if digest.startswith("sha256:") and digest[7:].lower() != h.hexdigest():
         os.remove(tmp)
-        raise IOError("контрольная сумма не совпала — файл повреждён")
+        raise IOError(_("контрольная сумма не совпала — файл повреждён"))
     os.replace(tmp, dest)
     return dest
 
@@ -145,13 +147,13 @@ def install_target():
 def check_writable():
     """Причина, по которой обновиться нельзя, или None."""
     if not can_self_update():
-        return "Программа запущена из исходников — обновите её через git pull или скачайте новую версию."
+        return _("Программа запущена из исходников — обновите её через git pull или скачайте новую версию.")
     target = install_target()
     if not target:
-        return "Не удалось найти, где установлена программа."
+        return _("Не удалось найти, где установлена программа.")
     folder = os.path.dirname(target)
     if not os.access(folder, os.W_OK):
-        return f"Нет прав на запись в папку «{folder}». Перенесите программу в папку пользователя."
+        return _("Нет прав на запись в папку «{0}». Перенесите программу в папку пользователя.", folder)
     return None
 
 
@@ -173,7 +175,7 @@ def prepare(downloaded, data_dir):
         subprocess.run(["ditto", "-x", "-k", downloaded, out], check=True)
         app = next((os.path.join(out, n) for n in os.listdir(out) if n.endswith(".app")), None)
         if not app:
-            raise IOError("в архиве нет программы .app")
+            raise IOError(_("в архиве нет программы .app"))
         return app
     return downloaded
 
@@ -279,23 +281,23 @@ def launch_installer(new, data_dir, version, relaunch=True):
 def update_now(data_dir, log=print, relaunch=False):
     """Проверить, скачать и поставить обновление без окна (для командной строки и автотеста).
     Возвращает новую версию или None, если обновлять нечего."""
-    log(f"текущая версия: {current_version()}")
+    log(_("текущая версия: {0}", current_version()))
     info = check_latest()
-    log(f"на сервере: {info['version']}")
+    log(_("на сервере: {0}", info['version']))
     if not is_newer(info["version"], current_version()):
-        log("обновление не нужно")
+        log(_("обновление не нужно"))
         return None
     reason = check_writable()
     if reason:
         raise RuntimeError(reason)
     if not info["asset"]:
-        raise RuntimeError(f"в релизе нет файла {asset_name()}")
+        raise RuntimeError(_("в релизе нет файла {0}", asset_name()))
     path = downloaded_path(data_dir, info["version"])
     download(info["asset"], path)
-    log(f"скачано и проверено: {path}")
+    log(_("скачано и проверено: {0}", path))
     new = prepare(path, data_dir)
     launch_installer(new, data_dir, current_version(), relaunch=relaunch)
-    log("установщик запущен, программа завершается")
+    log(_("установщик запущен, программа завершается"))
     return info["version"]
 
 

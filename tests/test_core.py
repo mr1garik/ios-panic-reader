@@ -3,6 +3,7 @@ import os
 import sys
 import unittest
 
+os.environ["IOSPR_LANG"] = "ru"   # тесты проверяют русский текст
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 

@@ -13,6 +13,8 @@ from tkinter import ttk, filedialog, messagebox, simpledialog
 import tkinter.font as tkfont
 
 import core
+import i18n
+from i18n import _, plural
 from core import (APP_TITLE, build_report, build_summary, build_verdict, collect_files,
                   logs_root, main_cause, parse_log, parse_pasted, parts_table)
 from device import DeviceWatcher, device_support
@@ -80,15 +82,6 @@ def screen_scale(root):
         return max(1.0, min(3.0, root.winfo_fpixels("1i") / 96.0))
     except tk.TclError:
         return 1.0
-
-
-def plural(n, one, few, many):
-    n = abs(n)
-    if n % 10 == 1 and n % 100 != 11:
-        return one
-    if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14:
-        return few
-    return many
 
 
 def open_path(path):
@@ -289,9 +282,9 @@ class App:
         self.nav_title = label(nav, "iOS Panic Reader", 13, True)
         self.nav_title.pack(side="left", padx=(0, px(20)))
         self.nav_buttons = {}
-        self.nav_long = {"kb": ("Поиск ошибок", "Поиск")}
-        for i, (key, title) in enumerate((("phone", "Телефон"), ("parts", "Детали"), ("logs", "Все логи"),
-                                          ("history", "История"), ("kb", "Поиск ошибок")), 1):
+        self.nav_long = {"kb": (_("Поиск ошибок"), _("Поиск"))}
+        for i, (key, title) in enumerate((("phone", _("Телефон")), ("parts", _("Детали")), ("logs", _("Все логи")),
+                                          ("history", _("История")), ("kb", _("Поиск ошибок"))), 1):
             b = FlatButton(nav, text=title, font=font(11), padx=px(16), pady=px(7), highlightthickness=1,
                            highlightbackground="#cfd6df", command=lambda k=key: self.show(k))
             b.pack(side="left", padx=px(3))
@@ -310,7 +303,11 @@ class App:
         FlatButton(zoom, text="+", font=font(12, True), bg=C["card"], fg=C["text"], activebackground=C["gray_bg"],
                    padx=px(10), pady=px(3), command=lambda: self.zoom_step(1)).pack(side="left")
         self.zoom_label.configure(text=f"{round(UI['zoom'] * 100)}%")
-        self._tip(self.zoom_label, f"Масштаб: {sign} +  /  {sign} −  /  {sign} 0")
+        lang_btn = FlatButton(nav, text=i18n.LANG.upper() + " ▾", font=font(10, True), fg=C["text"], bg=C["card"],
+                              activebackground=C["gray_bg"], activeforeground=C["text"], padx=px(8), pady=px(3),
+                              command=lambda: self.lang_menu(lang_btn))
+        lang_btn.pack(side="right", padx=(0, px(6)))
+        self._tip(self.zoom_label, _("Масштаб: {0} +  /  {1} −  /  {2} 0", sign, sign, sign))
         tk.Frame(root, bg=C["line"], height=1).pack(fill="x")
         self.banner = tk.Frame(root, bg=C["blue_bg"])   # плашка «доступно обновление»
 
@@ -472,18 +469,18 @@ class App:
             return
         if kind == "update_progress":
             d, t = data
-            self.status.set(f"Скачиваю обновление… {d * 100 // t if t else 0}%")
+            self.status.set(_("Скачиваю обновление… {0}%", d * 100 // t if t else 0))
             return
         self.update_busy = False
         if kind == "update_none":
             if data:
-                messagebox.showinfo(APP_TITLE, f"У вас последняя версия ({updater.current_version()}).")
+                messagebox.showinfo(APP_TITLE, _("У вас последняя версия ({0}).", updater.current_version()))
             self.update_status()
         elif kind == "update_failed":
             manual, err = data
             self.update_status()
             if manual:
-                messagebox.showwarning(APP_TITLE, "Не удалось проверить обновления.\nПроверьте интернет.\n\n" + err)
+                messagebox.showwarning(APP_TITLE, _("Не удалось проверить обновления.\nПроверьте интернет.\n\n") + err)
         elif kind == "update_ready":
             self.update_info, self.update_file = data
             self.update_status()
@@ -497,16 +494,16 @@ class App:
         inner.pack(fill="x")
         ready = bool(self.update_file)
         if ready:
-            button(inner, "Перезапустить и обновить", self.install_update, True, size=10).pack(side="right")
+            button(inner, _("Перезапустить и обновить"), self.install_update, True, size=10).pack(side="right")
         else:
-            button(inner, "Скачать", lambda: open_path(info["url"]), True, size=10).pack(side="right")
-        button(inner, "Позже", self.hide_update_banner, size=10).pack(side="right", padx=px(6))
-        button(inner, "Что нового", self.show_release_notes, size=10).pack(side="right")
-        FlatButton(inner, text="Пропустить версию", font=font(10), fg=C["muted"], bg=C["blue_bg"],
+            button(inner, _("Скачать"), lambda: open_path(info["url"]), True, size=10).pack(side="right")
+        button(inner, _("Позже"), self.hide_update_banner, size=10).pack(side="right", padx=px(6))
+        button(inner, _("Что нового"), self.show_release_notes, size=10).pack(side="right")
+        FlatButton(inner, text=_("Пропустить версию"), font=font(10), fg=C["muted"], bg=C["blue_bg"],
                    activebackground=C["blue_bg"], activeforeground=C["text"], padx=px(8),
                    command=self.skip_update).pack(side="right", padx=px(6))
-        text = f"Доступна версия {info['version']} (у вас {updater.current_version()})."
-        text += " Скачана — установится при перезапуске или закрытии программы." if ready else ""
+        text = _("Доступна версия {0} (у вас {1}).", info['version'], updater.current_version())
+        text += _(" Скачана — установится при перезапуске или закрытии программы.") if ready else ""
         label(inner, text, 11, True, bg=C["blue_bg"], wrap=400).pack(side="left")
         self.banner.pack(fill="x", before=self.content)
 
@@ -522,10 +519,10 @@ class App:
 
     def show_release_notes(self):
         info = self.update_info
-        w = self.popup(f"Что нового в {info['version']}", 0.6, 0.7)
+        w = self.popup(_("Что нового в {0}", info['version']), 0.6, 0.7)
         fr, t = text_view(w)
         fr.pack(fill="both", expand=True)
-        parts = [(f"Версия {info['version']}\n", "h1")]
+        parts = [(_("Версия {0}\n", info['version']), "h1")]
         for line in info["notes"].splitlines():
             line = line.rstrip()
             if line.startswith("#"):
@@ -536,8 +533,7 @@ class App:
 
     def install_update(self, relaunch=True):
         if self.phone_state == "reading":
-            return messagebox.showinfo(APP_TITLE, "Сейчас снимаются логи с телефона. Обновите после того, "
-                                                  "как программа закончит.")
+            return messagebox.showinfo(APP_TITLE, _("Сейчас снимаются логи с телефона. Обновите после того, как программа закончит."))
         reason = updater.check_writable()
         if reason:
             return messagebox.showwarning(APP_TITLE, reason)
@@ -546,30 +542,57 @@ class App:
             self.history.save()
             updater.launch_installer(new, self._data_dir(), updater.current_version(), relaunch)
         except Exception as e:
-            return messagebox.showerror(APP_TITLE, f"Не удалось установить обновление:\n{e}\n\n"
-                                                   "Программа и ваши данные не изменены.")
+            return messagebox.showerror(APP_TITLE, _("Не удалось установить обновление:\n{0}\n\nПрограмма и ваши данные не изменены.", e))
         self.update_file = None
         self.on_close()
 
+    def lang_menu(self, widget):
+        m = tk.Menu(self.root, tearoff=0, font=font(10))
+        for code, name in i18n.LANGS.items():
+            m.add_radiobutton(label=name, value=code, variable=tk.StringVar(value=i18n.LANG),
+                              command=lambda c=code: self.set_language(c))
+        m.tk_popup(widget.winfo_rootx(), widget.winfo_rooty() + widget.winfo_height())
+
+    def set_language(self, code):
+        if code == i18n.LANG:
+            return
+        self.history.set_setting("lang", code)
+        i18n.set_lang(code)   # чтобы вопрос ниже был уже на новом языке
+        if messagebox.askyesno(APP_TITLE, _("Язык изменится после перезапуска программы. Перезапустить сейчас?")):
+            self.restart()
+
+    def restart(self):
+        cmd = [sys.executable] if getattr(sys, "frozen", False) else \
+            [sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "ios_panic_reader.py")]
+        try:
+            if IS_MAC and getattr(sys, "frozen", False):
+                app = updater.install_target()
+                subprocess.Popen(["/bin/sh", "-c", f'sleep 1; open "{app}"'], start_new_session=True)
+            else:
+                subprocess.Popen(cmd, start_new_session=True) if not IS_WIN else \
+                    subprocess.Popen(cmd, creationflags=0x00000200)
+        except Exception as e:
+            messagebox.showwarning(APP_TITLE, _("Перезапустите программу вручную.") + f"\n{e}")
+        self.on_close()
+
     def show_about(self):
-        w = self.popup("О программе", w_frac=None)
+        w = self.popup(_("О программе"), w_frac=None)
         w.configure(padx=px(24), pady=px(20))
         label(w, "iOS Panic Reader", 16, True).pack(anchor="w")
-        label(w, f"Версия {updater.current_version()}", 11, color=C["muted"]).pack(anchor="w", pady=(0, px(12)))
-        label(w, "Ваши данные (история, логи, заметки) хранятся отдельно от программы и при обновлении "
-                 "не удаляются:", 10, wrap=440).pack(anchor="w")
+        label(w, _("Версия {0}", updater.current_version()), 11, color=C["muted"]).pack(anchor="w", pady=(0, px(12)))
+        label(w, _("Ваши данные (история, логи, заметки) хранятся отдельно от программы и при обновлении не удаляются:"), 10, wrap=440).pack(anchor="w")
         FlatButton(w, text=self._data_dir(), font=font(10), fg=C["blue"], bg=C["card"], activebackground=C["card"],
                    activeforeground="#1e3a8a", padx=0, command=lambda: open_path(self._data_dir())).pack(anchor="w",
                                                                                                     pady=(0, px(12)))
         auto = tk.BooleanVar(value=self.history.setting("auto_update", True))
-        tk.Checkbutton(w, text="Проверять и скачивать обновления автоматически", variable=auto,
+        tk.Checkbutton(w, text=_("Проверять и скачивать обновления автоматически"), variable=auto,
                        bg=C["card"], activebackground=C["card"], font=font(10),
                        command=lambda: self.history.set_setting("auto_update", auto.get())).pack(anchor="w")
         row = tk.Frame(w, bg=C["card"])
         row.pack(anchor="w", pady=(px(14), 0))
-        button(row, "Проверить обновления", lambda: (w.destroy(), self.check_updates(manual=True)),
+        button(row, _("Проверить обновления"), lambda: (w.destroy(), self.check_updates(manual=True)),
                True, size=10).pack(side="left")
-        button(row, "Все версии", lambda: open_path(updater.RELEASES_PAGE), size=10).pack(side="left", padx=px(8))
+        button(row, _("Все версии"), lambda: open_path(updater.RELEASES_PAGE), size=10).pack(side="left", padx=px(8))
 
     def zoom_step(self, d):
         i = min(range(len(ZOOMS)), key=lambda k: abs(ZOOMS[k] - UI["zoom"]))
@@ -589,7 +612,7 @@ class App:
             self.render_parts()
         elif self.current_tab == "history":
             self.show_phone_history()
-        self.status.set(f"Масштаб {round(z * 100)}%")
+        self.status.set(_("Масштаб {0}%", round(z * 100)))
 
     def _tip(self, widget, text):
         """Подсказка при наведении."""
@@ -655,17 +678,17 @@ class App:
     def update_status(self):
         panics = sum(l["is_panic"] for l in self.logs)
         s = {
-            "nodriver": "Служба Apple Mobile Device не найдена" if IS_WIN else "Нет связи с usbmuxd",
-            "wait": "Ожидание iPhone…",
-            "trust": "iPhone подключён · ожидание подтверждения «Доверять»",
-            "unlock": "iPhone подключён · разблокируйте телефон",
-            "reading": "Снимаю логи…",
+            "nodriver": _("Служба Apple Mobile Device не найдена") if IS_WIN else _("Нет связи с usbmuxd"),
+            "wait": _("Ожидание iPhone…"),
+            "trust": _("iPhone подключён · ожидание подтверждения «Доверять»"),
+            "unlock": _("iPhone подключён · разблокируйте телефон"),
+            "reading": _("Снимаю логи…"),
         }.get(self.phone_state, "")
         if self.logs:
             s = (s + " · " if s else "") + f"{len(self.logs)} {plural(len(self.logs), 'лог', 'лога', 'логов')}, " \
                 f"{panics} {plural(panics, 'паника', 'паники', 'паник')}"
         if self.dev and self.dev.get("dir"):
-            s = (s + " · " if s else "") + "сохранены в " + self.dev["dir"]
+            s = (s + " · " if s else "") + _("сохранены в ") + self.dev["dir"]
         self.status.set(s)
 
     # ------------------------------------------------------------- события
@@ -711,10 +734,9 @@ class App:
                 elif kind.startswith("update_"):
                     self._update_event(kind, ev[1])
                 elif kind == "erased":
-                    messagebox.showinfo(APP_TITLE, "Старые логи на телефоне стёрты. Копия осталась "
-                                                   "в папке с логами на компьютере.")
+                    messagebox.showinfo(APP_TITLE, _("Старые логи на телефоне стёрты. Копия осталась в папке с логами на компьютере."))
                 elif kind == "erase_failed":
-                    messagebox.showerror(APP_TITLE, "Не удалось стереть логи на телефоне:\n" + ev[1])
+                    messagebox.showerror(APP_TITLE, _("Не удалось стереть логи на телефоне:\n") + ev[1])
                 elif kind == "log":
                     print(ev[1])
                 self.update_status()
@@ -738,7 +760,7 @@ class App:
         self.refresh_logs()
         if not quiet:
             if not new:
-                messagebox.showinfo(APP_TITLE, "Новых логов не найдено.")
+                messagebox.showinfo(APP_TITLE, _("Новых логов не найдено."))
             else:
                 self.phone_state = "result"
                 self.render_phone()
@@ -747,13 +769,13 @@ class App:
         return new
 
     def open_files(self):
-        fs = filedialog.askopenfilenames(title="Выберите логи", filetypes=[
-            ("Логи iOS", "*.ips *.panic *.log *.txt *.synced *.crash"), ("Все файлы", "*.*")])
+        fs = filedialog.askopenfilenames(title=_("Выберите логи"), filetypes=[
+            (_("Логи iOS"), "*.ips *.panic *.log *.txt *.synced *.crash"), (_("Все файлы"), "*.*")])
         if fs:
             self.load(fs)
 
     def open_folder(self):
-        d = filedialog.askdirectory(title="Папка с логами", initialdir=logs_root())
+        d = filedialog.askdirectory(title=_("Папка с логами"), initialdir=logs_root())
         if d:
             self.load([d])
 
@@ -787,21 +809,20 @@ class App:
     def mark_repair(self):
         if not self.dev:
             return
-        w = self.popup("Отметить ремонт", w_frac=None, modal=True)
+        w = self.popup(_("Отметить ремонт"), w_frac=None, modal=True)
         w.configure(padx=px(24), pady=px(20))
         w.resizable(False, False)
-        label(w, "Отметить ремонт", 16, True).pack(anchor="w")
-        label(w, "С этого момента программа будет показывать только новые сбои — так видно, "
-                 "помог ли ремонт. Подключите телефон после ремонта ещё раз.", 11, color=C["muted"],
+        label(w, _("Отметить ремонт"), 16, True).pack(anchor="w")
+        label(w, _("С этого момента программа будет показывать только новые сбои — так видно, помог ли ремонт. Подключите телефон после ремонта ещё раз."), 11, color=C["muted"],
               wrap=460).pack(anchor="w", pady=(px(4), px(12)))
-        label(w, "Что сделано", 10, True, C["muted"]).pack(anchor="w")
+        label(w, _("Что сделано"), 10, True, C["muted"]).pack(anchor="w")
         note = tk.StringVar()
         e = ttk.Entry(w, textvariable=note, width=52, font=font(11))
         e.pack(anchor="w", pady=(px(2), px(10)), fill="x")
         e.focus_set()
         erase = tk.BooleanVar(value=False)
         if self.watcher:
-            tk.Checkbutton(w, text="Стереть старые логи на телефоне (копия останется на компьютере)",
+            tk.Checkbutton(w, text=_("Стереть старые логи на телефоне (копия останется на компьютере)"),
                            variable=erase, bg=C["card"], activebackground=C["card"],
                            font=font(10)).pack(anchor="w")
         row = tk.Frame(w, bg=C["card"])
@@ -809,8 +830,7 @@ class App:
 
         def save():
             if erase.get() and not messagebox.askyesno(
-                    APP_TITLE, "Стереть все логи сбоев на телефоне?\n\nКопия уже сохранена в папке "
-                               "с логами на компьютере.", parent=w):
+                    APP_TITLE, _("Стереть все логи сбоев на телефоне?\n\nКопия уже сохранена в папке с логами на компьютере."), parent=w):
                 return
             self.history.add_repair(self.dev, note.get().strip())
             if erase.get() and self.watcher:
@@ -820,8 +840,8 @@ class App:
             self.refresh_logs()
             self.render_phone()
 
-        button(row, "Отмена", w.destroy).pack(side="left", padx=(px(0), px(8)))
-        button(row, "Отметить", save, True).pack(side="left")
+        button(row, _("Отмена"), w.destroy).pack(side="left", padx=(px(0), px(8)))
+        button(row, _("Отметить"), save, True).pack(side="left")
         w.bind("<Return>", lambda ev: save())
 
     def open_part_logs(self, part):
@@ -839,17 +859,15 @@ class App:
         if not self.logs and not self.dev:
             return
         if not report_pdf.available():
-            messagebox.showwarning(APP_TITLE, "PDF недоступен (нет модуля reportlab или шрифта). "
-                                              "Сохраню текстовый отчёт.")
+            messagebox.showwarning(APP_TITLE, _("PDF недоступен (нет модуля reportlab или шрифта). Сохраню текстовый отчёт."))
             return self.save_report()
         ws = self.history.setting("workshop", None)
         if ws is None:
-            ws = simpledialog.askstring(APP_TITLE, "Название мастерской для отчёта\n(можно оставить пустым, "
-                                                   "изменить — во вкладке «История»):", parent=self.root) or ""
+            ws = simpledialog.askstring(APP_TITLE, _("Название мастерской для отчёта\n(можно оставить пустым, изменить — во вкладке «История»):"), parent=self.root) or ""
             self.history.set_setting("workshop", ws)
-        name = (self.dev or {}).get("model", "телефон")
+        name = (self.dev or {}).get("model", _("телефон"))
         f = filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF", "*.pdf")],
-                                         initialfile=f"Диагностика {name} {datetime.now():%Y-%m-%d}.pdf")
+                                         initialfile=_("Диагностика {0} {1}.pdf", name, f"{datetime.now():%Y-%m-%d}"))
         if not f:
             return
         note = (self.history.get(phone_key(self.dev)) or {}).get("note", "") if self.dev else ""
@@ -857,39 +875,39 @@ class App:
         try:
             report_pdf.build_pdf(f, self.view_logs(), self.dev, self.device_lines(), ws, rep, note)
         except Exception as e:
-            return messagebox.showerror(APP_TITLE, f"Не удалось сохранить PDF:\n{e}")
-        self.status.set("PDF сохранён: " + f)
+            return messagebox.showerror(APP_TITLE, _("Не удалось сохранить PDF:\n{0}", e))
+        self.status.set(_("PDF сохранён: ") + f)
         open_path(f)
 
     def save_report(self):
         if not self.logs and not self.dev:
             return
-        name = (self.dev or {}).get("model", "телефон")
-        f = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Текст", "*.txt")],
-                                         initialfile=f"Отчёт {name} {datetime.now():%Y-%m-%d}.txt")
+        name = (self.dev or {}).get("model", _("телефон"))
+        f = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[(_("Текст"), "*.txt")],
+                                         initialfile=_("Отчёт {0} {1}.txt", name, f"{datetime.now():%Y-%m-%d}"))
         if not f:
             return
         out = []
         logs = self.view_logs()
         problems = build_verdict(logs, self.dev)
-        out.append(f"ОТЧЁТ iOS Panic Reader · {datetime.now():%d.%m.%Y %H:%M}")
+        out.append(_("ОТЧЁТ iOS Panic Reader · {0}", f"{datetime.now():%d.%m.%Y %H:%M}"))
         out.append("=" * 72)
         out += [f"{k}: {v}" for k, v in self.device_lines()]
         out.append("")
         if problems:
-            out.append("НАЙДЕННЫЕ ПРОБЛЕМЫ:")
+            out.append(_("НАЙДЕННЫЕ ПРОБЛЕМЫ:"))
             for i, p in enumerate(problems, 1):
-                lvl = "ВАЖНО" if p["level"] == "red" else "НЕ СРОЧНО"
+                lvl = _("ВАЖНО") if p["level"] == "red" else _("НЕ СРОЧНО")
                 out.append(f"{i}. {p['title']} [{lvl}] — {p['note']}")
-                out.append(f"   Как ведёт себя: {p['how']}")
-                out.append(f"   Почему: {p['why']}")
-                out.append("   Что делать: " + "; ".join(p["fix"]))
+                out.append(_("   Как ведёт себя: {0}", p['how']))
+                out.append(_("   Почему: {0}", p['why']))
+                out.append(_("   Что делать: ") + "; ".join(p["fix"]))
         else:
-            out.append("ПРОБЛЕМ НЕ НАЙДЕНО")
+            out.append(_("ПРОБЛЕМ НЕ НАЙДЕНО"))
         out.append("")
-        out.append("ДЕТАЛИ:")
+        out.append(_("ДЕТАЛИ:"))
         for name_, data, fails, lvl in parts_table(logs, self.dev):
-            out.append(f"  {name_}: {data} · сбои: {fails}")
+            out.append(_("  {0}: {1} · сбои: {2}", name_, data, fails))
         out.append("")
         out.append(build_summary(logs))
         out.append("")
@@ -898,21 +916,20 @@ class App:
                 out.append(build_report(l))
         with open(f, "w", encoding="utf-8") as fh:
             fh.write("\n".join(out))
-        self.status.set("Отчёт сохранён: " + f)
+        self.status.set(_("Отчёт сохранён: ") + f)
 
     def device_lines(self):
         d = self.dev
         if not d:
             ls = [l for l in self.logs if l["product"]]
             if ls:
-                return [("Устройство", core.device_label(ls[0])), ("iOS", ls[0]["os"] or "—"),
-                        ("Источник", "файлы логов")]
+                return [(_("Устройство"), core.device_label(ls[0])), ("iOS", ls[0]["os"] or "—"),
+                        (_("Источник"), _("файлы логов"))]
             return []
-        out = [("Модель", f"{d['model']} ({d['product']})"), ("iOS", f"{d['ios']} ({d['build']})"),
-               ("Серийный номер", d.get("serial") or "—"), ("IMEI", d.get("imei") or "не прочитан")]
+        out = [(_("Модель"), f"{d['model']} ({d['product']})"), ("iOS", f"{d['ios']} ({d['build']})"),
+               (_("Серийный номер"), d.get("serial") or "—"), ("IMEI", d.get("imei") or _("не прочитан"))]
         if d.get("battery_health") is not None:
-            out.append(("Аккумулятор", f"{d['battery_health']}% ({d.get('battery_mah', '')}), "
-                                       f"{d.get('battery_cycles', '?')} циклов"))
+            out.append((_("Аккумулятор"), _("{0}% ({1}), {2} циклов", d['battery_health'], d.get('battery_mah', ''), d.get('battery_cycles', '?'))))
         return out
 
     # ------------------------------------------------------------- экран «Телефон»
@@ -934,63 +951,58 @@ class App:
         row = None
         if st == "nodriver":
             if IS_WIN:
-                big("Компьютер не видит iPhone", "Не установлен драйвер Apple. Без него Windows не может "
-                    "подключиться к телефону.", C["orange"], "⚠")
-                lines = ("1. Установите «Apple Devices» из Microsoft Store (или iTunes)",
-                         "2. Переподключите кабель",
-                         "3. Программа подхватит телефон сама")
+                big(_("Компьютер не видит iPhone"), _("Не установлен драйвер Apple. Без него Windows не может подключиться к телефону."), C["orange"], "⚠")
+                lines = (_("1. Установите «Apple Devices» из Microsoft Store (или iTunes)"),
+                         _("2. Переподключите кабель"),
+                         _("3. Программа подхватит телефон сама"))
             else:
-                big("Нет связи со службой iPhone", "Программа не может подключиться к службе usbmuxd, "
-                    "через которую компьютер общается с iPhone.", C["orange"], "⚠")
-                lines = ("1. Переподключите кабель (лучше оригинальный)",
-                         "2. Проверьте, видит ли телефон Finder",
-                         "3. Если нет — перезагрузите компьютер")
+                big(_("Нет связи со службой iPhone"), _("Программа не может подключиться к службе usbmuxd, через которую компьютер общается с iPhone."), C["orange"], "⚠")
+                lines = (_("1. Переподключите кабель (лучше оригинальный)"),
+                         _("2. Проверьте, видит ли телефон Finder"),
+                         _("3. Если нет — перезагрузите компьютер"))
             steps = tk.Frame(center, bg=C["card"], padx=px(20), pady=px(16), highlightbackground=C["line"],
                              highlightthickness=1)
             steps.pack(pady=px(18), fill="x")
             for s in lines:
                 label(steps, s, 12).pack(anchor="w", pady=px(2))
             if not device_support():
-                label(steps, "Модуль pymobiledevice3 не найден — используйте собранную программу "
-                             "или выполните: pip install pymobiledevice3", 10, color=C["red_text"],
+                label(steps, _("Модуль pymobiledevice3 не найден — используйте собранную программу или выполните: pip install pymobiledevice3"), 10, color=C["red_text"],
                       wrap=520).pack(anchor="w", pady=(px(8), px(0)))
             row = tk.Frame(center, bg=C["bg"])
             if IS_WIN:
-                button(row, "Открыть Microsoft Store",
+                button(row, _("Открыть Microsoft Store"),
                        lambda: open_path("ms-windows-store://search/?query=Apple%20Devices"),
                        True).pack(side="left", padx=px(5))
         elif st in ("wait", "start", "denied"):
             if st == "denied":
-                big("На iPhone нажали «Не доверять»", "Отключите и снова подключите кабель, затем нажмите "
-                    "«Доверять».", C["orange"], "⚠")
+                big(_("На iPhone нажали «Не доверять»"), _("Отключите и снова подключите кабель, затем нажмите «Доверять»."), C["orange"], "⚠")
             else:
-                big("Подключите iPhone кабелем", "Разблокируйте телефон и нажмите «Доверять». Программа "
-                    "сама снимет логи и покажет, что с телефоном.")
+                big(_("Подключите iPhone кабелем"), _("Разблокируйте телефон и нажмите «Доверять». Программа сама снимет логи и покажет, что с телефоном."))
             row = tk.Frame(center, bg=C["bg"])
         elif st in ("trust", "unlock"):
-            big("Нажмите «Доверять» на телефоне" if st == "trust" else "Разблокируйте iPhone",
+            big(_("Нажмите «Доверять» на телефоне") if st == "trust" else _("Разблокируйте iPhone"),
                 "", C["blue"], "🔓")
             steps = tk.Frame(center, bg=C["bg"])
             steps.pack(pady=px(10))
-            for s in ("1. Разблокируйте iPhone", "2. На экране появится вопрос — нажмите «Доверять»",
-                      "3. Введите код-пароль телефона"):
+            for s in (_("1. Разблокируйте iPhone"), _("2. На экране появится вопрос — нажмите «Доверять»"),
+                      _("3. Введите код-пароль телефона")):
                 label(steps, s, 13, bg=C["bg"]).pack(anchor="w", pady=px(2))
-            label(center, "Окна нет? Отключите и снова подключите кабель.", 11, color=C["muted"],
+            label(center, _("Окна нет? Отключите и снова подключите кабель."), 11, color=C["muted"],
                   bg=C["bg"]).pack(pady=px(8))
         elif st == "reading":
             d = self.dev or {}
-            big(f"{d.get('model', 'iPhone')} подключён", "Снимаю логи… Не отключайте кабель.")
+            big(_("{0} подключён", d.get('model', 'iPhone')), _("Снимаю логи… Не отключайте кабель."))
             pb = ttk.Progressbar(center, mode="indeterminate", length=440)
             pb.pack(pady=px(20))
             pb.start(12)
         elif st == "error":
-            big("Не удалось прочитать iPhone", getattr(self, "error_text", ""), C["red"], "⚠")
+            big(_("Не удалось прочитать iPhone"), getattr(self, "error_text", ""), C["red"], "⚠")
             row = tk.Frame(center, bg=C["bg"])
-            button(row, "Попробовать снова", self.again, True).pack(side="left", padx=px(5))
+            button(row, _("Попробовать снова"), self.again, True).pack(side="left", padx=px(5))
         if row is not None:
             row.pack(pady=px(16))
-            button(row, "Открыть файл лога…", self.open_files).pack(side="left", padx=px(5))
-            button(row, "Открыть папку…", self.open_folder).pack(side="left", padx=px(5))
+            button(row, _("Открыть файл лога…"), self.open_files).pack(side="left", padx=px(5))
+            button(row, _("Открыть папку…"), self.open_folder).pack(side="left", padx=px(5))
 
     def _phone_result(self, body):
         wrap = tk.Frame(body, bg=C["bg"], padx=px(20), pady=px(20))
@@ -1009,20 +1021,20 @@ class App:
             label(c, f"iOS {d['ios']} · {d.get('serial', '')}", 10, color=C["muted"]).pack(anchor="w", pady=(px(2), px(10)))
         else:
             first = next((l for l in self.logs if l["product"]), None)
-            label(c, first["model"] if first else "Логи из файлов", 17, True).pack(anchor="w")
-            label(c, (first["os"] if first else "") or "телефон не подключён", 10,
+            label(c, first["model"] if first else _("Логи из файлов"), 17, True).pack(anchor="w")
+            label(c, (first["os"] if first else "") or _("телефон не подключён"), 10,
                   color=C["muted"]).pack(anchor="w", pady=(px(2), px(10)))
         grid = tk.Frame(c, bg=C["card"])
         grid.pack(fill="x")
         stats = []
         if d and d.get("battery_health") is not None:
             h = d["battery_health"]
-            stats.append(("Аккумулятор", f"{h}%", "green" if h >= 85 else ("orange" if h >= 80 else "red")))
+            stats.append((_("Аккумулятор"), f"{h}%", "green" if h >= 85 else ("orange" if h >= 80 else "red")))
         if d and d.get("battery_cycles") is not None:
-            stats.append(("Циклы", str(d["battery_cycles"]), None))
-        stats.append(("Паник", str(len(panics)), "green" if not panics else ("orange" if len(panics) < 3 else "red")))
+            stats.append((_("Циклы"), str(d["battery_cycles"]), None))
+        stats.append((_("Паник"), str(len(panics)), "green" if not panics else ("orange" if len(panics) < 3 else "red")))
         if d and d.get("is_iphone"):
-            stats.append(("Сеть / IMEI", "OK" if d.get("imei") else "нет", "green" if d.get("imei") else "red"))
+            stats.append((_("Сеть / IMEI"), "OK" if d.get("imei") else _("нет"), "green" if d.get("imei") else "red"))
         for i, (k, v, lvl) in enumerate(stats):
             cell = tk.Frame(grid, bg=C["card"])
             cell.grid(row=i // 2, column=i % 2, sticky="w", padx=(px(0), px(26)), pady=px(6))
@@ -1035,21 +1047,21 @@ class App:
             v = self.prev_visit
             o, c = card(left, C["line"], C["gray_bg"])
             o.pack(fill="x", pady=(px(12), px(0)))
-            label(c, "ЭТОТ ТЕЛЕФОН УЖЕ БЫЛ", 9, True, C["muted"], bg=C["gray_bg"]).pack(anchor="w")
+            label(c, _("ЭТОТ ТЕЛЕФОН УЖЕ БЫЛ"), 9, True, C["muted"], bg=C["gray_bg"]).pack(anchor="w")
             label(c, datetime.strptime(v["date"], "%Y-%m-%d %H:%M:%S").strftime("%d.%m.%Y %H:%M"), 12, True,
                   bg=C["gray_bg"]).pack(anchor="w")
-            label(c, ", ".join(v["problems"]) or "проблем не было", 10, bg=C["gray_bg"], wrap=260,
+            label(c, ", ".join(v["problems"]) or _("проблем не было"), 10, bg=C["gray_bg"], wrap=260,
                   color=LEVEL[v.get("level", "green")][2]).pack(anchor="w", pady=(px(2), px(0)))
             if v.get("battery") is not None:
-                label(c, f"Аккумулятор тогда: {v['battery']}%", 10, color=C["muted"], bg=C["gray_bg"]).pack(anchor="w")
+                label(c, _("Аккумулятор тогда: {0}%", v['battery']), 10, color=C["muted"], bg=C["gray_bg"]).pack(anchor="w")
 
         btns = tk.Frame(left, bg=C["bg"])
         btns.pack(fill="x", pady=px(12))
         if d:
-            button(btns, "Отметить ремонт", self.mark_repair).pack(fill="x", pady=px(3))
+            button(btns, _("Отметить ремонт"), self.mark_repair).pack(fill="x", pady=px(3))
         if self.watcher:
-            button(btns, "Подключить другой телефон", self.again).pack(fill="x", pady=px(3))
-        button(btns, "Открыть файл лога…", self.open_files).pack(fill="x", pady=px(3))
+            button(btns, _("Подключить другой телефон"), self.again).pack(fill="x", pady=px(3))
+        button(btns, _("Открыть файл лога…"), self.open_files).pack(fill="x", pady=px(3))
 
         # Правая колонка — вывод
         right = tk.Frame(wrap, bg=C["bg"])
@@ -1063,40 +1075,38 @@ class App:
             o.pack(fill="x", pady=(px(0), px(12)))
             head = tk.Frame(c, bg=C["blue_bg"])
             head.pack(fill="x")
-            button(head, "Показать все логи" if self.after_repair else "Только после ремонта",
+            button(head, _("Показать все логи") if self.after_repair else _("Только после ремонта"),
                    self.toggle_repair_view, size=10).pack(side="right", anchor="n")
-            label(head, f"Ремонт отмечен {when:%d.%m.%Y %H:%M}" + (f": {rnote}" if rnote else ""), 12, True,
+            label(head, _("Ремонт отмечен {0}", f"{when:%d.%m.%Y %H:%M}") + (f": {rnote}" if rnote else ""), 12, True,
                   bg=C["blue_bg"], wrap=wl - 200).pack(side="left")
             if self.after_repair:
                 if panics:
-                    txt, col = (f"После ремонта снова {len(panics)} {plural(len(panics), 'паника', 'паники', 'паник')}"
-                                " — проблема не устранена или есть другая."), C["red_text"]
+                    txt, col = (_("После ремонта снова {0} {1} — проблема не устранена или есть другая.", len(panics), plural(len(panics), 'паника', 'паники', 'паник'))), C["red_text"]
                 else:
-                    txt, col = "После ремонта паник нет ✓  Показаны только новые сбои.", C["green_text"]
+                    txt, col = _("После ремонта паник нет ✓  Показаны только новые сбои."), C["green_text"]
             else:
-                txt, col = "Показаны все логи, включая те, что были до ремонта.", C["muted"]
+                txt, col = _("Показаны все логи, включая те, что были до ремонта."), C["muted"]
             label(c, txt, 11, color=col, bg=C["blue_bg"], wrap=wl).pack(anchor="w", pady=(px(4), px(0)))
 
         if not problems:
             o, c = card(right, C["green"], C["green_bg"], 2)
             o.pack(fill="x")
-            label(c, "ПРОБЛЕМ НЕ НАЙДЕНО", 10, True, C["green_text"]).pack(anchor="w")
-            label(c, "Телефон в порядке", 22, True, C["head"]).pack(anchor="w", pady=(px(4), px(6)))
+            label(c, _("ПРОБЛЕМ НЕ НАЙДЕНО"), 10, True, C["green_text"]).pack(anchor="w")
+            label(c, _("Телефон в порядке"), 22, True, C["head"]).pack(anchor="w", pady=(px(4), px(6)))
             if repair and self.after_repair:
-                msg = "После ремонта не было ни одной паники ядра." if not panics else \
-                    "После ремонта паники единичные и не указывают на конкретную деталь."
+                msg = _("После ремонта не было ни одной паники ядра.") if not panics else \
+                    _("После ремонта паники единичные и не указывают на конкретную деталь.")
             else:
-                msg = "В логах нет ни одной паники ядра." if not panics else \
-                    "Паники единичные и не указывают на конкретную деталь."
+                msg = _("В логах нет ни одной паники ядра.") if not panics else \
+                    _("Паники единичные и не указывают на конкретную деталь.")
             if d and d.get("battery_health") is not None:
-                msg += f" Аккумулятор: {d['battery_health']}%."
+                msg += _(" Аккумулятор: {0}%.", d['battery_health'])
             label(c, msg, 12, color=C["text"], wrap=wl).pack(anchor="w")
         elif len(problems) == 1:
             self._problem_card(right, problems[0], wl, big=True)
         else:
             reds = sum(p["level"] == "red" for p in problems)
-            label(right, f"НАЙДЕНО {len(problems)} {plural(len(problems), 'ПРОБЛЕМА', 'ПРОБЛЕМЫ', 'ПРОБЛЕМ')} · "
-                         "от самой важной", 10, True, C["red_text"] if reds else C["orange_text"],
+            label(right, _("НАЙДЕНО {0} {1} · от самой важной", len(problems), plural(len(problems), 'ПРОБЛЕМА', 'ПРОБЛЕМЫ', 'ПРОБЛЕМ')), 10, True, C["red_text"] if reds else C["orange_text"],
                   bg=C["bg"]).pack(anchor="w", pady=(px(0), px(8)))
             for i, p in enumerate(problems, 1):
                 self._problem_card(right, p, wl, num=i)
@@ -1110,31 +1120,29 @@ class App:
         if crashes or jetsam:
             o, c = card(right)
             o.pack(fill="x", pady=(px(14), px(0)))
-            label(c, "Что ещё нашлось в логах", 12, True).pack(anchor="w", pady=(px(0), px(6)))
+            label(c, _("Что ещё нашлось в логах"), 12, True).pack(anchor="w", pady=(px(0), px(6)))
             if crashes:
                 apps = {}
                 for l in crashes:
                     apps[l["process"] or "?"] = apps.get(l["process"] or "?", 0) + 1
                 top = ", ".join(f"{a} ({n})" for a, n in sorted(apps.items(), key=lambda x: -x[1])[:4])
-                self._dot_line(c, "orange", f"{len(crashes)} {plural(len(crashes), 'вылет', 'вылета', 'вылетов')} "
-                                            f"{'приложения' if len(crashes) == 1 else 'приложений'}: {top} — "
-                                            "ошибки приложений, с железом не связано", wl)
+                self._dot_line(c, "orange", _("{0} {1} {2}: {3} — ошибки приложений, с железом не связано", len(crashes), plural(len(crashes), 'вылет', 'вылета', 'вылетов'), 'приложения' if len(crashes) == 1 else 'приложений', top), wl)
             if jetsam:
-                self._dot_line(c, "gray", f"{len(jetsam)} раз не хватило памяти (Jetsam) — это нормально", wl)
+                self._dot_line(c, "gray", _("{0} раз не хватило памяти (Jetsam) — это нормально", len(jetsam)), wl)
 
         row = tk.Frame(right, bg=C["bg"])
         row.pack(anchor="w", pady=px(16))
-        button(row, "PDF для клиента", self.save_pdf, True).pack(side="left", padx=(px(0), px(8)))
-        button(row, "Посмотреть логи", lambda: self.show("logs")).pack(side="left", padx=(px(0), px(8)))
-        button(row, "Детали", lambda: self.show("parts")).pack(side="left", padx=(px(0), px(8)))
-        button(row, "Отчёт .txt", self.save_report).pack(side="left", padx=(px(0), px(8)))
+        button(row, _("PDF для клиента"), self.save_pdf, True).pack(side="left", padx=(px(0), px(8)))
+        button(row, _("Посмотреть логи"), lambda: self.show("logs")).pack(side="left", padx=(px(0), px(8)))
+        button(row, _("Детали"), lambda: self.show("parts")).pack(side="left", padx=(px(0), px(8)))
+        button(row, _("Отчёт .txt"), self.save_report).pack(side="left", padx=(px(0), px(8)))
         if d and d.get("dir"):
-            button(row, "Папка с логами", lambda: open_path(d["dir"])).pack(side="left")
+            button(row, _("Папка с логами"), lambda: open_path(d["dir"])).pack(side="left")
 
     def _chart(self, parent, repair_dt=None, days=30):
         """Столбики: паники по дням за последний месяц (по всем логам)."""
         data = core.panics_by_day(self.logs, days)
-        if not any(n for _, n in data):
+        if not any(n for _day, n in data):
             # все паники старше месяца — показываем месяц, заканчивающийся последней паникой
             last = max((core.log_local_dt(l) for l in self.logs if l["is_panic"] and core.log_local_dt(l)),
                        default=None)
@@ -1143,8 +1151,8 @@ class App:
             data = core.panics_by_day(self.logs, days, last)
         o, c = card(parent)
         o.pack(fill="x", pady=(px(14), px(0)))
-        total = sum(n for _, n in data)
-        label(c, f"Паники по дням · {data[0][0]:%d.%m} – {data[-1][0]:%d.%m} · всего {total}", 12,
+        total = sum(n for _day, n in data)
+        label(c, _("Паники по дням · {0} – {1} · всего {2}", f"{data[0][0]:%d.%m}", f"{data[-1][0]:%d.%m}", total), 12,
               True).pack(anchor="w", pady=(px(0), px(8)))
         H = px(130)
         cv = tk.Canvas(c, height=H + px(24), bg=C["card"], highlightthickness=0)
@@ -1153,7 +1161,7 @@ class App:
 
     def _draw_chart(self, cv, data, repair_dt, W, H):
         cv.delete("all")
-        top = max(n for _, n in data) or 1
+        top = max(n for _day, n in data) or 1
         step = W / len(data)
         bw = max(3, step * 0.65)
         cv.create_line(0, H, W, H, fill=C["line"])
@@ -1165,7 +1173,7 @@ class App:
                 cv.create_text(x + bw / 2, H - h - px(8), text=str(n), font=font(8), fill=C["muted"])
             if repair_dt and day == repair_dt.date():
                 cv.create_line(x + bw / 2, 0, x + bw / 2, H, fill=C["blue"], width=2, dash=(4, 3))
-                cv.create_text(x + bw / 2 + 4, px(6), text="ремонт", anchor="nw", font=font(8, True), fill=C["blue"])
+                cv.create_text(x + bw / 2 + 4, px(6), text=_("ремонт"), anchor="nw", font=font(8, True), fill=C["blue"])
             if i in (0, len(data) // 2, len(data) - 1):
                 cv.create_text(min(max(x + bw / 2, px(18)), W - px(18)), H + px(12), text=f"{day:%d.%m}",
                                font=font(8), fill=C["muted"])
@@ -1207,27 +1215,27 @@ class App:
         o, c = card(parent, border, bg, 2)
         o.pack(fill="x", pady=(px(0), px(12)))
         if big:
-            label(c, "НАЙДЕНА ПРОБЛЕМА" if p["level"] == "red" else "ВОЗМОЖНАЯ ПРОБЛЕМА", 10, True, tcol).pack(anchor="w")
+            label(c, _("НАЙДЕНА ПРОБЛЕМА") if p["level"] == "red" else _("ВОЗМОЖНАЯ ПРОБЛЕМА"), 10, True, tcol).pack(anchor="w")
             label(c, p["title"], 22, True, C["head"], wrap=wl).pack(anchor="w", pady=(px(4), px(8)))
         else:
             head = tk.Frame(c, bg=bg)
             head.pack(fill="x")
-            label(head, "ВАЖНО" if p["level"] == "red" else "НЕ СРОЧНО", 9, True, tcol).pack(side="right", anchor="n")
+            label(head, _("ВАЖНО") if p["level"] == "red" else _("НЕ СРОЧНО"), 9, True, tcol).pack(side="right", anchor="n")
             label(head, f"{num}. {p['title']}", 15, True, C["head"], wrap=wl - 120).pack(side="left")
-        for cap, txt in (("Как ведёт себя", p["how"]), ("Почему", p["why"])):
+        for cap, txt in ((_("Как ведёт себя"), p["how"]), (_("Почему"), p["why"])):
             label(c, cap.upper(), 9, True, C["muted"]).pack(anchor="w", pady=(px(6), px(0)))
             label(c, txt, 11, wrap=wl).pack(anchor="w")
-        label(c, "ЧТО ДЕЛАТЬ", 9, True, C["muted"]).pack(anchor="w", pady=(px(6), px(0)))
+        label(c, _("ЧТО ДЕЛАТЬ"), 9, True, C["muted"]).pack(anchor="w", pady=(px(6), px(0)))
         for i, f in enumerate(p["fix"], 1):
             label(c, f"{i}. {f.rstrip('.')}", 11, wrap=wl).pack(anchor="w")
         foot = tk.Frame(c, bg=bg)
         foot.pack(fill="x", pady=(px(8), px(0)))
         # то, что справа, пакуется первым — иначе текст слева займёт всё место
         if p.get("count"):
-            FlatButton(foot, text="Показать логи этой детали →", font=font(10, True), fg=C["blue"], bg=bg,
+            FlatButton(foot, text=_("Показать логи этой детали →"), font=font(10, True), fg=C["blue"], bg=bg,
                        activebackground=bg, activeforeground="#1e3a8a", padx=0, pady=0,
                        command=lambda part=p["part"]: self.open_part_logs(part)).pack(side="right", anchor="n")
-        label(foot, "Уверенность: " + p["note"], 10, color=C["muted"], wrap=300).pack(side="left")
+        label(foot, _("Уверенность: ") + p["note"], 10, color=C["muted"], wrap=300).pack(side="left")
 
     # ------------------------------------------------------------- экран «Детали»
     def render_parts(self):
@@ -1235,14 +1243,14 @@ class App:
         sf.clear()
         body = tk.Frame(sf.body, bg=C["bg"], padx=px(20), pady=px(20))
         body.pack(fill="both", expand=True)
-        title = (self.dev or {}).get("model") or next((l["model"] for l in self.logs if l["model"]), "телефона")
-        label(body, f"Детали {title} — состояние и сбои", 18, True, bg=C["bg"]).pack(anchor="w")
+        title = (self.dev or {}).get("model") or next((l["model"] for l in self.logs if l["model"]), _("телефона"))
+        label(body, _("Детали {0} — состояние и сбои", title), 18, True, bg=C["bg"]).pack(anchor="w")
 
         rows = parts_table(self.view_logs(), self.dev)
         counts = {k: sum(r[3] == k for r in rows) for k in ("green", "orange", "red")}
         cnt = tk.Frame(body, bg=C["bg"])
         cnt.pack(fill="x", pady=px(14))
-        for lvl, txt in (("green", "без сбоев"), ("orange", "есть подозрения"), ("red", "есть проблемы")):
+        for lvl, txt in (("green", _("без сбоев")), ("orange", _("есть подозрения")), ("red", _("есть проблемы"))):
             o, c = card(cnt, LEVEL[lvl][0], LEVEL[lvl][1])
             o.pack(side="left", padx=(px(0), px(12)))
             label(c, str(counts[lvl]), 20, True, LEVEL[lvl][2]).pack(anchor="w")
@@ -1250,20 +1258,17 @@ class App:
 
         o, c = card(body, C["blue"], C["blue_bg"])
         o.pack(fill="x", pady=(px(0), px(14)))
-        label(c, "Оригинальность деталей", 11, True).pack(anchor="w")
-        label(c, "Посмотреть, какие детали заменены, можно на самом iPhone: Настройки → Основные → "
-                 "Об этом устройстве → «История деталей и обслуживания» (iOS 15.2+, iPhone XS и новее). "
-                 "Там будет «Оригинальная деталь Apple» или «Неизвестная деталь». Автоматическая проверка "
-                 "в программе появится после тестов на реальных телефонах.", 10, wrap=900).pack(anchor="w")
+        label(c, _("Оригинальность деталей"), 11, True).pack(anchor="w")
+        label(c, _("Посмотреть, какие детали заменены, можно на самом iPhone: Настройки → Основные → Об этом устройстве → «История деталей и обслуживания» (iOS 15.2+, iPhone XS и новее). Там будет «Оригинальная деталь Apple» или «Неизвестная деталь». Автоматическая проверка в программе появится после тестов на реальных телефонах."), 10, wrap=900).pack(anchor="w")
 
         o, tbl = card(body)
         o.pack(fill="x")
-        heads = ("Деталь", "Данные с телефона", "Сбои в логах", "Статус")
+        heads = (_("Деталь"), _("Данные с телефона"), _("Сбои в логах"), _("Статус"))
         for j, h in enumerate(heads):
             label(tbl, h, 10, True, C["muted"]).grid(row=0, column=j, sticky="w", padx=px(8), pady=(px(0), px(8)))
         tbl.columnconfigure(1, weight=1)
         tbl.columnconfigure(2, weight=1)
-        status_txt = {"green": "в порядке", "orange": "подозрение", "red": "проблема"}
+        status_txt = {"green": _("в порядке"), "orange": _("подозрение"), "red": _("проблема")}
         for i, (name, data, fails, lvl) in enumerate(rows, 1):
             bgc = LEVEL[lvl][1] if lvl != "green" else C["card"]
             cells = [label(tbl, name, 11, True, bg=bgc, wrap=260),
@@ -1276,30 +1281,30 @@ class App:
 
         row = tk.Frame(body, bg=C["bg"])
         row.pack(anchor="w", pady=px(14))
-        button(row, "Сохранить отчёт", self.save_report, True).pack(side="left", padx=(px(0), px(8)))
-        button(row, "Посмотреть логи", lambda: self.show("logs")).pack(side="left")
+        button(row, _("Сохранить отчёт"), self.save_report, True).pack(side="left", padx=(px(0), px(8)))
+        button(row, _("Посмотреть логи"), lambda: self.show("logs")).pack(side="left")
 
     # ------------------------------------------------------------- экран «Все логи»
     def _build_logs(self):
         root = tk.Frame(self.content, bg=C["bg"], padx=px(16), pady=px(14))
         bar = tk.Frame(root, bg=C["bg"])
         bar.pack(fill="x", pady=(px(0), px(10)))
-        label(bar, "Поиск", 11, color=C["muted"], bg=C["bg"]).pack(side="left")
+        label(bar, _("Поиск"), 11, color=C["muted"], bg=C["bg"]).pack(side="left")
         self.log_q = tk.StringVar()
         e = ttk.Entry(bar, textvariable=self.log_q, width=22, font=font(11))
         e.pack(side="left", padx=px(8))
         self.only_panic = tk.BooleanVar(value=False)
-        tk.Checkbutton(bar, text="Только паники", variable=self.only_panic, bg=C["bg"], font=font(11),
+        tk.Checkbutton(bar, text=_("Только паники"), variable=self.only_panic, bg=C["bg"], font=font(11),
                        command=self.refresh_logs, activebackground=C["bg"]).pack(side="left", padx=px(8))
         self.chip_row = tk.Frame(root, bg=C["bg"])
         self.filter_chip = FlatButton(self.chip_row, text="", font=font(10, True), bg=C["blue"], fg="#ffffff",
                                       activebackground="#1d4ed8", activeforeground="#ffffff", padx=px(12), pady=px(4),
                                       command=self._clear_part_filter)
-        button(bar, "Открыть файлы…", self.open_files, size=10).pack(side="right", padx=px(3))
-        button(bar, "Открыть папку…", self.open_folder, size=10).pack(side="right", padx=px(3))
+        button(bar, _("Открыть файлы…"), self.open_files, size=10).pack(side="right", padx=px(3))
+        button(bar, _("Открыть папку…"), self.open_folder, size=10).pack(side="right", padx=px(3))
         self.log_q.trace_add("write", lambda *_: self.refresh_logs())
         self.filter_chip.pack(side="left")
-        label(self.chip_row, "показаны только паники этой детали — нажмите, чтобы снять фильтр", 10,
+        label(self.chip_row, _("показаны только паники этой детали — нажмите, чтобы снять фильтр"), 10,
               color=C["muted"], bg=C["bg"]).pack(side="left", padx=px(10))
 
         paned = ttk.PanedWindow(root, orient="horizontal")
@@ -1308,7 +1313,7 @@ class App:
         paned.pack(fill="both", expand=True)
         left = tk.Frame(paned, bg=C["card"])
         self.tree = ttk.Treeview(left, columns=("what", "date", "kind"), show="headings", selectmode="browse")
-        for c_, t, w in (("what", "Что случилось", 330), ("date", "Дата", 140), ("kind", "Вид", 170)):
+        for c_, t, w in (("what", _("Что случилось"), 330), ("date", _("Дата"), 140), ("kind", _("Вид"), 170)):
             self.tree.heading(c_, text=t)
             self.tree.column(c_, width=px(w), minwidth=px(80), anchor="w", stretch=(c_ == "what"))
         for lvl in ("red", "orange", "gray"):
@@ -1324,8 +1329,8 @@ class App:
         fr.pack(fill="both", expand=True)
         rb = tk.Frame(right, bg=C["card"], padx=px(12), pady=px(8))
         rb.pack(fill="x")
-        button(rb, "Исходный текст лога", self.show_raw, size=10).pack(side="left")
-        button(rb, "Полный разбор", self.show_full, size=10).pack(side="left", padx=px(6))
+        button(rb, _("Исходный текст лога"), self.show_raw, size=10).pack(side="left")
+        button(rb, _("Полный разбор"), self.show_full, size=10).pack(side="left", padx=px(6))
         paned.add(right, weight=1)
         self.tree.bind("<<TreeviewSelect>>", lambda e: self.show_log())
         return root
@@ -1340,12 +1345,12 @@ class App:
     def _log_title(self, l):
         if l["is_panic"]:
             part = core.panic_part(l)
-            return "Паника: " + (core.PART_NAMES[part] if part else main_cause(l))
+            return _("Паника: ") + (core.PART_NAMES[part] if part else main_cause(l))
         if l["exception"]:
-            return f"{l['process'] or 'Приложение'} закрылось"
+            return _("{0} закрылось", l['process'] or 'Приложение')
         if "Jetsam" in l["kind"]:
-            return "Не хватило памяти"
-        return l["kind"]
+            return _("Не хватило памяти")
+        return core.tkind(l["kind"])
 
     def _clear_part_filter(self):
         self.part_filter = None
@@ -1358,7 +1363,7 @@ class App:
         q = self.log_q.get().lower().strip()
         visible = {id(l) for l in self.view_logs()}
         if self.part_filter:
-            self.filter_chip.configure(text=f"Деталь: {core.PART_NAMES[self.part_filter]}  ✕")
+            self.filter_chip.configure(text=_("Деталь: {0}  ✕", core.PART_NAMES[self.part_filter]))
             self.chip_row.pack(fill="x", pady=(px(0), px(10)), before=self.logs_paned)
         else:
             self.chip_row.pack_forget()
@@ -1373,7 +1378,7 @@ class App:
             if q and q not in (title + l["panic"] + l["process"] + os.path.basename(l["file"])).lower():
                 continue
             self.tree.insert("", "end", iid=str(i), tags=(self._log_level(l),),
-                             values=("● " + title, str(l["date"])[:16], l["kind"]))
+                             values=("● " + title, str(l["date"])[:16], core.tkind(l["kind"])))
         kids = self.tree.get_children()
         if kids and not self.tree.selection():
             self.tree.selection_set(kids[0])
@@ -1388,31 +1393,31 @@ class App:
             text_fill(self.log_text, self._log_parts(l))
 
     def _log_parts(self, l):
-        parts = [(f"{str(l['date'])[:19]} · {l['kind']}\n", "small"), (self._log_title(l) + "\n", "h1")]
+        parts = [(f"{str(l['date'])[:19]} · {core.tkind(l['kind'])}\n", "small"), (self._log_title(l) + "\n", "h1")]
         if l["missing_sensors"]:
-            parts.append(("ТЕЛЕФОН НЕ ВИДИТ ДАТЧИКИ\n", "cap"))
+            parts.append((_("ТЕЛЕФОН НЕ ВИДИТ ДАТЧИКИ\n"), "cap"))
             for s in l["missing_sensors"]:
                 d = core.sensor_info(s)
                 parts.append((f"• {s} — {d['name']}. {d['where']}\n", "body"))
         e = l["findings"][0][0] if l["findings"] else None
         if e:
-            parts += [("КАК ВЕДЁТ СЕБЯ\n", "cap"), (e["symptoms"] + "\n", "body"),
-                      ("ПОЧЕМУ\n", "cap"), (e["cause"] + "\n", "body"),
-                      ("ЧТО ДЕЛАТЬ\n", "cap"), (e["fix"] + "\n", "body")]
+            parts += [(_("КАК ВЕДЁТ СЕБЯ\n"), "cap"), (e["symptoms"] + "\n", "body"),
+                      (_("ПОЧЕМУ\n"), "cap"), (e["cause"] + "\n", "body"),
+                      (_("ЧТО ДЕЛАТЬ\n"), "cap"), (e["fix"] + "\n", "body")]
             if len(l["findings"]) > 1:
-                parts.append(("ЕЩЁ НАЙДЕНО В ЛОГЕ\n", "cap"))
-                parts += [(f"• {fe['title']}\n", "body") for fe, _ in l["findings"][1:]]
+                parts.append((_("ЕЩЁ НАЙДЕНО В ЛОГЕ\n"), "cap"))
+                parts += [(f"• {fe['title']}\n", "body") for fe, _hit in l["findings"][1:]]
         else:
-            parts.append(("\nИзвестных ошибок не найдено. Посмотрите исходный текст лога.\n", "body"))
+            parts.append((_("\nИзвестных ошибок не найдено. Посмотрите исходный текст лога.\n"), "body"))
         if l["exception"]:
-            parts += [("ИСКЛЮЧЕНИЕ\n", "cap"), (l["exception"] + "\n", "body")]
-        parts += [("\nУСТРОЙСТВО\n", "cap"), (f"{core.device_label(l)} · {l['os'] or '—'}\n", "body"),
-                  ("ФАЙЛ\n", "cap"), (l["file"] + "\n", "small")]
+            parts += [(_("ИСКЛЮЧЕНИЕ\n"), "cap"), (l["exception"] + "\n", "body")]
+        parts += [(_("\nУСТРОЙСТВО\n"), "cap"), (f"{core.device_label(l)} · {l['os'] or '—'}\n", "body"),
+                  (_("ФАЙЛ\n"), "cap"), (l["file"] + "\n", "small")]
         if l["panic"]:
             first = next((x.strip() for x in l["panic"].splitlines() if x.strip()), "")
-            parts += [("\nПЕРВАЯ СТРОКА ПАНИКИ\n", "cap"), (first[:400] + "\n", "mono")]
+            parts += [(_("\nПЕРВАЯ СТРОКА ПАНИКИ\n"), "cap"), (first[:400] + "\n", "mono")]
         for bus, rows in core.i2c_hints(l):
-            parts.append((f"ШИНА {bus.upper()} У ЭТОЙ МОДЕЛИ\n", "cap"))
+            parts.append((_("ШИНА {0} У ЭТОЙ МОДЕЛИ\n", bus.upper()), "cap"))
             parts += [(f"• {r['parts']}\n", "body") for r in rows]
         return parts
 
@@ -1435,26 +1440,26 @@ class App:
     def show_full(self):
         l = self._selected_log()
         if l:
-            self._popup("Разбор: " + os.path.basename(l["file"]), build_report(l))
+            self._popup(_("Разбор: ") + os.path.basename(l["file"]), build_report(l))
 
     # ------------------------------------------------------------- экран «История»
     def _build_history(self):
         root = tk.Frame(self.content, bg=C["bg"], padx=px(16), pady=px(14))
         bar = tk.Frame(root, bg=C["bg"])
         bar.pack(fill="x", pady=(px(0), px(10)))
-        label(bar, "Телефоны, которые подключали", 14, True, bg=C["bg"]).pack(side="left")
+        label(bar, _("Телефоны, которые подключали"), 14, True, bg=C["bg"]).pack(side="left")
         self.hist_q = tk.StringVar()
         ttk.Entry(bar, textvariable=self.hist_q, width=26, font=font(11)).pack(side="right")
-        label(bar, "Поиск", 11, color=C["muted"], bg=C["bg"]).pack(side="right", padx=px(8))
+        label(bar, _("Поиск"), 11, color=C["muted"], bg=C["bg"]).pack(side="right", padx=px(8))
         self.hist_q.trace_add("write", lambda *_: self.refresh_history())
 
         ws = tk.Frame(root, bg=C["bg"])
         ws.pack(fill="x", pady=(px(0), px(10)))
-        label(ws, "Мастерская (для PDF):", 10, color=C["muted"], bg=C["bg"]).pack(side="left")
+        label(ws, _("Мастерская (для PDF):"), 10, color=C["muted"], bg=C["bg"]).pack(side="left")
         self.ws_var = tk.StringVar(value=self.history.setting("workshop", ""))
         ttk.Entry(ws, textvariable=self.ws_var, width=40, font=font(10)).pack(side="left", padx=px(8))
-        button(ws, "Сохранить", lambda: (self.history.set_setting("workshop", self.ws_var.get().strip()),
-                                         self.status.set("Название мастерской сохранено")), size=10).pack(side="left")
+        button(ws, _("Сохранить"), lambda: (self.history.set_setting("workshop", self.ws_var.get().strip()),
+                                         self.status.set(_("Название мастерской сохранено"))), size=10).pack(side="left")
 
         paned = ttk.PanedWindow(root, orient="horizontal")
         split_panes(paned, 0.55)
@@ -1462,8 +1467,8 @@ class App:
         left = tk.Frame(paned, bg=C["card"])
         self.htree = ttk.Treeview(left, columns=("model", "serial", "last", "result"), show="headings",
                                   selectmode="browse")
-        for c_, t, w in (("model", "Модель", 140), ("serial", "Серийный", 130), ("last", "Последний визит", 130),
-                         ("result", "Результат", 220)):
+        for c_, t, w in (("model", _("Модель"), 140), ("serial", _("Серийный"), 130), ("last", _("Последний визит"), 130),
+                         ("result", _("Результат"), 220)):
             self.htree.heading(c_, text=t)
             self.htree.column(c_, width=px(w), anchor="w")
         for lvl in ("red", "orange", "green"):
@@ -1486,7 +1491,7 @@ class App:
                        key=lambda kv: (kv[1]["visits"][-1]["date"] if kv[1]["visits"] else ""), reverse=True)
         for key, p in items:
             v = p["visits"][-1] if p["visits"] else {}
-            result = ", ".join(v.get("problems", [])) or "в порядке"
+            result = ", ".join(v.get("problems", [])) or _("в порядке")
             row = (p.get("model", "?"), p.get("serial", key), v.get("date", "")[:16], result)
             if q and q not in (" ".join(row) + p.get("note", "") + p.get("imei", "")).lower():
                 continue
@@ -1497,7 +1502,7 @@ class App:
             self.htree.selection_set(self.htree.get_children()[0])
         else:
             self.hdetail.clear()
-            label(self.hdetail.body, "Здесь появятся телефоны после первого подключения.", 11,
+            label(self.hdetail.body, _("Здесь появятся телефоны после первого подключения."), 11,
                   color=C["muted"], wrap=380).pack(anchor="w", padx=px(18), pady=px(18))
 
     def show_phone_history(self):
@@ -1511,24 +1516,24 @@ class App:
         b = tk.Frame(sf.body, bg=C["card"], padx=px(18), pady=px(16))
         b.pack(fill="both", expand=True)
         label(b, p.get("model", "?"), 17, True).pack(anchor="w")
-        label(b, f"Серийный {p.get('serial', key)}" + (f" · IMEI {p['imei']}" if p.get("imei") else ""), 10,
+        label(b, _("Серийный {0}", p.get('serial', key)) + (f" · IMEI {p['imei']}" if p.get("imei") else ""), 10,
               color=C["muted"]).pack(anchor="w", pady=(px(2), px(10)))
 
-        label(b, "ЗАМЕТКА", 9, True, C["muted"]).pack(anchor="w")
+        label(b, _("ЗАМЕТКА"), 9, True, C["muted"]).pack(anchor="w")
         t = tk.Text(b, height=4, width=40, font=font(11), wrap="word", bd=1, relief="solid",
                     highlightthickness=0)
         t.insert("1.0", p.get("note", ""))
         t.pack(fill="x", pady=(px(2), px(6)))
-        button(b, "Сохранить заметку", lambda: (self.history.set_note(key, t.get("1.0", "end").strip()),
-                                                self.status.set("Заметка сохранена")), size=10).pack(anchor="w")
+        button(b, _("Сохранить заметку"), lambda: (self.history.set_note(key, t.get("1.0", "end").strip()),
+                                                self.status.set(_("Заметка сохранена"))), size=10).pack(anchor="w")
 
         if p.get("repairs"):
-            label(b, "РЕМОНТЫ", 9, True, C["muted"]).pack(anchor="w", pady=(px(14), px(2)))
+            label(b, _("РЕМОНТЫ"), 9, True, C["muted"]).pack(anchor="w", pady=(px(14), px(2)))
             for r in reversed(p["repairs"]):
                 when = datetime.strptime(r["date"], "%Y-%m-%d %H:%M:%S")
-                label(b, f"{when:%d.%m.%Y %H:%M} — {r.get('note') or 'без описания'}", 11, wrap=380).pack(anchor="w")
+                label(b, f"{when:%d.%m.%Y %H:%M} — {r.get('note') or _("без описания")}", 11, wrap=380).pack(anchor="w")
 
-        label(b, f"ВИЗИТЫ ({len(p['visits'])})", 9, True, C["muted"]).pack(anchor="w", pady=(px(14), px(2)))
+        label(b, _("ВИЗИТЫ ({0})", len(p['visits'])), 9, True, C["muted"]).pack(anchor="w", pady=(px(14), px(2)))
         for v in reversed(p["visits"]):
             when = datetime.strptime(v["date"], "%Y-%m-%d %H:%M:%S")
             row = tk.Frame(b, bg=C["card"])
@@ -1538,11 +1543,11 @@ class App:
             col = tk.Frame(row, bg=C["card"])
             col.pack(side="left", padx=px(6), fill="x")
             label(col, f"{when:%d.%m.%Y %H:%M} · iOS {v.get('ios', '?')}", 10, True).pack(anchor="w")
-            info = ", ".join(v.get("problems", [])) or "проблем не найдено"
+            info = ", ".join(v.get("problems", [])) or _("проблем не найдено")
             extra = []
             if v.get("battery") is not None:
-                extra.append(f"аккумулятор {v['battery']}%")
-            extra.append(f"паник {v.get('panics', 0)}")
+                extra.append(_("аккумулятор {0}%", v['battery']))
+            extra.append(_("паник {0}", v.get('panics', 0)))
             label(col, info + " · " + ", ".join(extra), 10, color=C["muted"], wrap=360).pack(anchor="w")
 
         row = tk.Frame(b, bg=C["card"])
@@ -1550,13 +1555,13 @@ class App:
         folder = next((os.path.join(logs_root(), n) for n in os.listdir(logs_root())
                        if n.endswith("_" + p.get("serial", key))), None)
         if folder:
-            button(row, "Открыть логи", lambda: self.open_history_logs(folder), size=10).pack(side="left", padx=(px(0), px(8)))
+            button(row, _("Открыть логи"), lambda: self.open_history_logs(folder), size=10).pack(side="left", padx=(px(0), px(8)))
 
         def delete():
-            if messagebox.askyesno(APP_TITLE, "Удалить этот телефон из истории?\n(логи на диске останутся)"):
+            if messagebox.askyesno(APP_TITLE, _("Удалить этот телефон из истории?\n(логи на диске останутся)")):
                 self.history.delete(key)
                 self.refresh_history()
-        button(row, "Удалить из истории", delete, size=10).pack(side="left")
+        button(row, _("Удалить из истории"), delete, size=10).pack(side="left")
 
     def open_history_logs(self, folder):
         self.dev = None
@@ -1578,23 +1583,22 @@ class App:
 
         bar = tk.Frame(root, bg=C["bg"])
         bar.pack(fill="x")
-        label(bar, "Поиск по ошибкам и паникам", 14, True, bg=C["bg"]).pack(side="left")
-        button(bar, "Разобрать текст паники…", self.paste_panic, True, size=10).pack(side="right")
+        label(bar, _("Поиск по ошибкам и паникам"), 14, True, bg=C["bg"]).pack(side="left")
+        button(bar, _("Разобрать текст паники…"), self.paste_panic, True, size=10).pack(side="right")
         row = tk.Frame(root, bg=C["bg"])
         row.pack(fill="x", pady=(px(8), 0))
         self.kb_q = tk.StringVar()
         ent = ttk.Entry(row, textvariable=self.kb_q, font=font(12))
         ent.pack(side="left", fill="x", expand=True, ipady=px(3))
         self.root.bind_all(f"<{MOD}-f>", lambda e: (self.show("kb"), ent.focus_set()))
-        label(root, "Код ошибки, слово, датчик, процесс или строка из паники. Например: 4013, mic1, "
-                    "перезагружается, SEP, i2c3, SpringBoard", 10, color=C["muted"], bg=C["bg"],
+        label(root, _("Код ошибки, слово, датчик, процесс или строка из паники. Например: 4013, mic1, перезагружается, SEP, i2c3, SpringBoard"), 10, color=C["muted"], bg=C["bg"],
               wrap=700).pack(anchor="w", pady=(px(4), 0))
 
         opts = tk.Frame(root, bg=C["bg"])
         opts.pack(fill="x", pady=(px(8), 0))
         self.search_scope = tk.StringVar(value="base_logs")
-        for val, txt in (("base", "Только база"), ("base_logs", "База + открытые логи"),
-                         ("all", "База + все логи в архиве")):
+        for val, txt in (("base", _("Только база")), ("base_logs", _("База + открытые логи")),
+                         ("all", _("База + все логи в архиве"))):
             tk.Radiobutton(opts, text=txt, value=val, variable=self.search_scope, bg=C["bg"],
                            activebackground=C["bg"], font=font(10),
                            command=self._kb_refresh).pack(side="left", padx=(0, px(14)))
@@ -1603,10 +1607,10 @@ class App:
         chips.pack(fill="x", pady=px(8))
         self.kb_cat = "Все"
         self.chip_buttons = {}
-        short = {"Паника ядра": "Паники", "Датчики (Missing sensor)": "Датчики",
-                 "Вылет приложения": "Приложения", "Ошибка iTunes / восстановления": "Ошибки iTunes",
-                 "Симптомы телефона": "Симптомы", "Логи и версии iOS": "Логи и iOS", "Шины I2C": "Шины I2C"}
-        for cat in ["Все", "Симптомы телефона"] + [c_ for c_ in CATEGORIES if c_ != "Симптомы телефона"] + ["Шины I2C"]:
+        short = {"Паника ядра": _("Паники"), "Датчики (Missing sensor)": _("Датчики"),
+                 "Вылет приложения": _("Приложения"), "Ошибка iTunes / восстановления": _("Ошибки iTunes"),
+                 "Симптомы телефона": _("Симптомы"), "Логи и версии iOS": _("Логи и iOS"), "Шины I2C": _("Шины I2C")}
+        for cat in ["Все", "Симптомы телефона"] + [c_ for c_ in CATEGORIES if c_ != "Симптомы телефона"] + [_("Шины I2C")]:
             b = FlatButton(chips, text=short.get(cat, cat), font=font(10), padx=px(14), pady=px(5),
                            highlightthickness=1, highlightbackground="#cfd6df",
                            command=lambda c_=cat: self._kb_pick(c_))
@@ -1618,8 +1622,8 @@ class App:
         paned.pack(fill="both", expand=True)
         left = tk.Frame(paned, bg=C["card"])
         self.ktree = ttk.Treeview(left, columns=("where",), show="tree headings", selectmode="browse")
-        self.ktree.heading("#0", text="Найдено")
-        self.ktree.heading("where", text="Раздел / телефон")
+        self.ktree.heading("#0", text=_("Найдено"))
+        self.ktree.heading("where", text=_("Раздел / телефон"))
         self.ktree.column("#0", width=px(330), stretch=True)
         self.ktree.column("where", width=px(160), stretch=False)
         for lvl in ("red", "orange", "gray"):
@@ -1635,7 +1639,7 @@ class App:
         fr.pack(fill="both", expand=True)
         rb = tk.Frame(right, bg=C["card"], padx=px(12), pady=px(8))
         rb.pack(fill="x")
-        self.kb_raw_btn = button(rb, "Исходный текст лога", self._kb_open_raw, size=10)
+        self.kb_raw_btn = button(rb, _("Исходный текст лога"), self._kb_open_raw, size=10)
         paned.add(right, weight=1)
         self.ktree.bind("<<TreeviewSelect>>", lambda e: self._kb_show())
         self._kb_after = None
@@ -1664,7 +1668,7 @@ class App:
             return self.archive
         if not self.archive_busy:
             self.archive_busy = True
-            self.status.set("Читаю архив логов для поиска…")
+            self.status.set(_("Читаю архив логов для поиска…"))
 
             def work():
                 logs = []
@@ -1688,14 +1692,14 @@ class App:
             rows = core.search_db(q)
         else:
             rows = [("entry", i, e["title"], e["cat"]) for i, e in enumerate(KB)]
-            rows += [("sensor", k, f"Датчик {k} — {d['name']}", "Датчики (Missing sensor)") for k, d in SENSORS.items()]
-            rows += [("i2c", i, f"Шина {b['bus']} — " + ", ".join(dict.fromkeys(PRODUCTS.get(m, m) for m in b["models"])),
-                      "Шины I2C") for i, b in enumerate(core.I2C_BUSES)]
+            rows += [("sensor", k, _("Датчик {0} — {1}", k, d['name']), "Датчики (Missing sensor)") for k, d in SENSORS.items()]
+            rows += [("i2c", i, _("Шина {0} — ", b['bus']) + ", ".join(dict.fromkeys(PRODUCTS.get(m, m) for m in b["models"])),
+                      _("Шины I2C")) for i, b in enumerate(core.I2C_BUSES)]
         rows = [r for r in rows if cat == "Все" or r[3] == cat]
-        g_db = self.ktree.insert("", "end", text=f"В базе ошибок ({len(rows)})", open=True, tags=("group",))
+        g_db = self.ktree.insert("", "end", text=_("В базе ошибок ({0})", len(rows)), open=True, tags=("group",))
         for n, (typ, key, title, c_) in enumerate(rows):
             iid = f"{typ}:{key}"
-            self.ktree.insert(g_db, "end", iid=iid, text=title, values=(c_,))
+            self.ktree.insert(g_db, "end", iid=iid, text=title, values=(_(c_),))
             self.search_results[iid] = (typ, key)
         # логи
         scope = self.search_scope.get()
@@ -1704,12 +1708,12 @@ class App:
             if scope == "all":
                 arch = self._archive_logs()
                 if arch is None:
-                    self.ktree.insert("", "end", text="В логах: читаю архив…", tags=("group",))
+                    self.ktree.insert("", "end", text=_("В логах: читаю архив…"), tags=("group",))
                     return self._kb_select_first()
                 known = {l["file"] for l in pool}
                 pool = pool + [l for l in arch if l["file"] not in known]
             found = sorted(core.search_logs(pool, q), key=lambda l: str(l["date"]), reverse=True)
-            g_logs = self.ktree.insert("", "end", text=f"В логах ({len(found)})", open=True, tags=("group",))
+            g_logs = self.ktree.insert("", "end", text=_("В логах ({0})", len(found)), open=True, tags=("group",))
             for n, l in enumerate(found[:500]):
                 iid = f"log:{n}"
                 phone = os.path.basename(os.path.dirname(l["file"])) if scope == "all" else (l["model"] or "")
@@ -1725,27 +1729,27 @@ class App:
                 self.ktree.selection_set(kids[0])
                 self.ktree.see(kids[0])
                 return
-        text_fill(self.kb_text, [("Ничего не найдено. Попробуйте другое слово или код.\n", "body")])
+        text_fill(self.kb_text, [(_("Ничего не найдено. Попробуйте другое слово или код.\n"), "body")])
 
     def _entry_parts(self, e):
-        parts = [(e["cat"] + "\n", "small"), (e["title"] + "\n", "h1"),
-                 ("УЗЕЛ\n", "cap"), (e["node"] + "\n", "body")]
+        parts = [(_(e["cat"]) + "\n", "small"), (e["title"] + "\n", "h1"),
+                 (_("УЗЕЛ\n"), "cap"), (e["node"] + "\n", "body")]
         if e.get("models"):
-            parts += [("МОДЕЛИ\n", "cap"), (e["models"] + "\n", "body")]
+            parts += [(_("МОДЕЛИ\n"), "cap"), (e["models"] + "\n", "body")]
         if e.get("ios"):
-            parts += [("ВЕРСИИ iOS\n", "cap"), (e["ios"] + "\n", "body")]
-        parts += [("КАК ВЕДЁТ СЕБЯ ТЕЛЕФОН\n", "cap"), (e["symptoms"] + "\n", "body"),
-                  ("ПОЧЕМУ\n", "cap"), (e["cause"] + "\n", "body"),
-                  ("ЧТО ДЕЛАТЬ\n", "cap"), (e["fix"] + "\n", "body")]
-        n = sum(1 for l in self.logs for fe, _ in l["findings"] if fe is e)
+            parts += [(_("ВЕРСИИ iOS\n"), "cap"), (e["ios"] + "\n", "body")]
+        parts += [(_("КАК ВЕДЁТ СЕБЯ ТЕЛЕФОН\n"), "cap"), (e["symptoms"] + "\n", "body"),
+                  (_("ПОЧЕМУ\n"), "cap"), (e["cause"] + "\n", "body"),
+                  (_("ЧТО ДЕЛАТЬ\n"), "cap"), (e["fix"] + "\n", "body")]
+        n = sum(1 for l in self.logs for fe, _hit in l["findings"] if fe is e)
         if n:
-            parts.append((f"\nВстречается в открытых логах: {n} раз(а)\n", "red"))
+            parts.append((_("\nВстречается в открытых логах: {0} раз(а)\n", n), "red"))
         if e.get("patterns"):
-            parts += [("КАК ВЫГЛЯДИТ В ЛОГЕ\n", "cap"), ("  ".join(e["patterns"]) + "\n", "mono")]
+            parts += [(_("КАК ВЫГЛЯДИТ В ЛОГЕ\n"), "cap"), ("  ".join(e["patterns"]) + "\n", "mono")]
         if e.get("confidence"):
-            parts += [("НАДЁЖНОСТЬ\n", "cap"), (core.CONFIDENCE.get(e["confidence"], e["confidence"]) + "\n", "small")]
+            parts += [(_("НАДЁЖНОСТЬ\n"), "cap"), (core.CONFIDENCE.get(e["confidence"], e["confidence"]) + "\n", "small")]
         if e.get("sources"):
-            parts += [("ИСТОЧНИКИ\n", "cap")] + [(core.source_url(s) + "\n", "small") for s in e["sources"]]
+            parts += [(_("ИСТОЧНИКИ\n"), "cap")] + [(core.source_url(s) + "\n", "small") for s in e["sources"]]
         return parts
 
     def _kb_show(self):
@@ -1756,26 +1760,23 @@ class App:
         typ, key = self.search_results[sel[0]]
         if typ == "sensor":
             d = SENSORS[key]
-            parts = [("Датчики (Missing sensor)\n", "small"), (f"Датчик {key} — {d['name']}\n", "h1"),
-                     ("ГДЕ СТОИТ\n", "cap"), (d["where"] + "\n", "body")]
+            parts = [(_("Датчики (Missing sensor)\n"), "small"), (_("Датчик {0} — {1}\n", key, d['name']), "h1"),
+                     (_("ГДЕ СТОИТ\n"), "cap"), (d["where"] + "\n", "body")]
             if d.get("models"):
-                parts += [("ПО МОДЕЛЯМ\n", "cap"), (d["models"] + "\n", "body")]
-            parts += [("ЧТО ДЕЛАТЬ\n", "cap"), (d["fix"] + "\n", "body"),
-                      ("КАК ВЕДЁТ СЕБЯ\n", "cap"),
-                      ("Если датчика нет, телефон перезагружается каждые ~3 минуты "
-                       "(паника thermalmonitord).\n", "body")]
+                parts += [(_("ПО МОДЕЛЯМ\n"), "cap"), (d["models"] + "\n", "body")]
+            parts += [(_("ЧТО ДЕЛАТЬ\n"), "cap"), (d["fix"] + "\n", "body"),
+                      (_("КАК ВЕДЁТ СЕБЯ\n"), "cap"),
+                      (_("Если датчика нет, телефон перезагружается каждые ~3 минуты (паника thermalmonitord).\n"), "body")]
             if d.get("sources"):
-                parts += [("ИСТОЧНИКИ\n", "cap")] + [(core.source_url(s) + "\n", "small") for s in d["sources"]]
+                parts += [(_("ИСТОЧНИКИ\n"), "cap")] + [(core.source_url(s) + "\n", "small") for s in d["sources"]]
         elif typ == "i2c":
             b = core.I2C_BUSES[key]
             names = ", ".join(f"{PRODUCTS.get(m, m)} ({m})" for m in b["models"])
-            parts = [("Шины I2C\n", "small"), (f"Шина {b['bus']}\n", "h1"), ("МОДЕЛИ\n", "cap"), (names + "\n", "body"),
-                     ("ЧТО НА ЭТОЙ ШИНЕ\n", "cap"), (b["parts"] + "\n", "body"),
-                     ("КАК ПОЛЬЗОВАТЬСЯ\n", "cap"),
-                     ("Если в панике есть эта шина (например, «i2c3::_checkBusStatus SCL is stuck low»), "
-                      "отключайте по одной детали из списка и смотрите, пропадёт ли паника. "
-                      "У других моделей назначение шин другое.\n", "body"),
-                     ("ИСТОЧНИК\n", "cap"), (core.source_url(b["source"]) + "\n", "small")]
+            parts = [(_("Шины I2C\n"), "small"), (_("Шина {0}\n", b['bus']), "h1"), (_("МОДЕЛИ\n"), "cap"), (names + "\n", "body"),
+                     (_("ЧТО НА ЭТОЙ ШИНЕ\n"), "cap"), (b["parts"] + "\n", "body"),
+                     (_("КАК ПОЛЬЗОВАТЬСЯ\n"), "cap"),
+                     (_("Если в панике есть эта шина (например, «i2c3::_checkBusStatus SCL is stuck low»), отключайте по одной детали из списка и смотрите, пропадёт ли паника. У других моделей назначение шин другое.\n"), "body"),
+                     (_("ИСТОЧНИК\n"), "cap"), (core.source_url(b["source"]) + "\n", "small")]
         elif typ == "log":
             parts = self._log_parts(key)
             self.kb_raw_btn.pack(side="left")
@@ -1791,15 +1792,14 @@ class App:
 
     def paste_panic(self):
         """Окно: вставить текст паники (например, скопированный с телефона) и сразу получить разбор."""
-        w = self.popup("Разобрать текст паники", 0.7, 0.75)
+        w = self.popup(_("Разобрать текст паники"), 0.7, 0.75)
         w.configure(padx=px(18), pady=px(14))
-        label(w, "Вставьте текст паники или лога", 14, True).pack(anchor="w")
-        label(w, "На iPhone: Настройки → Конфиденциальность и безопасность → Аналитика и улучшения → "
-                 "Данные аналитики → файл panic-full… → кнопка «Поделиться» → скопируйте текст.",
+        label(w, _("Вставьте текст паники или лога"), 14, True).pack(anchor="w")
+        label(w, _("На iPhone: Настройки → Конфиденциальность и безопасность → Аналитика и улучшения → Данные аналитики → файл panic-full… → кнопка «Поделиться» → скопируйте текст."),
               10, color=C["muted"], wrap=600).pack(anchor="w", pady=(px(2), px(8)))
         top = tk.Frame(w, bg=C["card"])
         top.pack(fill="x")
-        label(top, "Модель (необязательно, для подсказок по шинам I2C):", 10).pack(side="left")
+        label(top, _("Модель (необязательно, для подсказок по шинам I2C):"), 10).pack(side="left")
         models = [""] + [f"{v} ({k})" for k, v in sorted(PRODUCTS.items(), key=lambda kv: kv[1])]
         model = ttk.Combobox(top, values=models, state="readonly", width=34, font=font(10))
         model.pack(side="left", padx=px(8))
@@ -1823,11 +1823,11 @@ class App:
             m = re.search(r"\(([^()]+)\)$", model.get())
             info = parse_pasted(text, m.group(1) if m else "")
             w.destroy()
-            self._popup("Разбор вставленного текста", build_report(info))
+            self._popup(_("Разбор вставленного текста"), build_report(info))
 
-        button(row, "Вставить из буфера", paste, size=10).pack(side="left")
-        button(row, "Разобрать", analyze, True, size=10).pack(side="right")
-        button(row, "Отмена", w.destroy, size=10).pack(side="right", padx=px(8))
+        button(row, _("Вставить из буфера"), paste, size=10).pack(side="left")
+        button(row, _("Разобрать"), analyze, True, size=10).pack(side="right")
+        button(row, _("Отмена"), w.destroy, size=10).pack(side="right", padx=px(8))
 
 
 def set_window_icon(root):

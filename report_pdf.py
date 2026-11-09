@@ -5,6 +5,8 @@ import os
 import sys
 from datetime import datetime
 
+from i18n import _
+
 from core import PART_NAMES, build_verdict, parts_table
 
 FONT_CANDIDATES = [
@@ -68,12 +70,12 @@ def build_pdf(path, logs, dev, device_lines, workshop="", repair=None, note=""):
 
     doc = SimpleDocTemplate(path, pagesize=A4, leftMargin=18 * mm, rightMargin=18 * mm,
                             topMargin=16 * mm, bottomMargin=16 * mm,
-                            title="Отчёт о диагностике iPhone", author=workshop or "iOS Panic Reader")
+                            title=_("Отчёт о диагностике iPhone"), author=workshop or "iOS Panic Reader")
     width = A4[0] - 36 * mm
     story = []
     if workshop:
         story.append(Paragraph(esc(workshop), st["small"]))
-    story.append(Paragraph("Отчёт о диагностике", st["h1"]))
+    story.append(Paragraph(_("Отчёт о диагностике"), st["h1"]))
     story.append(Paragraph(f"{datetime.now():%d.%m.%Y %H:%M}", st["small"]))
     story.append(Spacer(1, 8))
 
@@ -86,31 +88,31 @@ def build_pdf(path, logs, dev, device_lines, workshop="", repair=None, note=""):
         story.append(t)
 
     if repair:
-        story.append(Paragraph("Проверка после ремонта", st["h2"]))
+        story.append(Paragraph(_("Проверка после ремонта"), st["h2"]))
         when, rnote = repair
-        story.append(Paragraph(f"Ремонт отмечен {when:%d.%m.%Y %H:%M}" + (f": {esc(rnote)}" if rnote else "") +
-                               ". Ниже учитываются только сбои после ремонта.", st["body"]))
+        story.append(Paragraph(_("Ремонт отмечен {0}", f"{when:%d.%m.%Y %H:%M}") + (f": {esc(rnote)}" if rnote else "") +
+                               _(". Ниже учитываются только сбои после ремонта."), st["body"]))
 
     problems = build_verdict(logs, dev)
-    story.append(Paragraph("Результат", st["h2"]))
+    story.append(Paragraph(_("Результат"), st["h2"]))
     if not problems:
-        story.append(_box([Paragraph("Проблем не найдено", st["big"]),
-                           Paragraph("В журналах телефона нет повторяющихся сбоев.", st["body"])],
+        story.append(_box([Paragraph(_("Проблем не найдено"), st["big"]),
+                           Paragraph(_("В журналах телефона нет повторяющихся сбоев."), st["body"])],
                           "green", width))
     for i, p in enumerate(problems, 1):
-        tag = "Важно" if p["level"] == "red" else "Не срочно"
+        tag = _("Важно") if p["level"] == "red" else _("Не срочно")
         cell = [Paragraph(f"{i}. {esc(p['title'])} · {tag}", st["big"]),
-                Paragraph("КАК ВЕДЁТ СЕБЯ", st["cap"]), Paragraph(esc(p["how"]), st["body"]),
-                Paragraph("ПОЧЕМУ", st["cap"]), Paragraph(esc(p["why"]), st["body"]),
-                Paragraph("ЧТО ДЕЛАТЬ", st["cap"])]
+                Paragraph(_("КАК ВЕДЁТ СЕБЯ"), st["cap"]), Paragraph(esc(p["how"]), st["body"]),
+                Paragraph(_("ПОЧЕМУ"), st["cap"]), Paragraph(esc(p["why"]), st["body"]),
+                Paragraph(_("ЧТО ДЕЛАТЬ"), st["cap"])]
         cell += [Paragraph(f"{j}. {esc(f.rstrip('.'))}", st["body"]) for j, f in enumerate(p["fix"], 1)]
-        cell.append(Paragraph("Основание: " + esc(p["note"]), st["small"]))
+        cell.append(Paragraph(_("Основание: ") + esc(p["note"]), st["small"]))
         story.append(_box(cell, p["level"], width))
         story.append(Spacer(1, 6))
 
-    story.append(Paragraph("Детали", st["h2"]))
-    status = {"green": "в порядке", "orange": "подозрение", "red": "проблема"}
-    trows = [[Paragraph(h, st["cap"]) for h in ("Деталь", "Данные", "Сбои в журналах", "Статус")]]
+    story.append(Paragraph(_("Детали"), st["h2"]))
+    status = {"green": _("в порядке"), "orange": _("подозрение"), "red": _("проблема")}
+    trows = [[Paragraph(h, st["cap"]) for h in (_("Деталь"), _("Данные"), _("Сбои в журналах"), _("Статус"))]]
     styles = [("LINEBELOW", (0, 0), (-1, -1), 0.3, colors.HexColor("#e3e7ec")),
               ("VALIGN", (0, 0), (-1, -1), "TOP")]
     for i, (name, data, fails, lvl) in enumerate(parts_table(logs, dev), 1):
@@ -124,11 +126,11 @@ def build_pdf(path, logs, dev, device_lines, workshop="", repair=None, note=""):
     story.append(t)
 
     if note:
-        story.append(Paragraph("Заметка мастера", st["h2"]))
+        story.append(Paragraph(_("Заметка мастера"), st["h2"]))
         story.append(Paragraph(esc(note).replace("\n", "<br/>"), st["body"]))
 
     story.append(Spacer(1, 14))
-    story.append(Paragraph("Вывод основан на журналах сбоев iPhone и является ориентиром для диагностики.",
+    story.append(Paragraph(_("Вывод основан на журналах сбоев iPhone и является ориентиром для диагностики."),
                            st["small"]))
     doc.build(story)
 
@@ -136,7 +138,7 @@ def build_pdf(path, logs, dev, device_lines, workshop="", repair=None, note=""):
 def _box(content, level, width):
     from reportlab.lib import colors
     from reportlab.platypus import Table, TableStyle
-    border, bg, _ = LEVEL_COLORS[level]
+    border, bg, _text = LEVEL_COLORS[level]
     t = Table([[content]], colWidths=[width])
     t.setStyle(TableStyle([("BOX", (0, 0), (-1, -1), 1.2, colors.HexColor(border)),
                            ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(bg)),
@@ -149,4 +151,4 @@ if __name__ == "__main__":
     # Быстрая проверка: python report_pdf.py out.pdf <логи>
     from core import collect_files, parse_log
     logs = [parse_log(f) for f in collect_files(sys.argv[2:])]
-    build_pdf(sys.argv[1], logs, None, [("Устройство", "тест")], "Мастерская [НАЗВАНИЕ]")
+    build_pdf(sys.argv[1], logs, None, [(_("Устройство"), _("тест"))], _("Мастерская [НАЗВАНИЕ]"))
