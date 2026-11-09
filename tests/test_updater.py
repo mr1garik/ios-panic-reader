@@ -43,6 +43,16 @@ class TestDownload(unittest.TestCase):
         with open(dest, "rb") as f:
             self.assertEqual(f.read(), self.data)
 
+    def test_cancel_leaves_nothing(self):
+        import threading
+        dest = os.path.join(self.dir, "cancel.bin")
+        ev = threading.Event()
+        ev.set()
+        with self.assertRaises(updater.Cancelled):
+            updater.download({"url": self.url, "size": len(self.data)}, dest, cancel=ev)
+        self.assertFalse(os.path.exists(dest))
+        self.assertFalse(os.path.exists(dest + ".part"))
+
     def test_bad_digest_leaves_nothing(self):
         dest = os.path.join(self.dir, "bad.bin")
         asset = {"url": self.url, "size": len(self.data), "digest": "sha256:" + "0" * 64}

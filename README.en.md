@@ -35,7 +35,7 @@
 | 🗂 **Phone history** | Every connected phone with visits, repairs and notes. When a customer comes back, you see what happened last time. |
 | 📄 **PDF for the customer** | A report with the conclusion, the state of each part and your workshop name. |
 | 🔎 **Error search** | A code (4013), a sensor (mic1), a bus (i2c3), a word or a line from a panic — across the database and all logs. Paste panic text from the phone and get the analysis right away. |
-| 🌍 **Three languages, auto-update** | Русский, English, Українська. The app downloads new versions by itself — your data is never touched. |
+| 🌍 **Three languages, auto-update** | Русский, English, Українська. Like 3uTools: at startup a “New version available” window with the changes, “Update now” downloads with a progress bar and restarts. Your data is never touched. |
 
 ## Screenshots
 
