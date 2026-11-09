@@ -13,7 +13,7 @@ import sys
 import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-MODULES = ["gui", "core", "device", "knowledge_base", "history", "report_pdf", "updater"]
+MODULES = ["gui", "core", "device", "knowledge_base", "history", "report_pdf", "updater", "i18n"]
 
 
 def main():
@@ -34,6 +34,7 @@ def main():
            "--collect-all", "pymobiledevice3", "--collect-all", "reportlab", "--collect-data", "certifi",
            "--add-data", f"{version_file}{os.pathsep}.",
            "--add-data", f"{os.path.join(HERE, 'errors_db.json')}{os.pathsep}.",
+           "--add-data", f"{os.path.join(HERE, 'translations.json')}{os.pathsep}.",
            "--add-data", f"{os.path.join(HERE, 'assets', 'icon_256.png')}{os.pathsep}assets"]
     for m in MODULES:
         cmd += ["--hidden-import", m]

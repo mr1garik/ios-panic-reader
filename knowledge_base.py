@@ -22,6 +22,8 @@ import json
 import os
 import sys
 
+import i18n
+
 DB_FILE = "errors_db.json"
 
 
@@ -52,7 +54,24 @@ def load_db():
     return db
 
 
-DB = load_db()
+TEXT_FIELDS = ("title", "node", "symptoms", "cause", "fix", "models", "ios", "keywords",
+               "name", "where", "parts")
+
+
+def localize(db, lang):
+    """Подставляет переводы из поля i18n записей. Русский текст сохраняется в _ru — по нему
+    тоже ищем, чтобы находилось и по-русски, и на языке интерфейса."""
+    items = list(db["entries"]) + list(db["sensors"].values()) + list(db.get("i2c_buses", []))
+    for item in items:
+        tr = (item.get("i18n") or {}).get(lang) or {}
+        item["_ru"] = " ".join(str(item.get(k, "")) for k in TEXT_FIELDS)
+        for k, v in tr.items():
+            if k in TEXT_FIELDS and v:
+                item[k] = v
+    return db
+
+
+DB = localize(load_db(), i18n.LANG)
 META = DB["meta"]
 SOURCES = META.get("sources", {})
 CATEGORIES = DB["categories"]
@@ -70,19 +89,20 @@ def source_url(key):
 
 
 def sensor_info(name):
+    _ = i18n._
     key = name.lower().rstrip(",")
     if key in SENSORS:
         return SENSORS[key]
-    for prefix, d in (("mic", dict(SENSORS["mic1"], name="Микрофон",
-                                   where="Один из шлейфов с микрофоном (зависит от модели).")),
+    for prefix, d in (("mic", dict(SENSORS["mic1"], name=_("Микрофон"),
+                                   where=_("Один из шлейфов с микрофоном (зависит от модели)."))),
                       ("tg", SENSORS["tg0b"]), ("prs", SENSORS["prs0"])):
         if key.startswith(prefix):
             return d
     if key.startswith(("tp", "ts", "tc", "tf", "pmu")):
-        return {"name": "Термодатчик", "where": "Плата / контроллер питания.", "models": "",
-                "fix": "Диагностика платы."}
-    return {"name": "Неизвестный датчик", "where": "Определяется по модели.", "models": "",
-            "fix": "Поищите название датчика для своей модели."}
+        return {"name": _("Термодатчик"), "where": _("Плата / контроллер питания."), "models": "",
+                "fix": _("Диагностика платы.")}
+    return {"name": _("Неизвестный датчик"), "where": _("Определяется по модели."), "models": "",
+            "fix": _("Поищите название датчика для своей модели.")}
 
 
 def i2c_parts(bus, product):
