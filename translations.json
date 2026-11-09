@@ -259,6 +259,10 @@
   "en": "Battery at that time: {0}%",
   "uk": "Акумулятор тоді: {0}%"
  },
+ "Активация и настройка iPhone в один клик: активация, язык, регион, Wi-Fi и пропуск экранов настройки. Windows и macOS, бесплатно.": {
+  "en": "One-click iPhone activation and setup: activation, language, region, Wi-Fi and skipping the setup screens. Windows and macOS, free.",
+  "uk": "Активація й налаштування iPhone в один клік: активація, мова, регіон, Wi-Fi і пропуск екранів налаштування. Windows і macOS, безкоштовно."
+ },
  "Аналитика / диагностика": {
   "en": "Analytics / diagnostics",
   "uk": "Аналітика / діагностика"
@@ -406,6 +410,10 @@
  "ДЕТАЛИ:": {
   "en": "PARTS:",
   "uk": "ДЕТАЛІ:"
+ },
+ "ДРУГИЕ ПРОЕКТЫ": {
+  "en": "OTHER PROJECTS",
+  "uk": "ІНШІ ПРОЄКТИ"
  },
  "Данные": {
   "en": "Data",
