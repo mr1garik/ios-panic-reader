@@ -96,14 +96,21 @@ def check_latest():
     }
 
 
-def download(asset, dest, progress=None):
-    """Скачивает файл и проверяет размер и контрольную сумму (если GitHub её дал)."""
+class Cancelled(Exception):
+    pass
+
+
+def download(asset, dest, progress=None, cancel=None):
+    """Скачивает файл и проверяет размер и контрольную сумму (если GitHub её дал).
+    cancel — threading.Event: если установлен, загрузка прерывается, недокачанный файл удаляется."""
     tmp = dest + ".part"
     h = hashlib.sha256()
     done = 0
     with _open(asset["url"], timeout=60) as r, open(tmp, "wb") as f:
         total = asset.get("size") or int(r.headers.get("Content-Length") or 0)
         while True:
+            if cancel is not None and cancel.is_set():
+                break
             chunk = r.read(256 * 1024)
             if not chunk:
                 break
@@ -112,6 +119,9 @@ def download(asset, dest, progress=None):
             done += len(chunk)
             if progress:
                 progress(done, total)
+    if cancel is not None and cancel.is_set():
+        os.remove(tmp)
+        raise Cancelled()
     if asset.get("size") and done != asset["size"]:
         os.remove(tmp)
         raise IOError(_("файл скачан не полностью ({0} из {1} байт)", done, asset['size']))

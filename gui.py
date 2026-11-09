@@ -262,7 +262,6 @@ class App:
         self.after_repair = True   # показывать только сбои после отметки ремонта
         self.part_filter = None    # деталь, по которой отфильтрован список логов
         self.update_info = None    # найденная новая версия
-        self.update_file = None    # скачанный файл новой версии
         self.update_busy = False
 
         root.title(APP_TITLE)
@@ -310,7 +309,6 @@ class App:
         lang_btn.pack(side="right", padx=(0, px(6)))
         self._tip(self.zoom_label, _("Масштаб: {0} +  /  {1} −  /  {2} 0", sign, sign, sign))
         tk.Frame(root, bg=C["line"], height=1).pack(fill="x")
-        self.banner = tk.Frame(root, bg=C["blue_bg"])   # плашка «доступно обновление»
 
         # Строка состояния пакуется раньше содержимого, чтобы не пропадать в маленьком окне
         self.status = tk.StringVar()
@@ -412,140 +410,182 @@ class App:
             self.history.set_setting("window", {"geometry": self.root.geometry(), "zoomed": zoomed})
         except Exception:
             pass
-        if self.update_file and updater.check_writable() is None:
-            # скачанное обновление ставится при закрытии, без перезапуска
-            try:
-                new = updater.prepare(self.update_file, self._data_dir())
-                updater.launch_installer(new, self._data_dir(), updater.current_version(), relaunch=False)
-            except Exception:
-                pass
         self.root.destroy()
 
-    # ------------------------------------------------------------- обновления
+    # ------------------------------------------------------------- обновления (как в 3uTools)
     def _data_dir(self):
         return os.path.dirname(logs_root())
 
     def auto_check(self):
-        if not self.history.setting("auto_update", True):
-            return
-        last = self.history.setting("update_checked", "")
-        try:
-            if last and (datetime.now() - datetime.strptime(last, "%Y-%m-%d %H:%M:%S")).total_seconds() < 6 * 3600:
-                return
-        except ValueError:
-            pass
-        self.check_updates(manual=False)
+        """При каждом запуске: если вышла новая версия — окно с изменениями."""
+        if self.history.setting("auto_update", True):
+            self.check_updates(manual=False)
 
     def check_updates(self, manual=True):
         if self.update_busy:
             return
         self.update_busy = True
         skip = self.history.setting("skip_version", "")
-        data = self._data_dir()
 
         def work():
             try:
                 info = updater.check_latest()
-                self.events.put(("update_checked", None))
                 newer = updater.is_newer(info["version"], updater.current_version())
                 if not newer or (not manual and info["version"] == skip):
                     self.events.put(("update_none", manual))
-                    return
-                path = None
-                if updater.can_self_update() and info["asset"]:
-                    path = updater.downloaded_path(data, info["version"])
-                    if not (os.path.isfile(path) and os.path.getsize(path) == info["asset"]["size"]):
-                        self.events.put(("update_progress", (0, info["asset"]["size"] or 0)))
-                        updater.download(info["asset"], path,
-                                         lambda d, t: self.events.put(("update_progress", (d, t))))
-                self.events.put(("update_ready", (info, path)))
+                else:
+                    self.events.put(("update_found", info))
             except Exception as e:
                 self.events.put(("update_failed", (manual, f"{e.__class__.__name__}: {e}")))
 
         threading.Thread(target=work, daemon=True).start()
 
     def _update_event(self, kind, data):
-        if kind == "update_checked":
-            self.history.set_setting("update_checked", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-            return
         if kind == "update_progress":
-            d, t = data
-            self.status.set(_("Скачиваю обновление… {0}%", d * 100 // t if t else 0))
-            return
+            return self._update_progress(*data)
+        if kind == "update_downloaded":
+            return self._update_downloaded(data)
+        if kind == "update_dl_failed":
+            return self._update_dl_failed(data)
         self.update_busy = False
+        self.history.set_setting("update_checked", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         if kind == "update_none":
             if data:
                 messagebox.showinfo(APP_TITLE, _("У вас последняя версия ({0}).", updater.current_version()))
-            self.update_status()
         elif kind == "update_failed":
             manual, err = data
-            self.update_status()
             if manual:
                 messagebox.showwarning(APP_TITLE, _("Не удалось проверить обновления.\nПроверьте интернет.\n\n") + err)
-        elif kind == "update_ready":
-            self.update_info, self.update_file = data
-            self.update_status()
-            self.show_update_banner()
+        elif kind == "update_found":
+            self.update_info = data
+            self.show_update_dialog()
 
-    def show_update_banner(self):
-        info = self.update_info
-        for w in self.banner.winfo_children():
-            w.destroy()
-        inner = tk.Frame(self.banner, bg=C["blue_bg"], padx=px(16), pady=px(8))
-        inner.pack(fill="x")
-        ready = bool(self.update_file)
-        if ready:
-            button(inner, _("Перезапустить и обновить"), self.install_update, True, size=10).pack(side="right")
-        else:
-            button(inner, _("Скачать"), lambda: open_path(info["url"]), True, size=10).pack(side="right")
-        button(inner, _("Позже"), self.hide_update_banner, size=10).pack(side="right", padx=px(6))
-        button(inner, _("Что нового"), self.show_release_notes, size=10).pack(side="right")
-        FlatButton(inner, text=_("Пропустить версию"), font=font(10), fg=C["muted"], bg=C["blue_bg"],
-                   activebackground=C["blue_bg"], activeforeground=C["text"], padx=px(8),
-                   command=self.skip_update).pack(side="right", padx=px(6))
-        text = _("Доступна версия {0} (у вас {1}).", info['version'], updater.current_version())
-        text += _(" Скачана — установится при перезапуске или закрытии программы.") if ready else ""
-        label(inner, text, 11, True, bg=C["blue_bg"], wrap=400).pack(side="left")
-        self.banner.pack(fill="x", before=self.content)
-
-    def hide_update_banner(self):
-        self.banner.pack_forget()
-
-    def skip_update(self):
-        if self.update_info:
-            self.history.set_setting("skip_version", self.update_info["version"])
-        self.update_file = None      # пропущенную версию и при закрытии не ставим
-        self.update_info = None
-        self.hide_update_banner()
-
-    def show_release_notes(self):
-        info = self.update_info
-        w = self.popup(_("Что нового в {0}", info['version']), 0.6, 0.7)
-        fr, t = text_view(w)
-        fr.pack(fill="both", expand=True)
-        parts = [(_("Версия {0}\n", info['version']), "h1")]
-        for line in info["notes"].splitlines():
+    def _notes_parts(self, notes):
+        parts = []
+        for line in notes.splitlines():
             line = line.rstrip()
             if line.startswith("#"):
                 parts.append((line.lstrip("# ") + "\n", "cap"))
             elif line:
-                parts.append((line.replace("**", "").replace("`", "") + "\n", "body"))
-        text_fill(t, parts)
+                line = line.replace("**", "").replace("`", "")
+                if line.lstrip()[:2] in ("* ", "- "):
+                    line = "•  " + line.lstrip()[2:]
+                parts.append((line + "\n", "body"))
+        return parts
 
-    def install_update(self, relaunch=True):
+    def show_update_dialog(self):
+        """Окно «Доступно обновление»: что нового, «Обновить сейчас» / «Позже»."""
+        info = self.update_info
+        w = self.popup(_("Доступно обновление"), 0.55, 0.7, modal=True)
+        self.update_dialog = w
+        top = tk.Frame(w, bg=C["card"], padx=px(22), pady=px(18))
+        top.pack(fill="x")
+        if getattr(self.root, "_icon", None):
+            icon = self.root._icon.subsample(max(1, self.root._icon.width() // px(64)))
+            w._icon = icon
+            tk.Label(top, image=icon, bg=C["card"]).pack(side="left", padx=(0, px(16)))
+        head = tk.Frame(top, bg=C["card"])
+        head.pack(side="left", fill="x", expand=True)
+        label(head, _("Доступна новая версия {0}", info["version"]), 16, True).pack(anchor="w")
+        label(head, _("Установлена версия {0}. Ваши данные при обновлении не изменятся.",
+                      updater.current_version()), 10, color=C["muted"], wrap=420).pack(anchor="w", pady=(px(2), 0))
+
+        bottom = tk.Frame(w, bg=C["card"], padx=px(22), pady=px(14))
+        bottom.pack(side="bottom", fill="x")
+        skip = tk.BooleanVar(value=False)
+        tk.Checkbutton(bottom, text=_("Не напоминать об этой версии"), variable=skip, bg=C["card"],
+                       activebackground=C["card"], font=font(10)).pack(side="left")
+
+        def later():
+            if skip.get():
+                self.history.set_setting("skip_version", info["version"])
+            w.destroy()
+
+        if updater.can_self_update() and info["asset"]:
+            button(bottom, _("Обновить сейчас"), lambda: (w.destroy(), self.start_update()), True).pack(side="right")
+        else:
+            button(bottom, _("Скачать"), lambda: (w.destroy(), open_path(info["url"])), True).pack(side="right")
+        button(bottom, _("Позже"), later).pack(side="right", padx=px(8))
+        w.protocol("WM_DELETE_WINDOW", later)
+
+        label(w, _("ЧТО НОВОГО"), 9, True, C["muted"], bg=C["card"]).pack(anchor="w", padx=px(22))
+        fr, t = text_view(w)
+        fr.pack(fill="both", expand=True, padx=px(22))
+        text_fill(t, self._notes_parts(info["notes"]) or [(_("Описание изменений не указано."), "small")])
+
+    def start_update(self):
+        """Окно загрузки с полоской прогресса; после загрузки — установка и перезапуск."""
         if self.phone_state == "reading":
             return messagebox.showinfo(APP_TITLE, _("Сейчас снимаются логи с телефона. Обновите после того, как программа закончит."))
         reason = updater.check_writable()
         if reason:
             return messagebox.showwarning(APP_TITLE, reason)
+        info = self.update_info
+        w = self.popup(_("Обновление"), None, modal=True)
+        w.configure(padx=px(24), pady=px(20))
+        w.resizable(False, False)
+        self.update_dialog = w
+        label(w, _("Загрузка версии {0}", info["version"]), 14, True).pack(anchor="w")
+        self.upd_text = tk.StringVar(value=_("Подключение…"))
+        tk.Label(w, textvariable=self.upd_text, font=font(10), fg=C["muted"], bg=C["card"]).pack(anchor="w",
+                                                                                                pady=(px(4), px(10)))
+        self.style.configure("Upd.Horizontal.TProgressbar", background=C["blue"], troughcolor=C["gray_bg"],
+                             bordercolor=C["line"], lightcolor=C["blue"], darkcolor=C["blue"], thickness=px(10))
+        self.upd_bar = ttk.Progressbar(w, mode="determinate", length=px(420), maximum=100,
+                                       style="Upd.Horizontal.TProgressbar")
+        self.upd_bar.pack(fill="x")
+        cancel = threading.Event()
+        self.upd_cancel = cancel
+        row = tk.Frame(w, bg=C["card"])
+        row.pack(fill="x", pady=(px(14), 0))
+        self.upd_cancel_btn = button(row, _("Отмена"), lambda: (cancel.set(), w.destroy()))
+        self.upd_cancel_btn.pack(side="right")
+        w.protocol("WM_DELETE_WINDOW", lambda: (cancel.set(), w.destroy()))
+        path = updater.downloaded_path(self._data_dir(), info["version"])
+
+        def work():
+            try:
+                updater.download(info["asset"], path,
+                                 lambda d, t: self.events.put(("update_progress", (d, t))), cancel=cancel)
+                if not cancel.is_set():
+                    self.events.put(("update_downloaded", path))
+            except Exception as e:
+                if not cancel.is_set():
+                    self.events.put(("update_dl_failed", f"{e.__class__.__name__}: {e}"))
+
+        threading.Thread(target=work, daemon=True).start()
+
+    def _update_progress(self, done, total):
+        if not getattr(self, "upd_bar", None) or not self.upd_bar.winfo_exists():
+            return
+        mb = 1024 * 1024
+        if total:
+            self.upd_bar["value"] = done * 100 / total
+            self.upd_text.set(_("Загружено {0} из {1} МБ · {2}%", f"{done / mb:.1f}", f"{total / mb:.1f}",
+                                done * 100 // total))
+        else:
+            self.upd_text.set(_("Загружено {0} МБ", f"{done / mb:.1f}"))
+
+    def _update_dl_failed(self, err):
+        if getattr(self, "update_dialog", None) and self.update_dialog.winfo_exists():
+            self.update_dialog.destroy()
+        messagebox.showerror(APP_TITLE, _("Не удалось скачать обновление:\n{0}\n\nПрограмма и ваши данные не изменены.", err))
+
+    def _update_downloaded(self, path):
+        if not getattr(self, "update_dialog", None) or not self.update_dialog.winfo_exists():
+            return
+        self.upd_bar["value"] = 100
+        self.upd_text.set(_("Файл проверен. Устанавливаю — программа перезапустится…"))
+        self.upd_cancel_btn.pack_forget()
+        self.root.update()
         try:
-            new = updater.prepare(self.update_file, self._data_dir())
+            new = updater.prepare(path, self._data_dir())
             self.history.save()
-            updater.launch_installer(new, self._data_dir(), updater.current_version(), relaunch)
+            updater.launch_installer(new, self._data_dir(), updater.current_version(), relaunch=True)
         except Exception as e:
+            self.update_dialog.destroy()
             return messagebox.showerror(APP_TITLE, _("Не удалось установить обновление:\n{0}\n\nПрограмма и ваши данные не изменены.", e))
-        self.update_file = None
-        self.on_close()
+        self.root.after(600, self.on_close)
 
     def lang_menu(self, widget):
         m = tk.Menu(self.root, tearoff=0, font=font(10))
@@ -586,7 +626,7 @@ class App:
                    activeforeground="#1e3a8a", padx=0, command=lambda: open_path(self._data_dir())).pack(anchor="w",
                                                                                                     pady=(0, px(12)))
         auto = tk.BooleanVar(value=self.history.setting("auto_update", True))
-        tk.Checkbutton(w, text=_("Проверять и скачивать обновления автоматически"), variable=auto,
+        tk.Checkbutton(w, text=_("Проверять обновления при запуске"), variable=auto,
                        bg=C["card"], activebackground=C["card"], font=font(10),
                        command=lambda: self.history.set_setting("auto_update", auto.get())).pack(anchor="w")
         row = tk.Frame(w, bg=C["card"])
