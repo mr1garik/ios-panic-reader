@@ -40,6 +40,7 @@ LEVEL = {
     "green": (C["green"], C["green_bg"], C["green_text"]),
     "gray": (C["gray"], C["gray_bg"], C["muted"]),
 }
+IACTIVATOR_URL = "https://github.com/mr1garik/iActivator"
 IS_MAC = sys.platform == "darwin"
 IS_WIN = sys.platform == "win32"
 F = "Helvetica Neue" if IS_MAC else "Segoe UI"
@@ -593,6 +594,17 @@ class App:
         button(row, _("Проверить обновления"), lambda: (w.destroy(), self.check_updates(manual=True)),
                True, size=10).pack(side="left")
         button(row, _("Все версии"), lambda: open_path(updater.RELEASES_PAGE), size=10).pack(side="left", padx=px(8))
+
+        # другие проекты автора
+        tk.Frame(w, bg=C["line"], height=1).pack(fill="x", pady=(px(18), px(12)))
+        label(w, _("ДРУГИЕ ПРОЕКТЫ"), 9, True, C["muted"]).pack(anchor="w")
+        proj = tk.Frame(w, bg=C["card"])
+        proj.pack(fill="x", pady=(px(4), 0))
+        FlatButton(proj, text="iActivator →", font=font(12, True), fg=C["blue"], bg=C["card"],
+                   activebackground=C["card"], activeforeground="#1e3a8a", padx=0,
+                   command=lambda: open_path(IACTIVATOR_URL)).pack(anchor="w")
+        label(proj, _("Активация и настройка iPhone в один клик: активация, язык, регион, Wi-Fi и пропуск "
+                      "экранов настройки. Windows и macOS, бесплатно."), 10, color=C["muted"], wrap=440).pack(anchor="w")
 
     def zoom_step(self, d):
         i = min(range(len(ZOOMS)), key=lambda k: abs(ZOOMS[k] - UI["zoom"]))

@@ -102,6 +102,10 @@ sources and reliability: Apple documentation, repeatedly confirmed, or “report
 > The hints are a guide for diagnostics, not a final diagnosis: sensor and bus locations depend on
 > the model.
 
+## My other projects
+
+**[iActivator](https://github.com/mr1garik/iActivator)** — one-click iPhone activation and setup: activation, language, region, Wi-Fi, skipping the setup screens, diagnostics and a PDF report. Windows and macOS, free.
+
 ## For developers
 
 Running from source, building, tests, the database and translations — see
