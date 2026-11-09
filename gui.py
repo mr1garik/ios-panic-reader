@@ -1173,7 +1173,9 @@ class App:
                 cv.create_text(x + bw / 2, H - h - px(8), text=str(n), font=font(8), fill=C["muted"])
             if repair_dt and day == repair_dt.date():
                 cv.create_line(x + bw / 2, 0, x + bw / 2, H, fill=C["blue"], width=2, dash=(4, 3))
-                cv.create_text(x + bw / 2 + 4, px(6), text=_("ремонт"), anchor="nw", font=font(8, True), fill=C["blue"])
+                near_right = x + bw / 2 > W - px(70)     # у правого края подпись ставим слева от линии
+                cv.create_text(x + bw / 2 + (-4 if near_right else 4), px(6), text=_("ремонт"),
+                               anchor="ne" if near_right else "nw", font=font(8, True), fill=C["blue"])
             if i in (0, len(data) // 2, len(data) - 1):
                 cv.create_text(min(max(x + bw / 2, px(18)), W - px(18)), H + px(12), text=f"{day:%d.%m}",
                                font=font(8), fill=C["muted"])
@@ -1611,7 +1613,7 @@ class App:
                  "Вылет приложения": _("Приложения"), "Ошибка iTunes / восстановления": _("Ошибки iTunes"),
                  "Симптомы телефона": _("Симптомы"), "Логи и версии iOS": _("Логи и iOS"), "Шины I2C": _("Шины I2C")}
         for cat in ["Все", "Симптомы телефона"] + [c_ for c_ in CATEGORIES if c_ != "Симптомы телефона"] + [_("Шины I2C")]:
-            b = FlatButton(chips, text=short.get(cat, cat), font=font(10), padx=px(14), pady=px(5),
+            b = FlatButton(chips, text=_(short.get(cat, cat)), font=font(10), padx=px(14), pady=px(5),
                            highlightthickness=1, highlightbackground="#cfd6df",
                            command=lambda c_=cat: self._kb_pick(c_))
             b.pack(side="left", padx=px(3))
