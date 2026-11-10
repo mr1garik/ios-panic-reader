@@ -684,3 +684,110 @@ def search_logs(logs, query):
         if all(w in hay for w in words):
             out.append(l)
     return out
+
+
+# ---------------------------------------------------------------------------
+# Модели: поколение, что относится к модели, профиль модели
+# ---------------------------------------------------------------------------
+# Поколение как число, чтобы сравнивать: X = 10, XS/XR = 10.5, SE 2/3 — как iPhone 8 (тот же корпус)
+_FAMILY_SPECIAL = {"iPhone8,4": 6.5, "iPhone10,3": 10, "iPhone10,6": 10, "iPhone12,8": 8, "iPhone14,6": 8,
+                   "iPhone17,5": 16}
+
+
+def model_family(product):
+    if product in _FAMILY_SPECIAL:
+        return _FAMILY_SPECIAL[product]
+    name = PRODUCTS.get(product, "")
+    m = re.match(r"iPhone (\d+)(s)?", name)
+    if m:
+        return int(m.group(1)) + (0.5 if m.group(2) else 0)
+    if name.startswith("iPhone X"):
+        return 10.5
+    if name.startswith("iPhone Air"):
+        return 17
+    return None
+
+
+def applies(item, product):
+    """True — запись относится к модели, False — нет, None — общая для всех моделей."""
+    rng = item.get("fam")
+    if not rng:
+        return None
+    if product in item.get("except", []):
+        return False
+    f = model_family(product)
+    return None if f is None else rng[0] <= f <= rng[1]
+
+
+def model_choices():
+    """[(название, код)] — по одной модели на название, от новых к старым."""
+    seen = {}
+    for code, name in PRODUCTS.items():
+        if code.startswith("iPhone") and name not in seen:
+            seen[name] = code
+    return sorted(seen.items(), key=lambda kv: (-(model_family(kv[1]) or 0), kv[0]))
+
+
+def model_profile(product):
+    """Что известно о модели: особенности, датчики, шины I2C, записи базы именно для неё."""
+    f = model_family(product) or 0
+    name = PRODUCTS.get(product, product)
+    facts = [
+        (_("Разъём"), "USB-C" if f >= 15 else "Lightning"),
+        (_("Биометрия"), "Face ID" if f >= 10 else "Touch ID"),
+    ]
+    if product == "iPhone18,4":
+        sim = _("только eSIM, SIM-лотка нет")
+    elif f >= 17:
+        sim = _("в ряде стран только eSIM — проверьте, есть ли SIM-лоток")
+    elif f >= 14:
+        sim = _("у моделей для США только eSIM, у остальных есть SIM-лоток")
+    else:
+        sim = _("SIM-лоток (и eSIM с iPhone XS)") if f >= 10.5 else _("SIM-лоток")
+    facts.append((_("SIM"), sim))
+    ser = [x for x, lo in ((_("аккумулятор"), 10.5), (_("дисплей"), 11), (_("камера"), 12)) if f >= lo]
+    facts.append((_("«Неизвестная деталь» при замене"), ", ".join(ser) if ser else _("нет")))
+    facts.append((_("Чип U1 (UWB)"), _("есть") if f >= 11 and product != "iPhone17,5" and f != 8 else _("нет")))
+    facts.append(("MagSafe", _("есть") if f >= 12 and product != "iPhone17,5" and f != 8 else _("нет")))
+    sensors = [(k, d) for k, d in SENSORS.items() if applies(d, product)]
+    sensors_other = [(k, d) for k, d in SENSORS.items() if applies(d, product) is None]
+    buses = [b for b in I2C_BUSES if product in b["models"]]
+    entries = [e for e in KB if applies(e, product)]
+    return {"name": name, "product": product, "facts": facts, "sensors": sensors,
+            "sensors_other": sensors_other, "buses": buses, "entries": entries}
+
+
+# ---------------------------------------------------------------------------
+# Лог для пополнения базы: без личных данных
+# ---------------------------------------------------------------------------
+_PRIVATE = [
+    (re.compile(r"\b\d{15}\b"), "<IMEI>"),                                      # IMEI
+    (re.compile(r"\b[0-9a-fA-F]{40}\b"), "<UDID>"),                             # старый UDID
+    (re.compile(r"\b[0-9A-F]{8}-[0-9A-F]{16}\b"), "<UDID>"),                    # новый UDID
+    (re.compile(r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b"), "<UUID>"),
+    (re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+"), "<email>"),
+    (re.compile(r"(?i)(serial(?:number)?|sn|imei|meid|ecid|udid)[\"']?\s*[:=]\s*[\"']?[\w-]+"), r"\1: <скрыто>"),
+    (re.compile(r"(/Users/|/home/|C:\\\\Users\\\\|C:\\Users\\)[^/\\\s\"]+"), r"\1<user>"),
+]
+
+
+def anonymize(text):
+    for rx, repl in _PRIVATE:
+        text = rx.sub(repl, text)
+    return text
+
+
+def report_for_database(info, limit=3500):
+    """Текст заявки «добавьте в базу»: модель, iOS, вид лога, что распознано и начало паники.
+    Без имени файла, серийного номера, IMEI, UDID и путей."""
+    lines = [f"Model: {info['model'] or '?'} ({info['product'] or '?'})",
+             f"iOS: {info['os'] or '?'}",
+             f"bug_type: {info['bug_type'] or '?'}",
+             "Recognized: " + (", ".join(e["id"] for e, _hit in info["findings"]) or "nothing"),
+             f"Missing sensors: {', '.join(info['missing_sensors']) or '—'}", "", "```"]
+    body = info["panic"] or info["exception"] or ""
+    body = anonymize(body.strip())
+    if len(body) > limit:
+        body = body[:limit] + "\n…"
+    lines += [body, "```"]
+    return "\n".join(lines)
