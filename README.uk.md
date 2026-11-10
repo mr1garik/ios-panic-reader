@@ -11,7 +11,7 @@
 ![Windows · macOS](https://img.shields.io/badge/Windows%20·%20macOS-111827)
 ![RU · EN · UK](https://img.shields.io/badge/RU%20·%20EN%20·%20UK-6b7280)
 
-[Русский](README.md) · [English](README.en.md) · **Українська**
+[English](README.md) · **Українська** · [Русский](README.ru.md)
 
 <a href="https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader.exe"><img src="https://img.shields.io/badge/Завантажити_для_Windows-2563eb?style=for-the-badge&logo=windows&logoColor=white" alt="Завантажити для Windows"></a>
 <a href="https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader-macOS.zip"><img src="https://img.shields.io/badge/Завантажити_для_Mac-111827?style=for-the-badge&logo=apple&logoColor=white" alt="Завантажити для Mac"></a>

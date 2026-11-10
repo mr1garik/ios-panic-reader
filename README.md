@@ -4,111 +4,111 @@
 
 # iOS Panic Reader
 
-**Подключили iPhone — программа сама сняла логи и сказала, какая деталь виновата.**
+**Plug in an iPhone — the app pulls the logs and tells you which part is to blame.**
 
-[![Последняя версия](https://img.shields.io/github/v/release/mr1garik/ios-panic-reader?label=версия&color=2563eb)](https://github.com/mr1garik/ios-panic-reader/releases/latest)
-[![Скачивания](https://img.shields.io/github/downloads/mr1garik/ios-panic-reader/total?label=скачиваний&color=16a34a)](https://github.com/mr1garik/ios-panic-reader/releases)
+[![Latest release](https://img.shields.io/github/v/release/mr1garik/ios-panic-reader?label=version&color=2563eb)](https://github.com/mr1garik/ios-panic-reader/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/mr1garik/ios-panic-reader/total?label=downloads&color=16a34a)](https://github.com/mr1garik/ios-panic-reader/releases)
 ![Windows · macOS](https://img.shields.io/badge/Windows%20·%20macOS-111827)
 ![RU · EN · UK](https://img.shields.io/badge/RU%20·%20EN%20·%20UK-6b7280)
 
-**Русский** · [English](README.en.md) · [Українська](README.uk.md)
+**English** · [Українська](README.uk.md) · [Русский](README.ru.md)
 
-<a href="https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader.exe"><img src="https://img.shields.io/badge/Скачать_для_Windows-2563eb?style=for-the-badge&logo=windows&logoColor=white" alt="Скачать для Windows"></a>
-<a href="https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader-macOS.zip"><img src="https://img.shields.io/badge/Скачать_для_Mac-111827?style=for-the-badge&logo=apple&logoColor=white" alt="Скачать для Mac"></a>
+<a href="https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader.exe"><img src="https://img.shields.io/badge/Download_for_Windows-2563eb?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows"></a>
+<a href="https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader-macOS.zip"><img src="https://img.shields.io/badge/Download_for_Mac-111827?style=for-the-badge&logo=apple&logoColor=white" alt="Download for Mac"></a>
 
 <br><br>
 
-<img src="docs/screenshots/ru/demo.gif" width="860" alt="Подключение iPhone, снятие логов и результат диагностики">
+<img src="docs/screenshots/en/demo.gif" width="860" alt="Connecting an iPhone, pulling logs and the diagnosis">
 
 </div>
 
 ---
 
-## Что умеет
+## Features
 
 |  |  |
 |---|---|
-| 🔌 **Сама снимает логи** | Подключили кабелем, нажали «Доверять» на телефоне — программа забирает все логи сбоев, показывает модель, iOS, IMEI, износ аккумулятора и циклы. |
-| 🩺 **Говорит, что сломалось** | Не «паника thermalmonitord», а «**Шлейф зарядки** — телефон не видит нижний микрофон и барометр». С объяснением: как ведёт себя телефон, почему и что делать. |
-| 📊 **Уверенность и график** | «17 из 18 паник указывают на эту деталь», график паник по дням — видно, когда начались проблемы. |
-| 🔧 **До и после ремонта** | «Отметить ремонт» — дальше считаются только новые сбои: «После ремонта паник нет ✓». |
-| 🗂 **История телефонов** | Каждый подключённый телефон с визитами, ремонтами и заметками. Вернулся клиент — видно, что было в прошлый раз. |
-| 📄 **PDF для клиента** | Отчёт с выводом, состоянием деталей и названием вашей мастерской. |
-| 🔎 **Поиск по ошибкам** | Код (4013), датчик (mic1), шина (i2c3), слово или строка из паники — по базе и по всем логам. Можно вставить текст паники с телефона и сразу получить разбор. |
-| 🌍 **Три языка, автообновление** | Русский, English, Українська. Как в 3uTools: при запуске — окно «Доступна новая версия» со списком изменений, «Обновить сейчас» — загрузка с прогрессом и перезапуск. Данные не трогаются. |
-| 📱 **По моделям** | Выберите модель (или она подставится с подключённого телефона) — разъём, Face ID / Touch ID, eSIM, какие детали сериализованы, где стоят датчики, шины I2C и ошибки, характерные именно для неё. |
-| 🤝 **Пополнение базы** | «Предложить для базы» у любого лога: программа убирает серийный номер, IMEI, UDID и пути, показывает, что будет отправлено, и открывает заявку на GitHub. |
+| 🔌 **Pulls the logs for you** | Connect the cable, tap “Trust” on the phone — the app collects every fault log and shows the model, iOS, IMEI, battery wear and cycle count. |
+| 🩺 **Tells you what's broken** | Not “thermalmonitord panic” but “**Charging flex** — the phone can't see the bottom microphone and the barometer”. With how the phone behaves, why, and what to do. |
+| 📊 **Confidence and a chart** | “17 of 18 panics point to this part”, plus panics per day — you can see when the trouble started. |
+| 🔧 **Before and after repair** | “Mark repair” — from then on only new faults count: “No panics since the repair ✓”. |
+| 🗂 **Phone history** | Every connected phone with visits, repairs and notes. When a customer comes back, you see what happened last time. |
+| 📄 **PDF for the customer** | A report with the conclusion, the state of each part and your workshop name. |
+| 🔎 **Error search** | A code (4013), a sensor (mic1), a bus (i2c3), a word or a line from a panic — across the database and all logs. Paste panic text from the phone and get the analysis right away. |
+| 🌍 **Three languages, auto-update** | Русский, English, Українська. Like 3uTools: at startup a “New version available” window with the changes, “Update now” downloads with a progress bar and restarts. Your data is never touched. |
+| 📱 **By model** | Pick a model (or it's taken from the connected phone) — connector, Face ID / Touch ID, eSIM, which parts are serialized, where the sensors are, I2C buses and errors typical for that model. |
+| 🤝 **Grow the database** | “Suggest for the database” on any log: the app removes the serial number, IMEI, UDID and paths, shows exactly what will be sent and opens a GitHub issue. |
 
-## Скриншоты
+## Screenshots
 
 <table>
 <tr>
-<td width="50%"><img src="docs/screenshots/ru/4_result.png" alt=""><br><sub><b>Результат</b> — найденные проблемы от самой важной, с объяснением и шагами</sub></td>
-<td width="50%"><img src="docs/screenshots/ru/5_result_chart.png" alt=""><br><sub><b>График паник по дням</b> и что ещё нашлось в логах</sub></td>
+<td width="50%"><img src="docs/screenshots/en/4_result.png" alt=""><br><sub><b>Result</b> — problems found, most important first, with explanation and steps</sub></td>
+<td width="50%"><img src="docs/screenshots/en/5_result_chart.png" alt=""><br><sub><b>Panics per day</b> and what else was found in the logs</sub></td>
 </tr>
 <tr>
-<td><img src="docs/screenshots/ru/7_parts.png" alt=""><br><sub><b>Детали</b> — что с каждой деталью и какие сбои в логах</sub></td>
-<td><img src="docs/screenshots/ru/6_logs.png" alt=""><br><sub><b>Логи этой детали</b> — расшифровка каждой паники</sub></td>
+<td><img src="docs/screenshots/en/7_parts.png" alt=""><br><sub><b>Parts</b> — the state of each part and its faults in the logs</sub></td>
+<td><img src="docs/screenshots/en/6_logs.png" alt=""><br><sub><b>Logs for this part</b> — every panic explained</sub></td>
 </tr>
 <tr>
-<td><img src="docs/screenshots/ru/11_after_repair.png" alt=""><br><sub><b>После ремонта</b> — учитываются только новые сбои</sub></td>
-<td><img src="docs/screenshots/ru/8_history.png" alt=""><br><sub><b>История</b> — телефоны, визиты, ремонты, заметки</sub></td>
+<td><img src="docs/screenshots/en/11_after_repair.png" alt=""><br><sub><b>After the repair</b> — only new faults count</sub></td>
+<td><img src="docs/screenshots/en/8_history.png" alt=""><br><sub><b>History</b> — phones, visits, repairs, notes</sub></td>
 </tr>
 <tr>
-<td><img src="docs/screenshots/ru/9_search.png" alt=""><br><sub><b>Поиск</b> по базе ошибок и по всем логам</sub></td>
-<td><img src="docs/screenshots/ru/12_pdf.png" alt=""><br><sub><b>PDF-отчёт</b> для клиента</sub></td>
+<td><img src="docs/screenshots/en/9_search.png" alt=""><br><sub><b>Search</b> across the error database and all logs</sub></td>
+<td><img src="docs/screenshots/en/12_pdf.png" alt=""><br><sub><b>PDF report</b> for the customer</sub></td>
 </tr>
 </table>
 
-<sub>Скриншоты сняты на демонстрационных данных.</sub>
+<sub>Screenshots use demo data.</sub>
 
-## Установка
+## Installation
 
 ### Windows 10 / 11
-1. Скачайте [`iOSPanicReader.exe`](https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader.exe).
-2. Установите **Apple Devices** из Microsoft Store (или iTunes) — это драйвер iPhone.
-3. Если Windows покажет «Windows защитила ваш компьютер» — «Подробнее» → «Выполнить в любом случае» (программа не подписана).
+1. Download [`iOSPanicReader.exe`](https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader.exe).
+2. Install **Apple Devices** from the Microsoft Store (or iTunes) — it provides the iPhone driver.
+3. If Windows shows “Windows protected your PC” — “More info” → “Run anyway” (the app isn't signed).
 
-### Mac (M1 и новее)
-1. Скачайте [`iOSPanicReader-macOS.zip`](https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader-macOS.zip), распакуйте, перенесите `iOSPanicReader.app` в «Программы».
-2. Первый запуск: **правый клик → «Открыть» → «Открыть»** (программа не подписана Apple).
-3. Если macOS пишет, что приложение «повреждено»:
+### Mac (M1 and newer)
+1. Download [`iOSPanicReader-macOS.zip`](https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader-macOS.zip), unzip it, move `iOSPanicReader.app` to Applications.
+2. First launch: **right-click → Open → Open** (the app isn't signed by Apple).
+3. If macOS says the app is “damaged”:
    ```bash
    xattr -dr com.apple.quarantine /Applications/iOSPanicReader.app
    ```
 
-Драйвер на Mac не нужен — он встроен в систему. На Mac с Intel запускайте из исходников (`start.command`).
+No driver is needed on a Mac — it's built in. On Intel Macs run it from source (`start.command`).
 
-## Как пользоваться
+## How to use
 
-1. Запустите программу и подключите iPhone кабелем.
-2. Разблокируйте телефон и нажмите **«Доверять»**.
-3. Через несколько секунд — результат: что с телефоном и что делать.
+1. Launch the app and connect the iPhone with a cable.
+2. Unlock the phone and tap **“Trust”**.
+3. A few seconds later you get the result: what's wrong and what to do.
 
-Логи можно открыть и без телефона: **«Открыть файл лога…»** (файлы `panic-full-*.ips` с телефона:
-Настройки → Конфиденциальность и безопасность → Аналитика и улучшения → Данные аналитики).
+You can also open logs without a phone: **“Open log file…”** (`panic-full-*.ips` files from the phone:
+Settings → Privacy & Security → Analytics & Improvements → Analytics Data).
 
-## Ваши данные
+## Your data
 
-Всё хранится у вас на компьютере в `Документы/iOSPanicReader`: логи, история телефонов, заметки,
-название мастерской. Программа ничего никуда не отправляет — в интернет она ходит только за
-обновлениями на GitHub. При обновлении данные не трогаются, а копия истории сохраняется в `backups/`.
+Everything stays on your computer in `Documents/iOSPanicReader`: logs, phone history, notes, the
+workshop name. The app sends nothing anywhere — it only goes online to check GitHub for updates.
+Updates never touch your data, and a copy of the history is kept in `backups/`.
 
-## База ошибок
+## Error database
 
-Почти сто записей: паники ядра (thermalmonitord, SEP, AOP, NAND, SMC, I2C…), датчики из
-«Missing sensor(s)» (mic1, prs0, TG0B…), шины I2C по моделям, коды ошибок iTunes/Finder (9, 4013,
-53…), коды вылетов приложений (0x8badf00d…) и симптомы («перезагружается каждые 3 минуты»).
-У каждой записи указаны источники и надёжность: документация Apple, многократно подтверждено, или
-«по сообщениям сервисов».
+Almost a hundred entries: kernel panics (thermalmonitord, SEP, AOP, NAND, SMC, I2C…), sensors from
+“Missing sensor(s)” (mic1, prs0, TG0B…), I2C buses per model, iTunes/Finder error codes (9, 4013,
+53…), app crash codes (0x8badf00d…) and symptoms (“restarts every 3 minutes”). Every entry lists its
+sources and reliability: Apple documentation, repeatedly confirmed, or “reported by repair shops”.
 
-> Подсказки — ориентир для диагностики, а не окончательный диагноз: расположение датчиков и шин
-> зависит от модели.
+> The hints are a guide for diagnostics, not a final diagnosis: sensor and bus locations depend on
+> the model.
 
-## Другие мои проекты
+## My other projects
 
-**[iActivator](https://github.com/mr1garik/iActivator)** — активация и настройка iPhone в один клик: активация, язык, регион, Wi-Fi, пропуск экранов настройки, диагностика и PDF-отчёт. Windows и macOS, бесплатно.
+**[iActivator](https://github.com/mr1garik/iActivator)** — one-click iPhone activation and setup: activation, language, region, Wi-Fi, skipping the setup screens, diagnostics and a PDF report. Windows and macOS, free.
 
-## Для разработчиков
+## For developers
 
-Запуск из исходников, сборка, тесты, база ошибок и переводы — в [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+Running from source, building, tests, the database and translations — see
+[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) (in Russian).
