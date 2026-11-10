@@ -36,6 +36,8 @@
 | 📄 **PDF for the customer** | A report with the conclusion, the state of each part and your workshop name. |
 | 🔎 **Error search** | A code (4013), a sensor (mic1), a bus (i2c3), a word or a line from a panic — across the database and all logs. Paste panic text from the phone and get the analysis right away. |
 | 🌍 **Three languages, auto-update** | Русский, English, Українська. Like 3uTools: at startup a “New version available” window with the changes, “Update now” downloads with a progress bar and restarts. Your data is never touched. |
+| 📱 **By model** | Pick a model (or it's taken from the connected phone) — connector, Face ID / Touch ID, eSIM, which parts are serialized, where the sensors are, I2C buses and errors typical for that model. |
+| 🤝 **Grow the database** | “Suggest for the database” on any log: the app removes the serial number, IMEI, UDID and paths, shows exactly what will be sent and opens a GitHub issue. |
 
 ## Screenshots
 

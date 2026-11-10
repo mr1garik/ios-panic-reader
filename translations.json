@@ -1,4 +1,8 @@
 {
+ "\nВ списке слева — записи базы, которые относятся к этой модели, и общие для всех.\n": {
+  "en": "\nThe list on the left shows database entries for this model and those common to all models.\n",
+  "uk": "\nУ списку ліворуч — записи бази, що стосуються цієї моделі, і спільні для всіх.\n"
+ },
  "\nВстречается в открытых логах: {0} раз(а)\n": {
   "en": "\nSeen in open logs: {0} time(s)\n",
   "uk": "\nТрапляється у відкритих логах: {0} раз(и)\n"
@@ -187,6 +191,14 @@
   "en": "PDF saved: ",
   "uk": "PDF збережено: "
  },
+ "SIM-лоток": {
+  "en": "SIM tray",
+  "uk": "SIM-лоток"
+ },
+ "SIM-лоток (и eSIM с iPhone XS)": {
+  "en": "SIM tray (and eSIM since iPhone XS)",
+  "uk": "SIM-лоток (і eSIM з iPhone XS)"
+ },
  "Stackshot (stacks)": {
   "en": "Stackshot (stacks)",
   "uk": "Stackshot (stacks)"
@@ -239,6 +251,10 @@
   "en": "{0}% ({1}), {2} cycles",
   "uk": "{0}% ({1}), {2} циклів"
  },
+ "«Неизвестная деталь» при замене": {
+  "en": "“Unknown Part” after replacement",
+  "uk": "«Невідома деталь» після заміни"
+ },
  "Ёмкость {0}% от заводской": {
   "en": "Capacity {0}% of original",
   "uk": "Ємність {0}% від заводської"
@@ -270,6 +286,10 @@
  "База + открытые логи": {
   "en": "Database + open logs",
   "uk": "База + відкриті логи"
+ },
+ "Биометрия": {
+  "en": "Biometrics",
+  "uk": "Біометрія"
  },
  "Быстро садится, может выключаться на 20–30% заряда или на холоде.": {
   "en": "Drains quickly, may shut down at 20–30% charge or in the cold.",
@@ -351,6 +371,10 @@
   "en": "All logs",
   "uk": "Усі логи"
  },
+ "Все модели": {
+  "en": "All models",
+  "uk": "Усі моделі"
+ },
  "Все файлы": {
   "en": "All files",
   "uk": "Усі файли"
@@ -394,6 +418,10 @@
  "ГДЕ СТОИТ\n": {
   "en": "LOCATION\n",
   "uk": "ДЕ СТОЇТЬ\n"
+ },
+ "ДАТЧИКИ ИЗ «MISSING SENSOR» И ГДЕ ОНИ СТОЯТ\n": {
+  "en": "SENSORS FROM “MISSING SENSOR” AND WHERE THEY ARE\n",
+  "uk": "ДАТЧИКИ З «MISSING SENSOR» І ДЕ ВОНИ СТОЯТЬ\n"
  },
  "ДЕТАЛИ:": {
   "en": "PARTS:",
@@ -466,6 +494,10 @@
  "Дисплей и тач": {
   "en": "Display and touch",
   "uk": "Дисплей і тач"
+ },
+ "Для iPhone 15–17 данных о датчиках и шинах пока мало. Если у вас есть паники с них — предложите их для базы кнопкой у лога.\n": {
+  "en": "There is little sensor and bus data for iPhone 15–17 yet. If you have panics from them, suggest them for the database with the button next to the log.\n",
+  "uk": "Для iPhone 15–17 даних про датчики й шини поки мало. Якщо у вас є паніки з них — запропонуйте їх для бази кнопкою біля логу.\n"
  },
  "Доступна новая версия {0}": {
   "en": "New version {0} is available",
@@ -663,6 +695,10 @@
   "en": "Model (optional, for I2C bus hints):",
   "uk": "Модель (необов'язково, для підказок щодо шин I2C):"
  },
+ "Модель:": {
+  "en": "Model:",
+  "uk": "Модель:"
+ },
  "Модем (сеть, IMEI)": {
   "en": "Modem (network, IMEI)",
   "uk": "Модем (мережа, IMEI)"
@@ -799,6 +835,10 @@
   "en": "About",
   "uk": "Про програму"
  },
+ "ОСОБЕННОСТИ\n": {
+  "en": "FEATURES\n",
+  "uk": "ОСОБЛИВОСТІ\n"
+ },
  "ОТСУТСТВУЮЩИЕ ДАТЧИКИ (по всем паникам):": {
   "en": "MISSING SENSORS (across all panics):",
   "uk": "ВІДСУТНІ ДАТЧИКИ (за всіма паніками):"
@@ -814,6 +854,10 @@
  "ОШИБКА: {0}: {1}": {
   "en": "ERROR: {0}: {1}",
   "uk": "ПОМИЛКА: {0}: {1}"
+ },
+ "ОШИБКИ, ХАРАКТЕРНЫЕ ДЛЯ ЭТОЙ МОДЕЛИ\n": {
+  "en": "ERRORS TYPICAL FOR THIS MODEL\n",
+  "uk": "ПОМИЛКИ, ХАРАКТЕРНІ ДЛЯ ЦІЄЇ МОДЕЛІ\n"
  },
  "Обновить или восстановить iOS": {
   "en": "Update or restore iOS",
@@ -866,6 +910,10 @@
  "Открыть логи": {
   "en": "Open logs",
   "uk": "Відкрити логи"
+ },
+ "Открыть на GitHub": {
+  "en": "Open on GitHub",
+  "uk": "Відкрити на GitHub"
  },
  "Открыть папку…": {
   "en": "Open folder…",
@@ -1107,6 +1155,14 @@
   "en": "Resource limit exceeded (CPU/memory/disk)",
   "uk": "Перевищення ресурсів (CPU/пам'ять/диск)"
  },
+ "Предложить для базы": {
+  "en": "Suggest for the database",
+  "uk": "Запропонувати для бази"
+ },
+ "Предложить лог для базы": {
+  "en": "Suggest a log for the database",
+  "uk": "Запропонувати лог для бази"
+ },
  "Приложения": {
   "en": "Apps",
   "uk": "Програми"
@@ -1142,6 +1198,14 @@
  "Программное обеспечение": {
   "en": "Software",
   "uk": "Програмне забезпечення"
+ },
+ "Профиль модели": {
+  "en": "Model profile",
+  "uk": "Профіль моделі"
+ },
+ "Профиль модели: {0}": {
+  "en": "Model profile: {0}",
+  "uk": "Профіль моделі: {0}"
  },
  "Процесс:     ": {
   "en": "Process:     ",
@@ -1186,6 +1250,10 @@
  "Разобрать текст паники…": {
   "en": "Analyze panic text…",
   "uk": "Розібрати текст паніки…"
+ },
+ "Разъём": {
+  "en": "Connector",
+  "uk": "Роз'єм"
  },
  "Результат": {
   "en": "Result",
@@ -1246,6 +1314,10 @@
  "Скачать": {
   "en": "Download",
   "uk": "Завантажити"
+ },
+ "Скопировать": {
+  "en": "Copy",
+  "uk": "Скопіювати"
  },
  "Служба Apple Mobile Device не найдена": {
   "en": "Apple Mobile Device service not found",
@@ -1311,9 +1383,17 @@
   "en": "THE PHONE DOESN'T SEE THE SENSORS\n",
   "uk": "ТЕЛЕФОН НЕ БАЧИТЬ ДАТЧИКИ\n"
  },
+ "Так база пополняется реальными случаями. Из лога убраны серийный номер, IMEI, UDID, почта и пути к файлам. Ниже — ровно то, что будет отправлено; можно поправить или дописать, какая деталь оказалась неисправной. Откроется страница GitHub — отправляете вы сами.": {
+  "en": "This is how the database grows with real cases. The serial number, IMEI, UDID, email and file paths are removed from the log. Below is exactly what will be sent; you can edit it or add which part turned out to be faulty. A GitHub page will open — you submit it yourself.",
+  "uk": "Так база поповнюється реальними випадками. З логу прибрано серійний номер, IMEI, UDID, пошту й шляхи до файлів. Нижче — саме те, що буде надіслано; можна виправити або дописати, яка деталь виявилася несправною. Відкриється сторінка GitHub — надсилаєте ви самі."
+ },
  "Текст": {
   "en": "Text",
   "uk": "Текст"
+ },
+ "Текст скопирован": {
+  "en": "Text copied",
+  "uk": "Текст скопійовано"
  },
  "Телефон": {
   "en": "Phone",
@@ -1419,6 +1499,10 @@
   "en": "WHAT'S NEW",
   "uk": "ЩО НОВОГО"
  },
+ "Чип U1 (UWB)": {
+  "en": "U1 chip (UWB)",
+  "uk": "Чип U1 (UWB)"
+ },
  "Читаю архив логов для поиска…": {
   "en": "Reading the log archive for search…",
   "uk": "Читаю архів логів для пошуку…"
@@ -1426,6 +1510,10 @@
  "Что ещё нашлось в логах": {
   "en": "What else was found in the logs",
   "uk": "Що ще знайшлося в логах"
+ },
+ "Что оказалось неисправным (если известно): ": {
+  "en": "What turned out to be faulty (if known): ",
+  "uk": "Що виявилося несправним (якщо відомо): "
  },
  "Что сделано": {
   "en": "What was done",
@@ -1442,6 +1530,10 @@
  "ШИНА {0} У ЭТОЙ МОДЕЛИ:": {
   "en": "BUS {0} ON THIS MODEL:",
   "uk": "ШИНА {0} У ЦІЄЇ МОДЕЛІ:"
+ },
+ "ШИНЫ I2C\n": {
+  "en": "I2C BUSES\n",
+  "uk": "ШИНИ I2C\n"
  },
  "Шина {0}\n": {
   "en": "Bus {0}\n",
@@ -1479,6 +1571,10 @@
   "en": "The language will change after the app restarts. Restart now?",
   "uk": "Мова зміниться після перезапуску програми. Перезапустити зараз?"
  },
+ "аккумулятор": {
+  "en": "battery",
+  "uk": "акумулятор"
+ },
  "аккумулятор {0}%": {
   "en": "battery {0}%",
   "uk": "акумулятор {0}%"
@@ -1503,6 +1599,10 @@
   "en": "the release has no file {0}",
   "uk": "у релізі немає файлу {0}"
  },
+ "в ряде стран только eSIM — проверьте, есть ли SIM-лоток": {
+  "en": "eSIM only in some countries — check whether there is a SIM tray",
+  "uk": "у низці країн лише eSIM — перевірте, чи є SIM-лоток"
+ },
  "вставленный текст": {
   "en": "pasted text",
   "uk": "вставлений текст"
@@ -1519,6 +1619,14 @@
   "en": "crashes",
   "uk": "збоїв"
  },
+ "дисплей": {
+  "en": "display",
+  "uk": "дисплей"
+ },
+ "есть": {
+  "en": "yes",
+  "uk": "є"
+ },
  "есть подозрения": {
   "en": "suspicious",
   "uk": "є підозри"
@@ -1526,6 +1634,10 @@
  "есть проблемы": {
   "en": "problems",
   "uk": "є проблеми"
+ },
+ "камера": {
+  "en": "camera",
+  "uk": "камера"
  },
  "контрольная сумма не совпала — файл повреждён": {
   "en": "checksum mismatch — the file is corrupted",
@@ -1650,6 +1762,14 @@
  "тест": {
   "en": "test",
   "uk": "тест"
+ },
+ "только eSIM, SIM-лотка нет": {
+  "en": "eSIM only, no SIM tray",
+  "uk": "лише eSIM, SIM-лотка немає"
+ },
+ "у моделей для США только eSIM, у остальных есть SIM-лоток": {
+  "en": "US models are eSIM only, others have a SIM tray",
+  "uk": "у моделей для США лише eSIM, в інших є SIM-лоток"
  },
  "установщик запущен, программа завершается": {
   "en": "installer started, the app is closing",

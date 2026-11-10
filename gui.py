@@ -768,6 +768,8 @@ class App:
                     self.part_filter = None
                     self.after_repair = True
                     self.archive = None   # архив пополнился — для поиска перечитаем
+                    if self.dev.get("model") in self.model_names:
+                        self.kb_model.set(self.dev["model"])
                     self.load([self.dev["dir"]], quiet=True)
                     self.prev_visit = self.history.add_visit(
                         self.dev, build_verdict(self.view_logs(), self.dev), self.view_logs())
@@ -1385,6 +1387,7 @@ class App:
         rb.pack(fill="x")
         button(rb, _("Исходный текст лога"), self.show_raw, size=10).pack(side="left")
         button(rb, _("Полный разбор"), self.show_full, size=10).pack(side="left", padx=px(6))
+        button(rb, _("Предложить для базы"), self.suggest_for_db, size=10).pack(side="left")
         paned.add(right, weight=1)
         self.tree.bind("<<TreeviewSelect>>", lambda e: self.show_log())
         return root
@@ -1485,6 +1488,45 @@ class App:
         xs.pack(side="bottom", fill="x")
         t.pack(fill="both", expand=True)
         t.insert("1.0", content)
+
+    def suggest_for_db(self):
+        """Заявка на GitHub с логом, из которого убраны личные данные. Отправляет пользователь сам."""
+        l = self._selected_log()
+        if not l:
+            return
+        body = core.report_for_database(l)
+        w = self.popup(_("Предложить лог для базы"), 0.6, 0.75)
+        w.configure(padx=px(20), pady=px(16))
+        label(w, _("Предложить лог для базы"), 15, True).pack(anchor="w")
+        label(w, _("Так база пополняется реальными случаями. Из лога убраны серийный номер, IMEI, UDID, "
+                   "почта и пути к файлам. Ниже — ровно то, что будет отправлено; можно поправить или "
+                   "дописать, какая деталь оказалась неисправной. Откроется страница GitHub — отправляете вы сами."),
+              10, color=C["muted"], wrap=560).pack(anchor="w", pady=(px(4), px(8)))
+        row = tk.Frame(w, bg=C["card"])
+        row.pack(side="bottom", fill="x", pady=(px(10), 0))
+        t = tk.Text(w, font=font(9, family=MONO), wrap="word", bd=1, relief="solid", highlightthickness=0,
+                    padx=px(8), pady=px(6))
+        t.insert("1.0", _("Что оказалось неисправным (если известно): ") + "\n\n" + body)
+        t.pack(fill="both", expand=True)
+
+        def text():
+            return t.get("1.0", "end").strip()
+
+        def copy():
+            self.root.clipboard_clear()
+            self.root.clipboard_append(text())
+            self.status.set(_("Текст скопирован"))
+
+        def send():
+            import urllib.parse
+            title = f"[log] {l['model'] or l['product'] or 'iPhone'}: " + (core.panic_part(l) or l["kind"])
+            url = "https://github.com/mr1garik/ios-panic-reader/issues/new?" + urllib.parse.urlencode(
+                {"title": title, "body": text()[:6000]})
+            open_path(url)
+            w.destroy()
+
+        button(row, _("Открыть на GitHub"), send, True, size=10).pack(side="right")
+        button(row, _("Скопировать"), copy, size=10).pack(side="right", padx=px(8))
 
     def show_raw(self):
         l = self._selected_log()
@@ -1656,6 +1698,13 @@ class App:
             tk.Radiobutton(opts, text=txt, value=val, variable=self.search_scope, bg=C["bg"],
                            activebackground=C["bg"], font=font(10),
                            command=self._kb_refresh).pack(side="left", padx=(0, px(14)))
+        self.model_names = dict(core.model_choices())          # название → код модели
+        self.kb_model = tk.StringVar(value=_("Все модели"))
+        mc = ttk.Combobox(opts, textvariable=self.kb_model, state="readonly", width=22, font=font(10),
+                          values=[_("Все модели")] + list(self.model_names))
+        mc.pack(side="right")
+        label(opts, _("Модель:"), 10, color=C["muted"], bg=C["bg"]).pack(side="right", padx=(0, px(6)))
+        mc.bind("<<ComboboxSelected>>", lambda e: self._kb_refresh())
 
         chips = tk.Frame(root, bg=C["bg"])
         chips.pack(fill="x", pady=px(8))
@@ -1750,6 +1799,23 @@ class App:
             rows += [("i2c", i, _("Шина {0} — ", b['bus']) + ", ".join(dict.fromkeys(PRODUCTS.get(m, m) for m in b["models"])),
                       _("Шины I2C")) for i, b in enumerate(core.I2C_BUSES)]
         rows = [r for r in rows if cat == "Все" or r[3] == cat]
+        product = self.model_names.get(self.kb_model.get())
+        if product:
+            # только то, что относится к модели (общие записи остаются)
+            def fits(r):
+                typ, key = r[0], r[1]
+                if typ == "entry":
+                    return core.applies(KB[key], product) is not False
+                if typ == "sensor":
+                    return core.applies(SENSORS[key], product) is not False
+                if typ == "i2c":
+                    return product in core.I2C_BUSES[key]["models"]
+                return True
+            rows = [r for r in rows if fits(r)]
+            iid = f"model:{product}"
+            self.ktree.insert("", "end", iid=iid, text=_("Профиль модели: {0}", self.kb_model.get()),
+                              tags=("group",))
+            self.search_results[iid] = ("model", product)
         g_db = self.ktree.insert("", "end", text=_("В базе ошибок ({0})", len(rows)), open=True, tags=("group",))
         for n, (typ, key, title, c_) in enumerate(rows):
             iid = f"{typ}:{key}"
@@ -1777,7 +1843,12 @@ class App:
         self._kb_select_first()
 
     def _kb_select_first(self):
-        for g in self.ktree.get_children():
+        top = self.ktree.get_children()
+        if top and top[0].startswith("model:"):        # выбрана модель — сначала её профиль
+            self.ktree.selection_set(top[0])
+            self.ktree.see(top[0])
+            return
+        for g in top:
             kids = self.ktree.get_children(g)
             if kids:
                 self.ktree.selection_set(kids[0])
@@ -1834,9 +1905,30 @@ class App:
         elif typ == "log":
             parts = self._log_parts(key)
             self.kb_raw_btn.pack(side="left")
+        elif typ == "model":
+            parts = self._model_parts(key)
         else:
             parts = self._entry_parts(KB[key])
         text_fill(self.kb_text, parts)
+
+    def _model_parts(self, product):
+        pr = core.model_profile(product)
+        parts = [(_("Профиль модели") + "\n", "small"), (f"{pr['name']} ({product})\n", "h1"),
+                 (_("ОСОБЕННОСТИ\n"), "cap")]
+        parts += [(f"• {k}: {v}\n", "body") for k, v in pr["facts"]]
+        if pr["sensors"]:
+            parts.append((_("ДАТЧИКИ ИЗ «MISSING SENSOR» И ГДЕ ОНИ СТОЯТ\n"), "cap"))
+            parts += [(f"• {k} — {d['name']}: {d['where']}\n", "body") for k, d in pr["sensors"]]
+        if pr["buses"]:
+            parts.append((_("ШИНЫ I2C\n"), "cap"))
+            parts += [(f"• {b['bus']}: {b['parts']}\n", "body") for b in pr["buses"]]
+        if pr["entries"]:
+            parts.append((_("ОШИБКИ, ХАРАКТЕРНЫЕ ДЛЯ ЭТОЙ МОДЕЛИ\n"), "cap"))
+            parts += [(f"• {e['title']}\n", "body") for e in pr["entries"]]
+        parts += [(_("\nВ списке слева — записи базы, которые относятся к этой модели, и общие для всех.\n"), "small"),
+                  (_("Для iPhone 15–17 данных о датчиках и шинах пока мало. Если у вас есть паники с них — "
+                     "предложите их для базы кнопкой у лога.\n"), "small")]
+        return parts
 
     def _kb_open_raw(self):
         sel = self.ktree.selection()

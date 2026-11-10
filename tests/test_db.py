@@ -77,5 +77,46 @@ class TestPasted(unittest.TestCase):
         self.assertEqual(info["missing_sensors"], ["mic1", "prs0"])
 
 
+class TestModels(unittest.TestCase):
+    def test_family(self):
+        self.assertEqual(core.model_family("iPhone10,6"), 10)      # X
+        self.assertEqual(core.model_family("iPhone12,8"), 8)       # SE 2 — как iPhone 8
+        self.assertEqual(core.model_family("iPhone14,5"), 13)
+
+    def test_profile(self):
+        p = core.model_profile("iPhone14,5")
+        facts = dict(p["facts"])
+        self.assertEqual(facts["Биометрия"], "Face ID")
+        self.assertEqual(facts["Разъём"], "Lightning")
+        self.assertIn("prs0", [k for k, _d in p["sensors"]])
+        se = core.model_profile("iPhone12,8")
+        self.assertEqual(dict(se["facts"])["Биометрия"], "Touch ID")
+        self.assertNotIn("faceid", [e["id"] for e in se["entries"]])
+        self.assertTrue(se["buses"])
+        self.assertEqual(dict(core.model_profile("iPhone16,1")["facts"])["Разъём"], "USB-C")
+
+    def test_applies(self):
+        faceid = next(e for e in kb.KB if e["id"] == "faceid")
+        self.assertTrue(core.applies(faceid, "iPhone14,5"))
+        self.assertFalse(core.applies(faceid, "iPhone9,1"))
+        uwb = next(e for e in kb.KB if e["id"] == "uwb")
+        self.assertFalse(core.applies(uwb, "iPhone17,5"))           # у 16e нет U1
+
+
+class TestAnonymize(unittest.TestCase):
+    def test_private_data_removed(self):
+        s = core.anonymize("imei 356789012345678 udid 00008110-001A2B3C4D5E801E "
+                           "SerialNumber: F17XX12AB a@b.com /Users/ivan/x C:\\Users\\ivan\\y")
+        for secret in ("356789012345678", "001A2B3C4D5E801E", "F17XX12AB", "a@b.com", "ivan"):
+            self.assertNotIn(secret, s)
+
+    def test_report(self):
+        logs = [core.parse_log(f) for f in core.collect_files([os.path.join(ROOT, "tests", "samples")])]
+        p = next(l for l in logs if l["missing_sensors"])
+        r = core.report_for_database(p)
+        self.assertIn("mic1", r)
+        self.assertNotIn("panic-full", r)          # имени файла нет
+
+
 if __name__ == "__main__":
     unittest.main()
