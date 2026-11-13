@@ -1,7 +1,7 @@
 {
  "meta": {
   "name": "База ошибок iOS Panic Reader",
-  "version": 4,
+  "version": 5,
   "updated": "2026-11-03",
   "note": "Подсказки — ориентир для диагностики, не окончательный диагноз. Расположение датчиков и шин зависит от модели.",
   "sources": {
@@ -106,9 +106,13 @@
   "187": "Вылет системного процесса",
   "211": "Analytics (сводная аналитика)",
   "313": "Аналитика / диагностика",
-  "151": "Шлейф/аксессуар (диагностика)"
+  "151": "Принудительная перезагрузка (forceReset)"
  },
  "file_kinds": [
+  [
+   "forceReset",
+   "Принудительная перезагрузка"
+  ],
   [
    "panic-full",
    "Паника ядра (полный лог)"
@@ -2825,6 +2829,37 @@
      "symptoms": "iTunes не бачить телефон.",
      "cause": "Пристрій не розпізнано або не довірено, проблеми драйвера.",
      "fix": "Розблокувати iPhone, натиснути «Довіряти», перевстановити драйвер."
+    }
+   }
+  },
+  {
+   "id": "force_reset",
+   "cat": "Симптомы телефона",
+   "title": "Принудительная перезагрузка (btn_rst) — не поломка",
+   "patterns": [
+    "\\bbtn_rst\\b"
+   ],
+   "node": "Кнопки / пользователь",
+   "symptoms": "Телефон или iPad перезапустился после того, как зажали кнопки (принудительная перезагрузка).",
+   "cause": "Лог forceReset с текстом «btn_rst» система пишет, когда перезагрузку вызвали кнопками. В этом логе перечислены все драйверы системы — это не сбои.",
+   "fix": "Ничего делать не нужно. Если перезагружали не вы и это повторяется само — проверить кнопки и их шлейф (залипание).",
+   "keywords": "forcereset btn_rst кнопки принудительная перезагрузка",
+   "sources": [],
+   "confidence": "common",
+   "i18n": {
+    "en": {
+     "title": "Forced restart (btn_rst) — not a fault",
+     "node": "Buttons / user",
+     "symptoms": "The phone or iPad restarted after the buttons were held down (forced restart).",
+     "cause": "The system writes a forceReset log with «btn_rst» when a restart is triggered with the buttons. This log lists all system drivers — they are not faults.",
+     "fix": "Nothing to do. If nobody restarted it and it keeps happening by itself — check the buttons and their flex (stuck button)."
+    },
+    "uk": {
+     "title": "Примусове перезавантаження (btn_rst) — не поломка",
+     "node": "Кнопки / користувач",
+     "symptoms": "Телефон або iPad перезапустився після того, як затиснули кнопки (примусове перезавантаження).",
+     "cause": "Лог forceReset з текстом «btn_rst» система пише, коли перезавантаження викликали кнопками. У цьому лозі перелічено всі драйвери системи — це не збої.",
+     "fix": "Нічого робити не потрібно. Якщо перезавантажували не ви й це повторюється само — перевірити кнопки та їхній шлейф (залипання)."
     }
    }
   },

@@ -147,7 +147,14 @@ def parse_text(text, path):
         if m:
             info["panic"] = _try_json('"' + m.group(1) + '"') or m.group(1)
         elif re.search(r"panic\(cpu", text):
-            info["panic"] = text[text.find("panic(cpu"):]
+            # Файл не разобрался целиком. Если паника — строка внутри JSON, берём только её
+            # (дальше в файле идут списки драйверов и процессов — это не сбои, их нельзя читать как панику).
+            i = text.find("panic(cpu")
+            chunk = re.match(r'(?:[^"\\]|\\.)*', text[i:], re.S).group(0)
+            if text[i - 1:i] == '"':
+                info["panic"] = _try_json('"' + chunk + '"') or chunk.replace("\\n", "\n")
+            else:
+                info["panic"] = text[i:i + 20000]
     if not info["exception"]:
         m = re.search(r"Exception Type:\s*(.+)", text)
         if m:
@@ -185,6 +192,14 @@ def parse_text(text, path):
         info["kind"] += " · Apple Watch"
     info["is_panic"] = bool(info["panic"]) or info["bug_type"] in ("210", "409") or \
         "panic" in os.path.basename(path).lower()
+    # Принудительная перезагрузка кнопками (btn_rst / forceReset) — не поломка
+    forced = bool(re.search(r"\bbtn_rst\b", info["panic"])) or "forcereset" in os.path.basename(path).lower()
+    if forced:
+        info["is_panic"] = False
+        info["kind"] = "Принудительная перезагрузка"
+        e = next((x for x in KB if x["id"] == "force_reset"), None)
+        info["findings"] = [(e, "btn_rst")] if e else []
+        return info
     analyze(info)
     return info
 

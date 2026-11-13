@@ -37,6 +37,16 @@ class TestParse(unittest.TestCase):
 
 
 class TestFalseAlarms(unittest.TestCase):
+    def test_forced_restart_is_not_a_fault(self):
+        (p,) = load("forceReset-full-2026-11-13-014836.000.ips")
+        self.assertFalse(p["is_panic"])
+        self.assertEqual([e["id"] for e, _h in p["findings"]], ["force_reset"])
+
+    def test_truncated_file_reads_only_the_panic_string(self):
+        (p,) = load("panic-full-truncated.ips")
+        self.assertEqual([e["id"] for e, _h in p["findings"]], ["sep"])
+        self.assertNotIn("AppleOLYHAL", p["panic"])
+
     def test_analytics_mentions_baseband_but_is_not_a_modem_problem(self):
         (p,) = load("Analytics-2026-11-02-100000.ips.ca.synced")
         self.assertFalse(p["is_panic"])
