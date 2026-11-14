@@ -15,6 +15,7 @@ import ssl
 import subprocess
 import sys
 import tempfile
+import urllib.error
 import urllib.request
 from datetime import datetime
 
@@ -81,10 +82,30 @@ def asset_name():
     return None
 
 
+def _latest_without_api():
+    """Запасной путь, когда GitHub API отказал (лимит 60 запросов в час на адрес — у компьютеров за
+    общим адресом он кончается быстро): страница «последний релиз» перенаправляет на тег версии,
+    а файлы лежат по постоянным ссылкам. Описания изменений и контрольной суммы тут нет."""
+    with _open(f"https://github.com/{REPO}/releases/latest") as r:
+        final = r.geturl()
+    tag = final.rstrip("/").rsplit("/", 1)[-1]
+    if "/releases/tag/" not in final or not tag:
+        raise IOError(_("не удалось узнать последнюю версию"))
+    name = asset_name()
+    return {"tag_name": tag, "body": "", "html_url": final,
+            "assets": [{"name": name, "browser_download_url":
+                        f"https://github.com/{REPO}/releases/download/{tag}/{name}"}] if name else []}
+
+
 def check_latest():
     """Последний релиз: dict(version, notes, url, asset) или None, если файла для этой системы нет."""
-    with _open(API_LATEST) as r:
-        rel = json.load(r)
+    try:
+        with _open(API_LATEST) as r:
+            rel = json.load(r)
+    except urllib.error.HTTPError as e:
+        if e.code not in (403, 429) or "api.github.com" not in API_LATEST:
+            raise
+        rel = _latest_without_api()
     name = asset_name()
     asset = next((a for a in rel.get("assets", []) if a.get("name") == name), None)
     return {
@@ -122,9 +143,9 @@ def download(asset, dest, progress=None, cancel=None):
     if cancel is not None and cancel.is_set():
         os.remove(tmp)
         raise Cancelled()
-    if asset.get("size") and done != asset["size"]:
+    if total and done != total:      # размер из релиза, а без него — из ответа сервера
         os.remove(tmp)
-        raise IOError(_("файл скачан не полностью ({0} из {1} байт)", done, asset['size']))
+        raise IOError(_("файл скачан не полностью ({0} из {1} байт)", done, total))
     digest = asset.get("digest", "")
     if digest.startswith("sha256:") and digest[7:].lower() != h.hexdigest():
         os.remove(tmp)

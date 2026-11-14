@@ -107,5 +107,43 @@ class TestInstallScripts(unittest.TestCase):
         self.assertEqual(len(os.listdir(os.path.join(d, "backups"))), 1)
 
 
+class TestRateLimitFallback(unittest.TestCase):
+    """GitHub API отказал по лимиту — версия и файл берутся со страницы релиза."""
+
+    def test_fallback_to_release_page(self):
+        import io
+        import urllib.error
+        from unittest import mock
+
+        class Page(io.BytesIO):
+            def geturl(self):
+                return "https://github.com/mr1garik/ios-panic-reader/releases/tag/v9.1.0"
+
+        def fake_open(url, timeout=20):
+            if "api.github.com" in url:
+                raise urllib.error.HTTPError(url, 403, "rate limit exceeded", {}, None)
+            return Page(b"")
+
+        with mock.patch.object(updater, "_open", fake_open), \
+                mock.patch.object(updater, "asset_name", lambda: "iOSPanicReader.exe"), \
+                mock.patch.object(updater, "API_LATEST", "https://api.github.com/repos/x/y/releases/latest"):
+            info = updater.check_latest()
+        self.assertEqual(info["version"], "9.1.0")
+        self.assertEqual(info["asset"]["url"],
+                         "https://github.com/mr1garik/ios-panic-reader/releases/download/v9.1.0/iOSPanicReader.exe")
+
+    def test_other_errors_are_not_hidden(self):
+        import urllib.error
+        from unittest import mock
+
+        def fake_open(url, timeout=20):
+            raise urllib.error.HTTPError(url, 500, "server error", {}, None)
+
+        with mock.patch.object(updater, "_open", fake_open), \
+                mock.patch.object(updater, "API_LATEST", "https://api.github.com/repos/x/y/releases/latest"):
+            with self.assertRaises(urllib.error.HTTPError):
+                updater.check_latest()
+
+
 if __name__ == "__main__":
     unittest.main()
