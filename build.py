@@ -13,7 +13,7 @@ import sys
 import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-MODULES = ["gui", "core", "device", "knowledge_base", "history", "report_pdf", "updater", "i18n"]
+MODULES = ["gui", "core", "device", "knowledge_base", "history", "report_pdf", "updater", "i18n", "themes"]
 
 
 def main():
