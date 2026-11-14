@@ -72,7 +72,7 @@ jobs:
         shell: pwsh
         run: |
           $dir = "$env:RUNNER_TEMP\iospr-setup-upd\iOS Panic Reader"
-          $p = Start-Process dist\iOSPanicReader-Setup.exe -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/CURRENTUSER","/DIR=$dir" -PassThru -Wait
+          $p = Start-Process dist\iOSPanicReader-Setup.exe -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/CURRENTUSER","/DIR=`"$dir`"" -PassThru -Wait
           if ($p.ExitCode -ne 0) { Write-Error "установка: код $($p.ExitCode)"; exit 1 }
           python tests/e2e_update.py --mode gui --installed "$dir\iOSPanicReader.exe" --old dist/iOSPanicReader.exe --new dist-next/iOSPanicReader.exe
           if ($LASTEXITCODE -ne 0) { exit 1 }
