@@ -225,8 +225,20 @@ def main():
     # данные целы
     for rel, content in files.items():
         p = os.path.join(data, rel)
-        if not os.path.exists(p) or read(p) != content:
-            fail(f"данные изменились или пропали: {rel}")
+        if not os.path.exists(p):
+            fail(f"данные пропали: {rel}")
+        if rel == "history.json":
+            # окно программы само дописывает настройки (размер окна, время проверки) — это нормально;
+            # важно, что телефоны, заметки и название мастерской на месте
+            try:
+                got, want = json.loads(read(p)), json.loads(content)
+            except ValueError:
+                fail("history.json испорчен")
+            if got.get("phones") != want["phones"] or \
+                    got.get("settings", {}).get("workshop") != want["settings"]["workshop"]:
+                fail("история телефонов или настройки мастерской изменились")
+        elif read(p) != content:
+            fail(f"данные изменились: {rel}")
     backups = os.listdir(os.path.join(data, "backups"))
     if not backups:
         fail("нет резервной копии истории")
