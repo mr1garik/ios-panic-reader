@@ -419,6 +419,10 @@
   "en": "LOCATION\n",
   "uk": "ДЕ СТОЇТЬ\n"
  },
+ "Графит": {
+  "en": "Graphite",
+  "uk": "Графіт"
+ },
  "ДАТЧИКИ ИЗ «MISSING SENSOR» И ГДЕ ОНИ СТОЯТ\n": {
   "en": "SENSORS FROM “MISSING SENSOR” AND WHERE THEY ARE\n",
   "uk": "ДАТЧИКИ З «MISSING SENSOR» І ДЕ ВОНИ СТОЯТЬ\n"
@@ -619,6 +623,10 @@
   "en": "HOW TO USE\n",
   "uk": "ЯК КОРИСТУВАТИСЯ\n"
  },
+ "Как в системе": {
+  "en": "Match system",
+  "uk": "Як у системі"
+ },
  "Как ведёт себя": {
   "en": "Behaviour",
   "uk": "Як поводиться"
@@ -710,6 +718,10 @@
  "Модуль pymobiledevice3 не найден — используйте собранную программу или выполните: pip install pymobiledevice3": {
   "en": "The pymobiledevice3 module was not found — use the built app or run: pip install pymobiledevice3",
   "uk": "Модуль pymobiledevice3 не знайдено — використовуйте зібрану програму або виконайте: pip install pymobiledevice3"
+ },
+ "Мятная": {
+  "en": "Mint",
+  "uk": "М'ятна"
  },
  "НАДЁЖНОСТЬ\n": {
   "en": "RELIABILITY\n",
@@ -1291,6 +1303,10 @@
   "en": "Faults in logs",
   "uk": "Збої в логах"
  },
+ "Светлая": {
+  "en": "Light",
+  "uk": "Світла"
+ },
  "Сводная аналитика": {
   "en": "Summary analytics",
   "uk": "Зведена аналітика"
@@ -1322,6 +1338,10 @@
  "Симптомы телефона": {
   "en": "Phone symptoms",
   "uk": "Симптоми телефону"
+ },
+ "Синяя ночь": {
+  "en": "Midnight blue",
+  "uk": "Синя ніч"
  },
  "Скачать": {
   "en": "Download",
@@ -1431,6 +1451,10 @@
   "en": "Phones that have been connected",
   "uk": "Телефони, які під'єднували"
  },
+ "Тема изменится после перезапуска программы. Перезапустить сейчас?": {
+  "en": "The theme will change after the app restarts. Restart now?",
+  "uk": "Тема зміниться після перезапуску програми. Перезапустити зараз?"
+ },
  "Термодатчик": {
   "en": "Temperature sensor",
   "uk": "Термодатчик"
@@ -1446,6 +1470,10 @@
  "Только после ремонта": {
   "en": "Only after the repair",
   "uk": "Лише після ремонту"
+ },
+ "Тёмная": {
+  "en": "Dark",
+  "uk": "Темна"
  },
  "У вас последняя версия ({0}).": {
   "en": "You have the latest version ({0}).",
@@ -1490,6 +1518,10 @@
  "Файл:        ": {
   "en": "File:        ",
   "uk": "Файл:        "
+ },
+ "Цветовая тема": {
+  "en": "Color theme",
+  "uk": "Колірна тема"
  },
  "Циклы": {
   "en": "Cycles",

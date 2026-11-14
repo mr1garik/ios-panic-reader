@@ -12,6 +12,8 @@ from datetime import datetime
 from tkinter import ttk, filedialog, messagebox, simpledialog
 import tkinter.font as tkfont
 
+import themes
+
 import core
 import i18n
 from i18n import _, plural
@@ -26,20 +28,26 @@ from knowledge_base import CATEGORIES, KB, PRODUCTS, SENSORS
 # ---------------------------------------------------------------------------
 # Цвета и шрифты
 # ---------------------------------------------------------------------------
-C = dict(
-    bg="#eef1f5", card="#ffffff", line="#e3e7ec", text="#1f2937", muted="#4b5563",
-    head="#111827", blue="#2563eb", blue_bg="#eff6ff", nav_on="#1f2937",
-    red="#dc2626", red_text="#b91c1c", red_bg="#fef2f2",
-    orange="#ea580c", orange_text="#b45309", orange_bg="#fff7ed",
-    green="#16a34a", green_text="#15803d", green_bg="#f0fdf4",
-    gray="#9ca3af", gray_bg="#f3f4f6", bar="#f7f8fa",
-)
-LEVEL = {
-    "red": (C["red"], C["red_bg"], C["red_text"]),
-    "orange": (C["orange"], C["orange_bg"], C["orange_text"]),
-    "green": (C["green"], C["green_bg"], C["green_text"]),
-    "gray": (C["gray"], C["gray_bg"], C["muted"]),
-}
+C = dict(themes.THEMES["light"])   # палитра текущей темы (заполняется в apply_theme)
+LEVEL = {}
+
+
+def apply_theme(name):
+    """Палитру выбираем до создания окна: все виджеты берут цвета из C при создании."""
+    key, pal = themes.resolve(name)
+    C.clear()
+    C.update(pal)
+    LEVEL.clear()
+    LEVEL.update({
+        "red": (C["red"], C["red_bg"], C["red_text"]),
+        "orange": (C["orange"], C["orange_bg"], C["orange_text"]),
+        "green": (C["green"], C["green_bg"], C["green_text"]),
+        "gray": (C["gray"], C["gray_bg"], C["muted"]),
+    })
+    return key
+
+
+apply_theme("light")
 IACTIVATOR_URL = "https://github.com/mr1garik/iActivator"
 IACTIVATOR_DOWNLOAD = "https://github.com/mr1garik/iActivator/releases/latest"   # последняя версия, Windows и Mac
 IS_MAC = sys.platform == "darwin"
@@ -163,12 +171,12 @@ class FlatButton(tk.Label):
 
 def button(parent, text, cmd, primary=False, size=11):
     if primary:
-        return FlatButton(parent, text=text, command=cmd, font=font(size, True), bg=C["blue"], fg="#ffffff",
-                          activebackground="#1d4ed8", activeforeground="#ffffff", padx=px(18), pady=px(9),
+        return FlatButton(parent, text=text, command=cmd, font=font(size, True), bg=C["blue"], fg=C["on_accent"],
+                          activebackground=C["accent_hover"], activeforeground=C["on_accent"], padx=px(18), pady=px(9),
                           highlightthickness=0)
     return FlatButton(parent, text=text, command=cmd, font=font(size), bg=C["card"], fg=C["text"],
                       activebackground=C["gray_bg"], activeforeground=C["text"], padx=px(16), pady=px(8),
-                      highlightthickness=1, highlightbackground="#cfd6df", highlightcolor=C["blue"])
+                      highlightthickness=1, highlightbackground=C["border"], highlightcolor=C["blue"])
 
 
 class WrapLabel(tk.Label):
@@ -210,6 +218,7 @@ def text_view(parent):
     fr = tk.Frame(parent, bg=C["card"])
     # width/height малые: размер задаёт окно, а не длина текста (иначе панель «отъедает» место у списка)
     t = tk.Text(fr, wrap="word", font=font(11), bd=0, padx=px(16), pady=px(14), fg=C["text"], width=30, height=5,
+                insertbackground=C["text"],
                 bg=C["card"], highlightthickness=0)
     sb = ttk.Scrollbar(fr, orient="vertical", command=t.yview)
     t.configure(yscrollcommand=sb.set)
@@ -266,13 +275,15 @@ class App:
         self.update_busy = False
 
         root.title(APP_TITLE)
+        self.theme = apply_theme(self.history.setting("theme", "system"))
         root.configure(bg=C["bg"])
+        self._theme_defaults(root)
         UI["dpi"] = screen_scale(root)
         z = self.history.setting("zoom", 1.0)
         apply_zoom(z if z in ZOOMS else 1.0)
         self.style = ttk.Style()
         try:
-            self.style.theme_use("vista" if IS_WIN else "clam")
+            self.style.theme_use("clam")      # одинаково на Windows и Mac и красится под тему
         except tk.TclError:
             pass
         self._style_trees()
@@ -287,7 +298,7 @@ class App:
         for i, (key, title) in enumerate((("phone", _("Телефон")), ("parts", _("Детали")), ("logs", _("Все логи")),
                                           ("history", _("История")), ("kb", _("Поиск ошибок"))), 1):
             b = FlatButton(nav, text=title, font=font(11), padx=px(16), pady=px(7), highlightthickness=1,
-                           highlightbackground="#cfd6df", command=lambda k=key: self.show(k))
+                           highlightbackground=C["border"], command=lambda k=key: self.show(k))
             b.pack(side="left", padx=px(3))
             self.nav_buttons[key] = b
             root.bind_all(f"<{MOD}-Key-{i}>", lambda e, k=key: self.show(k))
@@ -308,6 +319,11 @@ class App:
                               activebackground=C["gray_bg"], activeforeground=C["text"], padx=px(8), pady=px(3),
                               command=lambda: self.lang_menu(lang_btn))
         lang_btn.pack(side="right", padx=(0, px(6)))
+        theme_btn = FlatButton(nav, text="◐", font=font(12, True), fg=C["text"], bg=C["card"],
+                               activebackground=C["gray_bg"], activeforeground=C["text"], padx=px(8), pady=px(1),
+                               command=lambda: self.theme_menu(theme_btn))
+        theme_btn.pack(side="right", padx=(0, px(4)))
+        self._tip(theme_btn, _("Цветовая тема"))
         self._tip(self.zoom_label, _("Масштаб: {0} +  /  {1} −  /  {2} 0", sign, sign, sign))
         tk.Frame(root, bg=C["line"], height=1).pack(fill="x")
 
@@ -354,10 +370,51 @@ class App:
             root.after(200, lambda: self.load(list(initial_paths)))
 
     # ------------------------------------------------------------- окно и масштаб
+    def _theme_defaults(self, root):
+        """Цвета по умолчанию для обычных виджетов Tk (поля ввода, галочки, меню) — под тему."""
+        for cls in ("Text", "Entry", "Listbox"):
+            root.option_add(f"*{cls}.background", C["card"])
+            root.option_add(f"*{cls}.foreground", C["text"])
+            root.option_add(f"*{cls}.selectBackground", C["blue"])
+            root.option_add(f"*{cls}.selectForeground", C["on_accent"])
+        root.option_add("*Text.insertBackground", C["text"])
+        for cls in ("Checkbutton", "Radiobutton"):
+            root.option_add(f"*{cls}.foreground", C["text"])
+            root.option_add(f"*{cls}.activeForeground", C["text"])
+            root.option_add(f"*{cls}.selectColor", C["card"])
+        for k, v in (("background", C["card"]), ("foreground", C["text"]),
+                     ("activeBackground", C["blue"]), ("activeForeground", C["on_accent"])):
+            root.option_add(f"*Menu.{k}", v)
+        root.option_add("*TCombobox*Listbox.background", C["card"])
+        root.option_add("*TCombobox*Listbox.foreground", C["text"])
+        root.option_add("*TCombobox*Listbox.selectBackground", C["blue"])
+        root.option_add("*TCombobox*Listbox.selectForeground", C["on_accent"])
+        root.option_add("*Toplevel.background", C["card"])
+
     def _style_trees(self):
+        st = self.style
         rh = font(11).metrics("linespace") + px(12)
-        self.style.configure("Treeview", font=font(11), rowheight=rh)
-        self.style.configure("Treeview.Heading", font=font(10, True), padding=(px(6), px(4)))
+        st.configure("Treeview", font=font(11), rowheight=rh, background=C["card"], fieldbackground=C["card"],
+                     foreground=C["text"], bordercolor=C["line"], lightcolor=C["card"], darkcolor=C["card"])
+        st.map("Treeview", background=[("selected", C["blue"])], foreground=[("selected", C["on_accent"])])
+        st.configure("Treeview.Heading", font=font(10, True), padding=(px(6), px(4)), background=C["bar"],
+                     foreground=C["muted"], bordercolor=C["line"], lightcolor=C["bar"], darkcolor=C["bar"],
+                     relief="flat")
+        st.map("Treeview.Heading", background=[("active", C["gray_bg"])])
+        for w in ("TEntry", "TCombobox"):
+            st.configure(w, fieldbackground=C["card"], foreground=C["text"], insertcolor=C["text"],
+                         bordercolor=C["border"], lightcolor=C["card"], darkcolor=C["card"],
+                         background=C["card"], arrowcolor=C["muted"], selectbackground=C["blue"],
+                         selectforeground=C["on_accent"])
+        st.map("TEntry", bordercolor=[("focus", C["blue"])])
+        st.map("TCombobox", fieldbackground=[("readonly", C["card"])], foreground=[("readonly", C["text"])],
+               bordercolor=[("focus", C["blue"])], selectbackground=[("readonly", C["card"])],
+               selectforeground=[("readonly", C["text"])])
+        st.configure("TScrollbar", background=C["gray_bg"], troughcolor=C["bg"], bordercolor=C["bg"],
+                     arrowcolor=C["muted"], lightcolor=C["gray_bg"], darkcolor=C["gray_bg"])
+        st.map("TScrollbar", background=[("active", C["border"])])
+        st.configure("TPanedwindow", background=C["bg"])
+        st.configure("Sash", sashthickness=px(6), background=C["bg"], lightcolor=C["bg"], bordercolor=C["bg"])
 
     def _fit_nav(self, e=None):
         """Верхнее меню на узком окне: прячем название программы, сокращаем подписи."""
@@ -588,6 +645,20 @@ class App:
             return messagebox.showerror(APP_TITLE, _("Не удалось установить обновление:\n{0}\n\nПрограмма и ваши данные не изменены.", e))
         self.root.after(600, self.on_close)
 
+    def theme_menu(self, widget):
+        m = tk.Menu(self.root, tearoff=0, font=font(10))
+        cur = tk.StringVar(value=self.history.setting("theme", "system"))
+        for code, name in themes.NAMES.items():
+            m.add_radiobutton(label=_(name), value=code, variable=cur, command=lambda c=code: self.set_theme(c))
+        m.tk_popup(widget.winfo_rootx(), widget.winfo_rooty() + widget.winfo_height())
+
+    def set_theme(self, code):
+        if code == self.history.setting("theme", "system"):
+            return
+        self.history.set_setting("theme", code)
+        if messagebox.askyesno(APP_TITLE, _("Тема изменится после перезапуска программы. Перезапустить сейчас?")):
+            self.restart()
+
     def lang_menu(self, widget):
         m = tk.Menu(self.root, tearoff=0, font=font(10))
         for code, name in i18n.LANGS.items():
@@ -624,7 +695,7 @@ class App:
         label(w, _("Версия {0}", updater.current_version()), 11, color=C["muted"]).pack(anchor="w", pady=(0, px(12)))
         label(w, _("Ваши данные (история, логи, заметки) хранятся отдельно от программы и при обновлении не удаляются:"), 10, wrap=440).pack(anchor="w")
         FlatButton(w, text=self._data_dir(), font=font(10), fg=C["blue"], bg=C["card"], activebackground=C["card"],
-                   activeforeground="#1e3a8a", padx=0, command=lambda: open_path(self._data_dir())).pack(anchor="w",
+                   activeforeground=C["link_hover"], padx=0, command=lambda: open_path(self._data_dir())).pack(anchor="w",
                                                                                                     pady=(0, px(12)))
         auto = tk.BooleanVar(value=self.history.setting("auto_update", True))
         tk.Checkbutton(w, text=_("Проверять обновления при запуске"), variable=auto,
@@ -677,7 +748,7 @@ class App:
             t = tk.Toplevel(widget)
             t.wm_overrideredirect(True)
             t.geometry(f"+{e.x_root + 12}+{e.y_root + 16}")
-            tk.Label(t, text=text, font=font(9), bg="#111827", fg="#ffffff", padx=px(8), pady=px(4)).pack()
+            tk.Label(t, text=text, font=font(9), bg=C["tip_bg"], fg=C["tip_fg"], padx=px(8), pady=px(4)).pack()
             tip["w"] = t
 
         def hide(e):
@@ -720,9 +791,9 @@ class App:
         self.frames[key].pack(fill="both", expand=True, padx=0, pady=0)
         for k, b in self.nav_buttons.items():
             on = k == key
-            b.configure(bg=C["nav_on"] if on else C["card"], fg="#ffffff" if on else C["text"],
-                        activebackground=C["nav_on"] if on else C["gray_bg"],
-                        activeforeground="#ffffff" if on else C["text"], font=font(11, on))
+            b.configure(bg=C["blue"] if on else C["card"], fg=C["on_accent"] if on else C["text"],
+                        activebackground=C["blue"] if on else C["gray_bg"],
+                        activeforeground=C["on_accent"] if on else C["text"], font=font(11, on))
         self.current_tab = key
         if key == "parts":
             self.render_parts()
@@ -1292,7 +1363,7 @@ class App:
         # то, что справа, пакуется первым — иначе текст слева займёт всё место
         if p.get("count"):
             FlatButton(foot, text=_("Показать логи этой детали →"), font=font(10, True), fg=C["blue"], bg=bg,
-                       activebackground=bg, activeforeground="#1e3a8a", padx=0, pady=0,
+                       activebackground=bg, activeforeground=C["link_hover"], padx=0, pady=0,
                        command=lambda part=p["part"]: self.open_part_logs(part)).pack(side="right", anchor="n")
         label(foot, _("Уверенность: ") + p["note"], 10, color=C["muted"], wrap=300).pack(side="left")
 
@@ -1356,8 +1427,8 @@ class App:
         tk.Checkbutton(bar, text=_("Только паники"), variable=self.only_panic, bg=C["bg"], font=font(11),
                        command=self.refresh_logs, activebackground=C["bg"]).pack(side="left", padx=px(8))
         self.chip_row = tk.Frame(root, bg=C["bg"])
-        self.filter_chip = FlatButton(self.chip_row, text="", font=font(10, True), bg=C["blue"], fg="#ffffff",
-                                      activebackground="#1d4ed8", activeforeground="#ffffff", padx=px(12), pady=px(4),
+        self.filter_chip = FlatButton(self.chip_row, text="", font=font(10, True), bg=C["blue"], fg=C["on_accent"],
+                                      activebackground=C["accent_hover"], activeforeground=C["on_accent"], padx=px(12), pady=px(4),
                                       command=self._clear_part_filter)
         button(bar, _("Открыть файлы…"), self.open_files, size=10).pack(side="right", padx=px(3))
         button(bar, _("Открыть папку…"), self.open_folder, size=10).pack(side="right", padx=px(3))
@@ -1377,6 +1448,7 @@ class App:
             self.tree.column(c_, width=px(w), minwidth=px(80), anchor="w", stretch=(c_ == "what"))
         for lvl in ("red", "orange", "gray"):
             self.tree.tag_configure(lvl, foreground=LEVEL[lvl][2])
+        self.tree.tag_configure("odd", background=C["stripe"])
         sb = ttk.Scrollbar(left, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscrollcommand=sb.set)
         self.tree.pack(side="left", fill="both", expand=True)
@@ -1437,7 +1509,8 @@ class App:
             title = self._log_title(l)
             if q and q not in (title + l["panic"] + l["process"] + os.path.basename(l["file"])).lower():
                 continue
-            self.tree.insert("", "end", iid=str(i), tags=(self._log_level(l),),
+            odd = ("odd",) if len(self.tree.get_children()) % 2 else ()
+            self.tree.insert("", "end", iid=str(i), tags=(self._log_level(l),) + odd,
                              values=("● " + title, str(l["date"])[:16], core.tkind(l["kind"])))
         kids = self.tree.get_children()
         if kids and not self.tree.selection():
@@ -1572,6 +1645,7 @@ class App:
             self.htree.column(c_, width=px(w), anchor="w")
         for lvl in ("red", "orange", "green"):
             self.htree.tag_configure(lvl, foreground=LEVEL[lvl][2])
+        self.htree.tag_configure("odd", background=C["stripe"])
         sb = ttk.Scrollbar(left, orient="vertical", command=self.htree.yview)
         self.htree.configure(yscrollcommand=sb.set)
         self.htree.pack(side="left", fill="both", expand=True)
@@ -1594,7 +1668,8 @@ class App:
             row = (p.get("model", "?"), p.get("serial", key), v.get("date", "")[:16], result)
             if q and q not in (" ".join(row) + p.get("note", "") + p.get("imei", "")).lower():
                 continue
-            self.htree.insert("", "end", iid=key, values=row, tags=(v.get("level", "green"),))
+            odd = ("odd",) if len(self.htree.get_children()) % 2 else ()
+            self.htree.insert("", "end", iid=key, values=row, tags=(v.get("level", "green"),) + odd)
         if sel and self.htree.exists(sel[0]):
             self.htree.selection_set(sel[0])
         elif self.htree.get_children():
@@ -1718,7 +1793,7 @@ class App:
                  "Симптомы телефона": _("Симптомы"), "Логи и версии iOS": _("Логи и iOS"), "Шины I2C": _("Шины I2C")}
         for cat in ["Все", "Симптомы телефона"] + [c_ for c_ in CATEGORIES if c_ != "Симптомы телефона"] + [_("Шины I2C")]:
             b = FlatButton(chips, text=_(short.get(cat, cat)), font=font(10), padx=px(14), pady=px(5),
-                           highlightthickness=1, highlightbackground="#cfd6df",
+                           highlightthickness=1, highlightbackground=C["border"],
                            command=lambda c_=cat: self._kb_pick(c_))
             b.pack(side="left", padx=px(3))
             self.chip_buttons[cat] = b
@@ -1763,9 +1838,9 @@ class App:
         self.kb_cat = cat
         for c_, b in self.chip_buttons.items():
             on = c_ == cat
-            b.configure(bg=C["blue"] if on else C["card"], fg="#ffffff" if on else C["text"],
+            b.configure(bg=C["blue"] if on else C["card"], fg=C["on_accent"] if on else C["text"],
                         activebackground=C["blue"] if on else C["gray_bg"],
-                        activeforeground="#ffffff" if on else C["text"])
+                        activeforeground=C["on_accent"] if on else C["text"])
         self._kb_refresh()
 
     def _archive_logs(self):

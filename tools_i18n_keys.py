@@ -27,10 +27,14 @@ def code_keys():
 
 
 def db_keys():
+    import sys
+    sys.path.insert(0, HERE)
     with open(os.path.join(HERE, "errors_db.json"), encoding="utf-8") as f:
         db = json.load(f)
     keys = set(db["categories"]) | set(db["bug_types"].values()) | {k for _r, k in db["file_kinds"]}
     keys |= {"Лог", "Отчёт о сбое", "Шины I2C", "неизвестно"}
+    import themes
+    keys |= set(themes.NAMES.values())
     return keys
 
 
