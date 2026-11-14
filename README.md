@@ -13,7 +13,7 @@
 
 **English** · [Українська](README.uk.md) · [Русский](README.ru.md)
 
-<a href="https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader.exe"><img src="https://img.shields.io/badge/Download_for_Windows-2563eb?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows"></a>
+<a href="https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader-Setup.exe"><img src="https://img.shields.io/badge/Download_for_Windows-2563eb?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows"></a>
 <a href="https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader-macOS.zip"><img src="https://img.shields.io/badge/Download_for_Mac-111827?style=for-the-badge&logo=apple&logoColor=white" alt="Download for Mac"></a>
 
 <br><br>
@@ -65,7 +65,7 @@
 ## Installation
 
 ### Windows 10 / 11
-1. Download the **installer** `iOSPanicReader-Setup.exe` ([releases](https://github.com/mr1garik/ios-panic-reader/releases), from 0.4.2) — Start menu shortcut, uninstall via Settings → Apps, no admin rights needed. Or the **portable** [`iOSPanicReader.exe`](https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader.exe) — runs from any folder, no installation.
+1. Download the **installer** [`iOSPanicReader-Setup.exe`](https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader-Setup.exe) — Start menu shortcut, uninstall via Settings → Apps, no admin rights needed. Or the **portable** [`iOSPanicReader.exe`](https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader.exe) — runs from any folder, no installation.
 2. Install **Apple Devices** from the Microsoft Store (or iTunes) — it provides the iPhone driver.
 3. If Windows shows “Windows protected your PC” — “More info” → “Run anyway” (the app isn't signed).
 
