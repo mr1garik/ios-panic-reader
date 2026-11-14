@@ -63,6 +63,45 @@ jobs:
         timeout-minutes: 10
         run: python tests/e2e_update.py --old dist/iOSPanicReader.exe --new dist-next/iOSPanicReader.exe
 
+      - name: Обновление из окна программы («Обновить сейчас» и перезапуск)
+        timeout-minutes: 10
+        run: python tests/e2e_update.py --mode gui --old dist/iOSPanicReader.exe --new dist-next/iOSPanicReader.exe
+
+      - name: Обновление программы, поставленной установщиком
+        timeout-minutes: 15
+        shell: pwsh
+        run: |
+          $dir = "$env:RUNNER_TEMP\iospr-setup-upd\iOS Panic Reader"
+          $p = Start-Process dist\iOSPanicReader-Setup.exe -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/CURRENTUSER","/DIR=$dir" -PassThru -Wait
+          if ($p.ExitCode -ne 0) { Write-Error "установка: код $($p.ExitCode)"; exit 1 }
+          python tests/e2e_update.py --mode gui --installed "$dir\iOSPanicReader.exe" --old dist/iOSPanicReader.exe --new dist-next/iOSPanicReader.exe
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          # ярлык в «Пуске» ведёт на обновлённую программу
+          $lnk = Get-ChildItem "$env:APPDATA\Microsoft\Windows\Start Menu\Programs" -Recurse -Filter "iOS Panic Reader.lnk" | Select-Object -First 1
+          if (-not $lnk) { Write-Error "нет ярлыка в «Пуске»"; exit 1 }
+          $target = (New-Object -ComObject WScript.Shell).CreateShortcut($lnk.FullName).TargetPath
+          Write-Host "ярлык: $target"
+          $out = "$env:RUNNER_TEMP\ver-lnk.txt"
+          Start-Process $target -ArgumentList "--version","--out",$out -Wait
+          $ver = (Get-Content $out -Raw).Trim()
+          if ($ver -ne "9.9.9") { Write-Error "по ярлыку запускается версия $ver"; exit 1 }
+          # удаление после самообновления
+          Start-Process "$dir\unins000.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -Wait
+          Start-Sleep -Seconds 3
+          if (Test-Path "$dir\iOSPanicReader.exe") { Write-Error "после обновления программа не удаляется"; exit 1 }
+          Write-Host "установка → обновление → ярлык → удаление: всё работает"
+
+      - name: Обновление с последнего выпущенного релиза до новой сборки
+        timeout-minutes: 10
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download --repo $env:GITHUB_REPOSITORY --pattern iOSPanicReader.exe --dir published
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          python tests/e2e_update.py --old published/iOSPanicReader.exe --new dist-next/iOSPanicReader.exe
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
       - name: Проверка запуска (консольный режим)
         shell: pwsh
         run: |
@@ -111,6 +150,19 @@ jobs:
         timeout-minutes: 10
         run: python tests/e2e_update.py --old dist/iOSPanicReader.app --new dist-next/iOSPanicReader.app
 
+      - name: Обновление из окна программы («Обновить сейчас» и перезапуск)
+        timeout-minutes: 10
+        run: python tests/e2e_update.py --mode gui --old dist/iOSPanicReader.app --new dist-next/iOSPanicReader.app
+
+      - name: Обновление с последнего выпущенного релиза до новой сборки
+        timeout-minutes: 10
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download --repo "$GITHUB_REPOSITORY" --pattern iOSPanicReader-macOS.zip --dir published
+          ditto -x -k published/iOSPanicReader-macOS.zip published
+          python tests/e2e_update.py --old published/iOSPanicReader.app --new dist-next/iOSPanicReader.app
+
       - name: Проверка запуска (консольный режим)
         run: dist/iOSPanicReader.app/Contents/MacOS/iOSPanicReader --cli tests/samples > /dev/null
 
@@ -140,6 +192,9 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [windows, macos]
     runs-on: ubuntu-latest
+    outputs:
+      published: ${{ steps.v.outputs.exists == 'false' }}
+      version: ${{ steps.v.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
 
@@ -160,6 +215,7 @@ jobs:
           path: dist
 
       - name: Публикация релиза
+        id: pub
         if: steps.v.outputs.exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
@@ -171,3 +227,82 @@ jobs:
             dist/iOSPanicReader-Windows/iOSPanicReader.exe
             dist/iOSPanicReader-Windows/iOSPanicReader-Setup.exe
             dist/iOSPanicReader-macOS/iOSPanicReader-macOS.zip
+
+  # После выпуска: прошлая версия, скачанная с GitHub, обновляется с настоящего релиза —
+  # ровно то, что произойдёт у людей. Плюс установщик и прямые ссылки из README.
+  after-release:
+    if: needs.release.outputs.published == 'true'
+    needs: release
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Релиз виден как последний
+        shell: bash
+        run: |
+          V="${{ needs.release.outputs.version }}"
+          for i in $(seq 1 20); do
+            L=$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .tag_name)
+            [ "$L" = "$V" ] && break
+            echo "последний пока $L, жду…"; sleep 15
+          done
+          [ "$L" = "$V" ] || { echo "последний релиз $L, а не $V"; exit 1; }
+          gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq '.draft, .prerelease, (.assets[] | .name + " " + (.size|tostring))'
+          PREV=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=10" --jq "[.[] | select(.draft|not) | select(.prerelease|not) | .tag_name | select(. != \"$V\")][0]")
+          echo "прошлая версия: $PREV"
+          echo "PREV=$PREV" >> "$GITHUB_ENV"
+          echo "NEW=${V#v}" >> "$GITHUB_ENV"
+
+      - name: Windows — прошлая версия обновляется с GitHub
+        if: runner.os == 'Windows'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          gh release download $env:PREV --repo $env:GITHUB_REPOSITORY --pattern iOSPanicReader.exe --dir prev
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          python tests/e2e_update.py --old prev/iOSPanicReader.exe --real $env:NEW
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Windows — ссылки из README и установщик
+        if: runner.os == 'Windows'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $base = "https://github.com/$env:GITHUB_REPOSITORY/releases/latest/download"
+          Invoke-WebRequest "$base/iOSPanicReader.exe" -OutFile portable.exe
+          Invoke-WebRequest "$base/iOSPanicReader-Setup.exe" -OutFile setup.exe
+          $out = "$env:RUNNER_TEMP\v1.txt"
+          Start-Process .\portable.exe -ArgumentList "--version","--out",$out -Wait
+          if ((Get-Content $out -Raw).Trim() -ne $env:NEW) { Write-Error "портативная: не та версия"; exit 1 }
+          $dir = "$env:RUNNER_TEMP\inst"
+          Start-Process .\setup.exe -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/CURRENTUSER","/DIR=$dir" -Wait
+          $out = "$env:RUNNER_TEMP\v2.txt"
+          Start-Process "$dir\iOSPanicReader.exe" -ArgumentList "--version","--out",$out -Wait
+          if ((Get-Content $out -Raw).Trim() -ne $env:NEW) { Write-Error "установщик: не та версия"; exit 1 }
+          Write-Host "ссылки и установщик дают версию $env:NEW"
+
+      - name: Mac — прошлая версия обновляется с GitHub
+        if: runner.os == 'macOS'
+        timeout-minutes: 10
+        run: |
+          gh release download "$PREV" --repo "$GITHUB_REPOSITORY" --pattern iOSPanicReader-macOS.zip --dir prev
+          ditto -x -k prev/iOSPanicReader-macOS.zip prev
+          python tests/e2e_update.py --old prev/iOSPanicReader.app --real "$NEW"
+
+      - name: Mac — ссылка из README
+        if: runner.os == 'macOS'
+        run: |
+          curl -fsSL -o mac.zip "https://github.com/$GITHUB_REPOSITORY/releases/latest/download/iOSPanicReader-macOS.zip"
+          ditto -x -k mac.zip latest
+          V=$(latest/iOSPanicReader.app/Contents/MacOS/iOSPanicReader --version)
+          echo "версия по ссылке: $V"
+          test "$V" = "$NEW"

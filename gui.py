@@ -516,6 +516,8 @@ class App:
                 messagebox.showwarning(APP_TITLE, _("Не удалось проверить обновления.\nПроверьте интернет.\n\n") + err)
         elif kind == "update_found":
             self.update_info = data
+            if os.environ.get("IOSPR_TEST_AUTOUPDATE") == "1":   # сквозной тест: «нажать» «Обновить сейчас»
+                return self.start_update()
             self.show_update_dialog()
 
     def _notes_parts(self, notes):
