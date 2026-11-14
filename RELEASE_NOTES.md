@@ -8,7 +8,7 @@
 
 ## Скачать
 
-* **Windows 10/11** — `iOSPanicReader.exe`. Нужен драйвер Apple: «Apple Devices» из Microsoft Store (или iTunes).
+* **Windows 10/11** — установщик `iOSPanicReader-Setup.exe` (ярлык в «Пуске», удаление через «Параметры», без прав администратора) или портативный `iOSPanicReader.exe`. Нужен драйвер Apple: «Apple Devices» из Microsoft Store (или iTunes).
 * **Mac (M1 и новее)** — `iOSPanicReader-macOS.zip`. Распакуйте, перенесите в «Программы», первый запуск: правый клик → «Открыть» → «Открыть».
 
 На Windows с версии 0.4.0 на эту нужно перейти один раз вручную — дальше программа обновляется сама.

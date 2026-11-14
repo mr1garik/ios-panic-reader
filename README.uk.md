@@ -13,7 +13,7 @@
 
 [English](README.md) · **Українська** · [Русский](README.ru.md)
 
-<a href="https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader.exe"><img src="https://img.shields.io/badge/Завантажити_для_Windows-2563eb?style=for-the-badge&logo=windows&logoColor=white" alt="Завантажити для Windows"></a>
+<a href="https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader-Setup.exe"><img src="https://img.shields.io/badge/Завантажити_для_Windows-2563eb?style=for-the-badge&logo=windows&logoColor=white" alt="Завантажити для Windows"></a>
 <a href="https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader-macOS.zip"><img src="https://img.shields.io/badge/Завантажити_для_Mac-111827?style=for-the-badge&logo=apple&logoColor=white" alt="Завантажити для Mac"></a>
 
 <br><br>
@@ -65,7 +65,7 @@
 ## Встановлення
 
 ### Windows 10 / 11
-1. Завантажте [`iOSPanicReader.exe`](https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader.exe).
+1. Завантажте **інсталятор** [`iOSPanicReader-Setup.exe`](https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader-Setup.exe) — ярлик у «Пуску», видалення через «Параметри → Програми», права адміністратора не потрібні. Або **портативну** версію [`iOSPanicReader.exe`](https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader.exe) — запускається з будь-якої теки без встановлення.
 2. Встановіть **Apple Devices** з Microsoft Store (або iTunes) — це драйвер iPhone.
 3. Якщо Windows покаже «Windows захистила ваш комп'ютер» — «Докладніше» → «Однаково запустити» (програму не підписано).
 

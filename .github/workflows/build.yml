@@ -30,6 +30,32 @@ jobs:
       - name: Сборка iOSPanicReader.exe
         run: python build.py
 
+      - name: Сборка установщика iOSPanicReader-Setup.exe
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress | Out-Null }
+          $ver = (Get-Content VERSION -Raw).Trim()
+          & $iscc "/DAppVersion=$ver" installer\iOSPanicReader.iss
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Проверка установщика (тихая установка, запуск, удаление)
+        shell: pwsh
+        run: |
+          $dir = "$env:RUNNER_TEMP\iospr-install"
+          $p = Start-Process dist\iOSPanicReader-Setup.exe -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/CURRENTUSER","/DIR=$dir" -PassThru -Wait
+          if ($p.ExitCode -ne 0) { Write-Error "установка: код $($p.ExitCode)"; exit 1 }
+          if (-not (Test-Path "$dir\iOSPanicReader.exe")) { Write-Error "программа не установилась"; exit 1 }
+          $out = "$env:RUNNER_TEMP\ver.txt"
+          $p = Start-Process "$dir\iOSPanicReader.exe" -ArgumentList "--version","--out",$out -PassThru -Wait
+          $ver = (Get-Content $out -Raw).Trim()
+          if ($ver -ne (Get-Content VERSION -Raw).Trim()) { Write-Error "версия $ver"; exit 1 }
+          Write-Host "установлена версия $ver"
+          $p = Start-Process "$dir\unins000.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -PassThru -Wait
+          Start-Sleep -Seconds 3
+          if (Test-Path "$dir\iOSPanicReader.exe") { Write-Error "программа не удалилась"; exit 1 }
+          Write-Host "установка и удаление прошли"
+
       - name: Сборка тестовой «новой» версии 9.9.9
         run: python build.py --dist dist-next --version 9.9.9
 
@@ -47,13 +73,17 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: iOSPanicReader-Windows
-          path: dist/iOSPanicReader.exe
+          path: |
+            dist/iOSPanicReader.exe
+            dist/iOSPanicReader-Setup.exe
 
       - name: Релиз (для тегов v*)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/iOSPanicReader.exe
+          files: |
+            dist/iOSPanicReader.exe
+            dist/iOSPanicReader-Setup.exe
 
   macos:
     runs-on: macos-latest   # Apple Silicon (M1 и новее)
@@ -139,4 +169,5 @@ jobs:
           body_path: RELEASE_NOTES.md
           files: |
             dist/iOSPanicReader-Windows/iOSPanicReader.exe
+            dist/iOSPanicReader-Windows/iOSPanicReader-Setup.exe
             dist/iOSPanicReader-macOS/iOSPanicReader-macOS.zip
