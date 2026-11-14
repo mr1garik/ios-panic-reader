@@ -13,7 +13,7 @@
 
 [English](README.md) · [Українська](README.uk.md) · **Русский**
 
-<a href="https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader-Setup.exe"><img src="https://img.shields.io/badge/Скачать_для_Windows-2563eb?style=for-the-badge&logo=windows&logoColor=white" alt="Скачать для Windows"></a>
+<a href="https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader.exe"><img src="https://img.shields.io/badge/Скачать_для_Windows-2563eb?style=for-the-badge&logo=windows&logoColor=white" alt="Скачать для Windows"></a>
 <a href="https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader-macOS.zip"><img src="https://img.shields.io/badge/Скачать_для_Mac-111827?style=for-the-badge&logo=apple&logoColor=white" alt="Скачать для Mac"></a>
 
 <br><br>
@@ -65,7 +65,7 @@
 ## Установка
 
 ### Windows 10 / 11
-1. Скачайте **установщик** [`iOSPanicReader-Setup.exe`](https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader-Setup.exe) — ярлык в «Пуске», удаление через «Параметры → Приложения», права администратора не нужны. Или **портативную** версию [`iOSPanicReader.exe`](https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader.exe) — запускается из любой папки без установки.
+1. Скачайте **установщик** `iOSPanicReader-Setup.exe` ([релизы](https://github.com/mr1garik/ios-panic-reader/releases), с версии 0.4.2) — ярлык в «Пуске», удаление через «Параметры → Приложения», права администратора не нужны. Или **портативную** версию [`iOSPanicReader.exe`](https://github.com/mr1garik/ios-panic-reader/releases/latest/download/iOSPanicReader.exe) — запускается из любой папки без установки.
 2. Установите **Apple Devices** из Microsoft Store (или iTunes) — это драйвер iPhone.
 3. Если Windows покажет «Windows защитила ваш компьютер» — «Подробнее» → «Выполнить в любом случае» (программа не подписана).
 
