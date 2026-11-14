@@ -835,6 +835,10 @@
   "en": "About",
   "uk": "Про програму"
  },
+ "О проекте": {
+  "en": "About the project",
+  "uk": "Про проєкт"
+ },
  "ОСОБЕННОСТИ\n": {
   "en": "FEATURES\n",
   "uk": "ОСОБЛИВОСТІ\n"
@@ -1322,6 +1326,10 @@
  "Скачать": {
   "en": "Download",
   "uk": "Завантажити"
+ },
+ "Скачать iActivator": {
+  "en": "Download iActivator",
+  "uk": "Завантажити iActivator"
  },
  "Скопировать": {
   "en": "Copy",

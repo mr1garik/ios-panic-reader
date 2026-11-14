@@ -41,6 +41,7 @@ LEVEL = {
     "gray": (C["gray"], C["gray_bg"], C["muted"]),
 }
 IACTIVATOR_URL = "https://github.com/mr1garik/iActivator"
+IACTIVATOR_DOWNLOAD = "https://github.com/mr1garik/iActivator/releases/latest"   # последняя версия, Windows и Mac
 IS_MAC = sys.platform == "darwin"
 IS_WIN = sys.platform == "win32"
 F = "Helvetica Neue" if IS_MAC else "Segoe UI"
@@ -640,11 +641,13 @@ class App:
         label(w, _("ДРУГИЕ ПРОЕКТЫ"), 9, True, C["muted"]).pack(anchor="w")
         proj = tk.Frame(w, bg=C["card"])
         proj.pack(fill="x", pady=(px(4), 0))
-        FlatButton(proj, text="iActivator →", font=font(12, True), fg=C["blue"], bg=C["card"],
-                   activebackground=C["card"], activeforeground="#1e3a8a", padx=0,
-                   command=lambda: open_path(IACTIVATOR_URL)).pack(anchor="w")
+        label(proj, "iActivator", 13, True).pack(anchor="w")
         label(proj, _("Активация и настройка iPhone в один клик: активация, язык, регион, Wi-Fi и пропуск "
                       "экранов настройки. Windows и macOS, бесплатно."), 10, color=C["muted"], wrap=440).pack(anchor="w")
+        prow = tk.Frame(proj, bg=C["card"])
+        prow.pack(anchor="w", pady=(px(8), 0))
+        button(prow, _("Скачать iActivator"), lambda: open_path(IACTIVATOR_DOWNLOAD), True, size=10).pack(side="left")
+        button(prow, _("О проекте"), lambda: open_path(IACTIVATOR_URL), size=10).pack(side="left", padx=px(8))
 
     def zoom_step(self, d):
         i = min(range(len(ZOOMS)), key=lambda k: abs(ZOOMS[k] - UI["zoom"]))
