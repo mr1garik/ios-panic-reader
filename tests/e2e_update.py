@@ -71,6 +71,17 @@ def stop(pids):
     time.sleep(2)
 
 
+def same_history(text, want):
+    """Окно программы само дописывает настройки (размер окна, время проверки) — это нормально.
+    Важно, что телефоны, заметки и название мастерской на месте."""
+    try:
+        got, want = json.loads(text), json.loads(want)
+    except ValueError:
+        fail("history.json испорчен")
+    return got.get("phones") == want["phones"] and \
+        got.get("settings", {}).get("workshop") == want["settings"]["workshop"]
+
+
 def read(path):
     with open(path, encoding="utf-8") as f:
         return f.read()
@@ -230,19 +241,14 @@ def main():
         if rel == "history.json":
             # окно программы само дописывает настройки (размер окна, время проверки) — это нормально;
             # важно, что телефоны, заметки и название мастерской на месте
-            try:
-                got, want = json.loads(read(p)), json.loads(content)
-            except ValueError:
-                fail("history.json испорчен")
-            if got.get("phones") != want["phones"] or \
-                    got.get("settings", {}).get("workshop") != want["settings"]["workshop"]:
+            if not same_history(read(p), content):
                 fail("история телефонов или настройки мастерской изменились")
         elif read(p) != content:
             fail(f"данные изменились: {rel}")
     backups = os.listdir(os.path.join(data, "backups"))
     if not backups:
         fail("нет резервной копии истории")
-    if read(os.path.join(data, "backups", backups[0])) != history:
+    if not same_history(read(os.path.join(data, "backups", backups[0])), history):
         fail("резервная копия истории не совпадает")
 
     # прошлая версия сохранена и рабочая
