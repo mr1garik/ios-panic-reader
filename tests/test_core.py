@@ -121,5 +121,25 @@ class TestPdf(unittest.TestCase):
             self.assertEqual(f.read(4), b"%PDF")
 
 
+class TestTextReport(unittest.TestCase):
+    def test_report_has_sections_and_is_not_read_as_log(self):
+        import shutil
+        import tempfile
+        d = tempfile.mkdtemp()
+        try:
+            for n in ("panic-full-2026-10-01-120001.ips", "panic-full-2026-10-01-120002.ips"):
+                shutil.copy(os.path.join(SAMPLES, n), d)
+            logs = [core.parse_log(f) for f in core.collect_files([d])]
+            text = core.build_text_report(logs, None, [("Модель", "iPhone 13")])
+            for part in ("ОТЧЁТ iOS Panic Reader", "Модель: iPhone 13", "ДЕТАЛИ:"):
+                self.assertIn(part, text)
+            with open(os.path.join(d, core.REPORT_FILE), "w", encoding="utf-8") as f:
+                f.write(text)
+            # отчёт лежит в папке логов, но сам логом не считается
+            self.assertEqual(len(core.collect_files([d])), 2)
+        finally:
+            shutil.rmtree(d)
+
+
 if __name__ == "__main__":
     unittest.main()

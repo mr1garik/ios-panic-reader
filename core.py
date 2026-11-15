@@ -14,6 +14,8 @@ from knowledge_base import (BUG_TYPES, CONFIDENCE, FILE_KINDS, I2C_BUSES, KB, PR
                             i2c_parts, sensor_info, source_url)
 
 APP_TITLE = "iOS Panic Reader"
+# Текстовый отчёт, который программа сама кладёт в папку логов каждого телефона
+REPORT_FILE = "iOSPanicReader-report.txt"
 LOG_EXTENSIONS = (".ips", ".panic", ".log", ".txt", ".synced", ".beta", ".crash", ".diag")
 
 
@@ -407,6 +409,8 @@ def collect_files(paths):
         if os.path.isdir(p):
             for root, _dirs, files in os.walk(p):
                 for fn in files:
+                    if fn == REPORT_FILE:          # свой отчёт — не лог
+                        continue
                     if fn.lower().endswith(LOG_EXTENSIONS) or "panic" in fn.lower():
                         out.append(os.path.join(root, fn))
         elif os.path.isfile(p):
@@ -806,3 +810,33 @@ def report_for_database(info, limit=3500):
         body = body[:limit] + "\n…"
     lines += [body, "```"]
     return "\n".join(lines)
+
+
+def build_text_report(logs, dev=None, device_lines=(), title_extra=""):
+    """Текстовый отчёт по телефону: устройство, найденные проблемы, детали, сводка и разбор паник."""
+    from datetime import datetime as _dt
+    out = [_("ОТЧЁТ iOS Panic Reader · {0}", f"{_dt.now():%d.%m.%Y %H:%M}") + title_extra, "=" * 72]
+    out += [f"{k}: {v}" for k, v in device_lines]
+    out.append("")
+    problems = build_verdict(logs, dev)
+    if problems:
+        out.append(_("НАЙДЕННЫЕ ПРОБЛЕМЫ:"))
+        for i, p in enumerate(problems, 1):
+            lvl = _("ВАЖНО") if p["level"] == "red" else _("НЕ СРОЧНО")
+            out.append(f"{i}. {p['title']} [{lvl}] — {p['note']}")
+            out.append(_("   Как ведёт себя: {0}", p['how']))
+            out.append(_("   Почему: {0}", p['why']))
+            out.append(_("   Что делать: ") + "; ".join(p["fix"]))
+    else:
+        out.append(_("ПРОБЛЕМ НЕ НАЙДЕНО"))
+    out.append("")
+    out.append(_("ДЕТАЛИ:"))
+    for name_, data, fails, lvl in parts_table(logs, dev):
+        out.append(_("  {0}: {1} · сбои: {2}", name_, data, fails))
+    out.append("")
+    out.append(build_summary(logs))
+    out.append("")
+    for l in logs:
+        if l["is_panic"]:
+            out.append(build_report(l))
+    return "\n".join(out) + "\n"

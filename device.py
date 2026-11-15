@@ -7,7 +7,7 @@
   ("info", dev)          — телефон прочитан, начинается снятие логов
   ("pulled", dev)        — логи сняты, dev["dir"] — папка с логами
   ("disconnected", serial)
-  ("erased", serial) / ("erase_failed", текст)
+  ("erased", [serial…], [(serial, причина)…]) — итог очистки логов на телефонах
   ("log", текст)
 """
 
@@ -20,6 +20,7 @@ import threading
 import time
 
 from core import logs_root
+from i18n import _
 from knowledge_base import PRODUCTS
 
 
@@ -123,7 +124,8 @@ class DeviceWatcher(threading.Thread):
     def __init__(self, events):
         super().__init__(daemon=True)
         self.events = events
-        self.done = set()      # серийники, с которых уже сняли логи
+        self.done = set()      # серийники, с которых уже сняли логи (или не смогли — чтобы не повторять)
+        self.pulled = set()    # серийники, с которых логи действительно скопированы
         self.manual = queue.Queue()
         self.erase = queue.Queue()     # серийники (udid), на которых стереть логи
         self._last_state = None
@@ -146,18 +148,29 @@ class DeviceWatcher(threading.Thread):
             for s in present - serials:
                 self.events.put(("disconnected", s))
                 self.done.discard(s)
+                self.pulled.discard(s)
                 self._last_state = None
             present = serials
             if not serials:
                 self.state("wait", "")
 
+            batch = []
             while not self.erase.empty():
-                s = self.erase.get()
-                try:
-                    asyncio.run(_erase_job(s))
-                    self.events.put(("erased", s))
-                except Exception as e:
-                    self.events.put(("erase_failed", f"{e.__class__.__name__}: {e}"))
+                batch.append(self.erase.get())
+            if batch:
+                ok, failed = [], []
+                for s in batch:
+                    if s not in self.pulled:      # стираем только то, что уже скопировано на компьютер
+                        failed.append((s, _("логи с этого телефона ещё не скопированы")))
+                    elif s not in serials:
+                        failed.append((s, _("телефон отключён")))
+                    else:
+                        try:
+                            asyncio.run(_erase_job(s))
+                            ok.append(s)
+                        except Exception as e:
+                            failed.append((s, f"{e.__class__.__name__}: {e}"))
+                self.events.put(("erased", ok, failed))
 
             again = set()
             while not self.manual.empty():
@@ -172,6 +185,7 @@ class DeviceWatcher(threading.Thread):
             dev = asyncio.run(_device_job(serial, logs_root(),
                                           lambda d: self.events.put(("info", d))))
             self.done.add(serial)
+            self.pulled.add(serial)
             self._last_state = None
             self.events.put(("pulled", dev))
         except Exception as e:

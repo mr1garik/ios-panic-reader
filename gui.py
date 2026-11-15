@@ -265,6 +265,8 @@ class App:
         self.known = set()
         self.dev = None          # сведения о подключённом телефоне
         self.phone_state = "nodriver" if not device_support() else "start"
+        self.connected = set()     # udid подключённых телефонов, с которых сняты логи
+        self.udid_names = {}
         self.events = queue.Queue()
         self.current_tab = None
         self.history = History()
@@ -849,10 +851,14 @@ class App:
                     self.load([self.dev["dir"]], quiet=True)
                     self.prev_visit = self.history.add_visit(
                         self.dev, build_verdict(self.view_logs(), self.dev), self.view_logs())
+                    self.write_phone_report()
+                    self.connected.add(self.dev.get("udid"))
+                    self.udid_names[self.dev.get("udid")] = self.dev.get("model") or "iPhone"
                     self.phone_state = "result"
                     self.render_phone()
                     self.show("phone")
                 elif kind == "disconnected":
+                    self.connected.discard(ev[1])
                     if self.phone_state != "result":
                         self.phone_state = "wait"
                         self.render_phone()
@@ -864,9 +870,14 @@ class App:
                 elif kind.startswith("update_"):
                     self._update_event(kind, ev[1])
                 elif kind == "erased":
-                    messagebox.showinfo(APP_TITLE, _("Старые логи на телефоне стёрты. Копия осталась в папке с логами на компьютере."))
-                elif kind == "erase_failed":
-                    messagebox.showerror(APP_TITLE, _("Не удалось стереть логи на телефоне:\n") + ev[1])
+                    ok, failed = ev[1], ev[2]
+                    if ok and not failed:
+                        self.status.set(_("Логи на телефоне очищены"))
+                        messagebox.showinfo(APP_TITLE, _("Старые логи на телефоне стёрты ({0}). Копия осталась в папке с логами на компьютере.", len(ok)))
+                    elif failed:
+                        msg = "\n".join(f"• {self.udid_names.get(u, u[:8])}: {why}"
+                                         for u, why in failed)
+                        messagebox.showerror(APP_TITLE, _("Стёрто на {0} из {1}. Не удалось:\n", len(ok), len(ok) + len(failed)) + msg)
                 elif kind == "log":
                     print(ev[1])
                 self.update_status()
@@ -1009,6 +1020,42 @@ class App:
         self.status.set(_("PDF сохранён: ") + f)
         open_path(f)
 
+    def write_phone_report(self):
+        """Отчёт .txt в папке логов телефона — обновляется при каждом подключении."""
+        if not self.dev or not self.dev.get("dir"):
+            return
+        try:
+            with open(os.path.join(self.dev["dir"], core.REPORT_FILE), "w", encoding="utf-8") as fh:
+                fh.write(core.build_text_report(self.view_logs(), self.dev, self.device_lines()))
+        except OSError as e:
+            print("отчёт не записан:", e)
+
+    def save_history_report(self, p, folder):
+        """Отчёт .txt по телефону из истории (по логам в его папке)."""
+        logs = []
+        for f in collect_files([folder]):
+            try:
+                logs.append(parse_log(f))
+            except Exception:
+                pass
+        logs.sort(key=lambda l: str(l["date"]), reverse=True)
+        last = (p.get("visits") or [{}])[-1]
+        lines = [(_("Модель"), p.get("model", "?")), ("iOS", last.get("ios") or "—"),
+                 (_("Серийный номер"), p.get("serial") or "—"), ("IMEI", p.get("imei") or "—")]
+        if last.get("battery") is not None:
+            lines.append((_("Аккумулятор"), f"{last['battery']}%"))
+        if p.get("note"):
+            lines.append((_("Заметка"), p["note"]))
+        f = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[(_("Текст"), "*.txt")],
+                                         initialfile=_("Отчёт {0} {1}.txt", p.get("model", _("телефон")),
+                                                       f"{datetime.now():%Y-%m-%d}"))
+        if not f:
+            return
+        with open(f, "w", encoding="utf-8") as fh:
+            fh.write(core.build_text_report(logs, None, lines))
+        self.status.set(_("Отчёт сохранён: ") + f)
+        open_path(f)
+
     def save_report(self):
         if not self.logs and not self.dev:
             return
@@ -1017,35 +1064,9 @@ class App:
                                          initialfile=_("Отчёт {0} {1}.txt", name, f"{datetime.now():%Y-%m-%d}"))
         if not f:
             return
-        out = []
-        logs = self.view_logs()
-        problems = build_verdict(logs, self.dev)
-        out.append(_("ОТЧЁТ iOS Panic Reader · {0}", f"{datetime.now():%d.%m.%Y %H:%M}"))
-        out.append("=" * 72)
-        out += [f"{k}: {v}" for k, v in self.device_lines()]
-        out.append("")
-        if problems:
-            out.append(_("НАЙДЕННЫЕ ПРОБЛЕМЫ:"))
-            for i, p in enumerate(problems, 1):
-                lvl = _("ВАЖНО") if p["level"] == "red" else _("НЕ СРОЧНО")
-                out.append(f"{i}. {p['title']} [{lvl}] — {p['note']}")
-                out.append(_("   Как ведёт себя: {0}", p['how']))
-                out.append(_("   Почему: {0}", p['why']))
-                out.append(_("   Что делать: ") + "; ".join(p["fix"]))
-        else:
-            out.append(_("ПРОБЛЕМ НЕ НАЙДЕНО"))
-        out.append("")
-        out.append(_("ДЕТАЛИ:"))
-        for name_, data, fails, lvl in parts_table(logs, self.dev):
-            out.append(_("  {0}: {1} · сбои: {2}", name_, data, fails))
-        out.append("")
-        out.append(build_summary(logs))
-        out.append("")
-        for l in logs:
-            if l["is_panic"]:
-                out.append(build_report(l))
+        text = core.build_text_report(self.view_logs(), self.dev, self.device_lines())
         with open(f, "w", encoding="utf-8") as fh:
-            fh.write("\n".join(out))
+            fh.write(text)
         self.status.set(_("Отчёт сохранён: ") + f)
 
     def device_lines(self):
@@ -1268,6 +1289,41 @@ class App:
         button(row, _("Отчёт .txt"), self.save_report).pack(side="left", padx=(px(0), px(8)))
         if d and d.get("dir"):
             button(row, _("Папка с логами"), lambda: open_path(d["dir"])).pack(side="left")
+        if self.watcher and d and d.get("udid") in self.connected:
+            row2 = tk.Frame(right, bg=C["bg"])
+            row2.pack(anchor="w", pady=(px(0), px(16)))
+            button(row2, _("Очистить логи на телефоне…"), self.erase_phone_logs).pack(side="left")
+            label(row2, _("Копия уже сохранена на компьютере"), 10, color=C["muted"],
+                  bg=C["bg"]).pack(side="left", padx=px(10))
+
+    def erase_phone_logs(self):
+        """Стереть логи сбоев на подключённом телефоне (или на всех подключённых), как в 3uTools.
+        Стираются только телефоны, логи которых уже скопированы на компьютер."""
+        if not self.watcher or not self.dev or self.dev.get("udid") not in self.connected:
+            return
+        others = self.connected - {self.dev.get("udid")}
+        w = self.popup(_("Очистить логи на телефоне"), None, modal=True)
+        w.configure(padx=px(24), pady=px(20))
+        w.resizable(False, False)
+        label(w, _("Очистить логи на телефоне?"), 15, True).pack(anchor="w")
+        label(w, _("На телефоне будут удалены все логи сбоев (паники, вылеты программ). Копия уже сохранена "
+                   "на компьютере, в папке с логами. После ремонта на телефоне появятся только новые "
+                   "логи — так проще проверить, что всё исправлено."), 11, color=C["muted"], wrap=440,
+              bg=C["card"]).pack(anchor="w", pady=(px(6), px(16)))
+        row = tk.Frame(w, bg=C["card"])
+        row.pack(anchor="e")
+
+        def go(udids):
+            w.destroy()
+            for u in udids:
+                self.watcher.erase.put(u)
+            self.status.set(_("Очищаю логи на телефоне…"))
+
+        button(row, _("Отмена"), w.destroy).pack(side="left", padx=(px(0), px(8)))
+        if others:
+            button(row, _("На всех подключённых ({0})", len(self.connected)),
+                   lambda: go(sorted(self.connected))).pack(side="left", padx=(px(0), px(8)))
+        button(row, _("Очистить на этом телефоне"), lambda: go([self.dev["udid"]]), True).pack(side="left")
 
     def _chart(self, parent, repair_dt=None, days=30):
         """Столбики: паники по дням за последний месяц (по всем логам)."""
@@ -1732,6 +1788,7 @@ class App:
                        if n.endswith("_" + p.get("serial", key))), None)
         if folder:
             button(row, _("Открыть логи"), lambda: self.open_history_logs(folder), size=10).pack(side="left", padx=(px(0), px(8)))
+            button(row, _("Отчёт .txt"), lambda: self.save_history_report(p, folder), size=10).pack(side="left", padx=(px(0), px(8)))
 
         def delete():
             if messagebox.askyesno(APP_TITLE, _("Удалить этот телефон из истории?\n(логи на диске останутся)")):
