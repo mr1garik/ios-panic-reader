@@ -486,6 +486,19 @@ def _main_entry(info):
     return info["findings"][0][0] if info["findings"] else None
 
 
+def sensor_where(where, product):
+    """Где стоит датчик — с учётом модели: Lightning или USB-C, и оговорка для iPad/iPod/Watch."""
+    if not product:
+        return where
+    if not product.startswith("iPhone"):
+        return where + " " + _("Это расположение для iPhone — на {0} датчики стоят иначе, сверяйтесь со схемой.",
+                               PRODUCTS.get(product, product))
+    f = model_family(product)
+    if f:
+        where = where.replace("Lightning / USB-C", "USB-C" if f >= 15 else "Lightning")
+    return where
+
+
 def build_verdict(logs, dev=None):
     """Список проблем для главного экрана, от самой важной.
     Проблема: dict(level='red'|'orange', title, how, why, fix=[...], note, part)."""
@@ -506,7 +519,8 @@ def build_verdict(logs, dev=None):
         if sensors:
             names = ", ".join(f"{sensor_info(s)['name'].lower()} ({s})" for s in sensors)
             where = sensor_info(sensors.most_common(1)[0][0])
-            why = _("Телефон не видит: {0}. Где стоит: {1}", names, where['where'])
+            product = (dev or {}).get("product") or items[0].get("product") or ""
+            why = _("Телефон не видит: {0}. Где стоит: {1}", names, sensor_where(where["where"], product))
             fix = [x.strip() for x in where["fix"].split(". ") if x.strip()]
             how = KB[[k["id"] for k in KB].index("thermalmonitord")]["symptoms"]
         else:

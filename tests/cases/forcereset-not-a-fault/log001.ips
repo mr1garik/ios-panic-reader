@@ -1,0 +1,7 @@
+{"bug_type":"151","timestamp":"2026-11-13 01:48:36.00 -0800","os_version":"iPhone OS 16.7.8 (20H343)","incident_id":"X"}
+{
+  "product" : "iPad6,7",
+  "panicString" : "panic(cpu 0 caller 0xfffffff015d799a8): btn_rst\nDebugger message: panic\nOS version: 20H343\n",
+  "panicFlags" : "0x882",
+  "bug_type" : "151",
+  "processByPid" : {"0":{"threadById":{"1":{"name":"AppleMesaSEPDriver"},"2":{"name":"AppleEmbeddedNVMeController"},"3":{"name":"AppleOLYHAL"},"4":{"name":"AppleH6CamIn"}

@@ -1659,6 +1659,10 @@
   "en": "THIS PHONE HAS BEEN HERE BEFORE",
   "uk": "ЦЕЙ ТЕЛЕФОН УЖЕ БУВ"
  },
+ "Это расположение для iPhone — на {0} датчики стоят иначе, сверяйтесь со схемой.": {
+  "en": "This is the location on iPhone — on {0} the sensors are placed differently, check the schematic.",
+  "uk": "Це розташування для iPhone — на {0} датчики стоять інакше, звіряйтеся зі схемою."
+ },
  "Язык изменится после перезапуска программы. Перезапустить сейчас?": {
   "en": "The language will change after the app restarts. Restart now?",
   "uk": "Мова зміниться після перезапуску програми. Перезапустити зараз?"
