@@ -77,7 +77,7 @@
    xattr -dr com.apple.quarantine /Applications/iOSPanicReader.app
    ```
 
-No driver is needed on a Mac — it's built in. On Intel Macs run it from source (`start.command`).
+No driver is needed on a Mac — it's built in. On Intel Macs run it from source (`scripts/start.command`).
 
 ## How to use
 

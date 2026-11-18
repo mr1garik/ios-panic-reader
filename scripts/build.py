@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Сборка программы PyInstaller'ом — одна команда для Windows (exe) и Mac (.app).
 
-  python build.py                         → dist/iOSPanicReader.exe или dist/iOSPanicReader.app
-  python build.py --dist dist-next --version 9.9.9   → тестовая сборка с другим номером версии
+  python scripts/build.py                         → dist/iOSPanicReader.exe или dist/iOSPanicReader.app
+  python scripts/build.py --dist dist-next --version 9.9.9   → тестовая сборка с другим номером версии
 """
 
 import argparse
@@ -12,7 +12,8 @@ import subprocess
 import sys
 import tempfile
 
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # корень проекта
+APP = os.path.join(HERE, "app")
 MODULES = ["gui", "core", "device", "knowledge_base", "history", "report_pdf", "updater", "i18n", "themes"]
 
 
@@ -33,17 +34,18 @@ def main():
            "--distpath", a.dist, "--workpath", os.path.join(work, "build"), "--specpath", work,
            "--collect-all", "pymobiledevice3", "--collect-all", "reportlab", "--collect-data", "certifi",
            "--add-data", f"{version_file}{os.pathsep}.",
-           "--add-data", f"{os.path.join(HERE, 'errors_db.json')}{os.pathsep}.",
-           "--add-data", f"{os.path.join(HERE, 'translations.json')}{os.pathsep}.",
+           "--add-data", f"{os.path.join(APP, 'errors_db.json')}{os.pathsep}.",
+           "--add-data", f"{os.path.join(APP, 'translations.json')}{os.pathsep}.",
            "--add-data", f"{os.path.join(HERE, 'assets', 'icon_256.png')}{os.pathsep}assets"]
     for m in MODULES:
         cmd += ["--hidden-import", m]
     if sys.platform == "win32":
-        cmd += ["--onefile", "--noconsole", "--icon", os.path.join(HERE, "assets", "icon.ico")]
+        cmd += ["--onefile", "--noconsole", "--icon", os.path.join(HERE, "assets", "icon.ico"), "--paths", APP]
     elif sys.platform == "darwin":
         cmd += ["--windowed", "--icon", os.path.join(HERE, "assets", "icon.icns"),
                 "--osx-bundle-identifier", "com.mr1garik.iospanicreader"]
-    cmd.append(os.path.join(HERE, "ios_panic_reader.py"))
+    cmd += ["--paths", APP]
+    cmd.append(os.path.join(APP, "ios_panic_reader.py"))
     print(" ".join(cmd))
     try:
         subprocess.run(cmd, check=True, cwd=HERE)

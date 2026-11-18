@@ -5,7 +5,7 @@ import unittest
 
 os.environ["IOSPR_LANG"] = "ru"   # тесты проверяют русский текст
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, ROOT)
+sys.path.insert(0, os.path.join(ROOT, "app"))
 
 import core  # noqa: E402
 

@@ -6,7 +6,7 @@ import unittest
 
 os.environ["IOSPR_LANG"] = "ru"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, ROOT)
+sys.path.insert(0, os.path.join(ROOT, "app"))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 
 import check_cases  # noqa: E402

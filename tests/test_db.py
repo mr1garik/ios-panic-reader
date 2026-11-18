@@ -7,7 +7,7 @@ import unittest
 
 os.environ["IOSPR_LANG"] = "ru"   # тесты проверяют русский текст
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, ROOT)
+sys.path.insert(0, os.path.join(ROOT, "app"))
 
 import core  # noqa: E402
 import knowledge_base as kb  # noqa: E402
@@ -17,7 +17,7 @@ REQUIRED = ("id", "cat", "title", "patterns", "node", "symptoms", "cause", "fix"
 
 class TestDatabase(unittest.TestCase):
     def test_file_is_valid_json(self):
-        with open(os.path.join(ROOT, "errors_db.json"), encoding="utf-8") as f:
+        with open(os.path.join(ROOT, "app", "errors_db.json"), encoding="utf-8") as f:
             db = json.load(f)
         self.assertGreaterEqual(db["meta"]["version"], 2)
 

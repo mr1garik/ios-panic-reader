@@ -2115,7 +2115,8 @@ class App:
 
 def set_window_icon(root):
     """Иконка окна и панели задач (значок самого файла программы задаётся при сборке)."""
-    base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    here = os.path.dirname(os.path.abspath(__file__))
+    base = getattr(sys, "_MEIPASS", os.path.dirname(here))      # в исходниках assets — в корне проекта
     path = os.path.join(base, "assets", "icon_256.png")
     try:
         root._icon = tk.PhotoImage(file=path)    # ссылку держим, иначе картинку удалит сборщик мусора

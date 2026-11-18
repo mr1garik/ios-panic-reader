@@ -28,7 +28,7 @@ jobs:
         run: python -m unittest discover -s tests -v
 
       - name: Сборка iOSPanicReader.exe
-        run: python build.py
+        run: python scripts/build.py
 
       - name: Сборка установщика iOSPanicReader-Setup.exe
         shell: pwsh
@@ -57,7 +57,7 @@ jobs:
           Write-Host "установка и удаление прошли"
 
       - name: Сборка тестовой «новой» версии 9.9.9
-        run: python build.py --dist dist-next --version 9.9.9
+        run: python scripts/build.py --dist dist-next --version 9.9.9
 
       - name: Проверка автообновления (старая версия обновляется до 9.9.9)
         timeout-minutes: 10
@@ -141,10 +141,10 @@ jobs:
         run: python -m unittest discover -s tests -v
 
       - name: Сборка iOSPanicReader.app
-        run: python build.py
+        run: python scripts/build.py
 
       - name: Сборка тестовой «новой» версии 9.9.9
-        run: python build.py --dist dist-next --version 9.9.9
+        run: python scripts/build.py --dist dist-next --version 9.9.9
 
       - name: Проверка автообновления (старая версия обновляется до 9.9.9)
         timeout-minutes: 10
@@ -222,7 +222,7 @@ jobs:
           tag_name: ${{ steps.v.outputs.tag }}
           target_commitish: ${{ github.sha }}
           name: iOS Panic Reader ${{ steps.v.outputs.tag }}
-          body_path: RELEASE_NOTES.md
+          body_path: docs/RELEASE_NOTES.md
           files: |
             dist/iOSPanicReader-Windows/iOSPanicReader.exe
             dist/iOSPanicReader-Windows/iOSPanicReader-Setup.exe

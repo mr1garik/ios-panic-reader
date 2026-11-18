@@ -7,16 +7,17 @@ import sys
 import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, ROOT)
+sys.path.insert(0, os.path.join(ROOT, "app"))
 
-import tools_i18n_keys  # noqa: E402
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import i18n_keys as tools_i18n_keys  # noqa: E402
 
 PH = re.compile(r"\{\d+\}")
 
 
 class TestTranslations(unittest.TestCase):
     def setUp(self):
-        with open(os.path.join(ROOT, "translations.json"), encoding="utf-8") as f:
+        with open(os.path.join(ROOT, "app", "translations.json"), encoding="utf-8") as f:
             self.tr = json.load(f)
 
     def test_every_phrase_translated(self):
@@ -32,7 +33,7 @@ class TestTranslations(unittest.TestCase):
                 v[lang].format(*range(10))   # шаблон должен форматироваться
 
     def test_database_translated(self):
-        with open(os.path.join(ROOT, "errors_db.json"), encoding="utf-8") as f:
+        with open(os.path.join(ROOT, "app", "errors_db.json"), encoding="utf-8") as f:
             db = json.load(f)
         items = db["entries"] + list(db["sensors"].values()) + db["i2c_buses"]
         for it in items:
@@ -43,7 +44,7 @@ class TestTranslations(unittest.TestCase):
 class TestLanguageSwitch(unittest.TestCase):
     def run_cli(self, lang):
         env = dict(os.environ, IOSPR_LANG=lang, PYTHONIOENCODING="utf-8")
-        r = subprocess.run([sys.executable, os.path.join(ROOT, "ios_panic_reader.py"), "--cli",
+        r = subprocess.run([sys.executable, os.path.join(ROOT, "app", "ios_panic_reader.py"), "--cli",
                             os.path.join(ROOT, "tests", "samples")], env=env, capture_output=True,
                            text=True, encoding="utf-8", timeout=60)
         self.assertEqual(r.returncode, 0, r.stderr)

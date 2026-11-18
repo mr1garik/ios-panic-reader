@@ -6,22 +6,22 @@
 
 ```bash
 pip install -r requirements.txt
-python ios_panic_reader.py
+python app/ios_panic_reader.py
 ```
 
 Отчёт в консоль без окна:
 
 ```bash
-python ios_panic_reader.py --cli путь\к\логам
+python app/ios_panic_reader.py --cli путь\к\логам
 ```
 
-Новый релиз выходит сам: поменяйте номер в файле `VERSION` и текст в `RELEASE_NOTES.md` —
+Новый релиз выходит сам: поменяйте номер в файле `VERSION` и текст в `docs/RELEASE_NOTES.md` —
 после сборки GitHub опубликует релиз с файлами для Windows и Mac.
 
-Собрать локально: Windows — `build.bat`, Mac — `./build_mac.sh` (оба вызывают `python build.py`).
+Собрать локально: Windows — `scripts\build.bat`, Mac — `./scripts/build_mac.sh` (оба вызывают `python scripts/build.py`).
 Каждая сборка на GitHub проверяет автообновление по-настоящему: собранная программа обновляет
 сама себя до тестовой версии 9.9.9 на Windows и Mac, и проверяется, что данные пользователя целы. Запуск из исходников на Mac —
-двойной клик по `start.command`. Тесты — `python -m unittest discover -s tests`.
+двойной клик по `scripts/start.command`. Тесты — `python -m unittest discover -s tests`.
 
 ## Языки
 
@@ -40,24 +40,30 @@ python ios_panic_reader.py --cli путь\к\логам
 
 ## Свои ошибки
 
-Скопируйте `user_kb.example.json` в `Документы/iOSPanicReader/user_kb.json` и добавьте записи
+Скопируйте `app/user_kb.example.json` в `Документы/iOSPanicReader/user_kb.json` и добавьте записи
 (там файл переживает обновления; старое место рядом с программой тоже работает).
 `patterns` — текст или регулярные выражения, по которым ошибка находится в логе.
 
 ## Файлы
 
-* `ios_panic_reader.py` — точка входа
-* `gui.py` — окно программы
-* `core.py` — разбор логов, вывод о проблемах, таблица деталей
-* `device.py` — связь с iPhone (pymobiledevice3, работает на Windows и macOS)
-* `errors_db.json` — база ошибок (один файл)
-* `knowledge_base.py` — загрузка базы
-* `history.py` — история телефонов и ремонтов
-* `report_pdf.py` — PDF-отчёт для клиента
-* `updater.py` — проверка, загрузка и установка обновлений
-* `i18n.py`, `translations.json` — языки интерфейса
-* `tools/screenshots.py` — скриншоты и GIF для README
+* `app/` — сама программа:
+  * `ios_panic_reader.py` — точка входа
+  * `gui.py` — окно программы, `themes.py` — цветовые темы
+  * `core.py` — разбор логов, вывод о проблемах, таблица деталей
+  * `device.py` — связь с iPhone (pymobiledevice3, работает на Windows и macOS)
+  * `errors_db.json` — база ошибок (один файл), `knowledge_base.py` — её загрузка
+  * `history.py` — история телефонов и ремонтов
+  * `report_pdf.py` — PDF-отчёт для клиента
+  * `updater.py` — проверка, загрузка и установка обновлений
+  * `i18n.py`, `translations.json` — языки интерфейса
+  * `user_kb.example.json` — пример своих ошибок
+* `scripts/` — запуск из исходников (`start.bat`, `start.command`) и сборка (`build.py`, `build.bat`, `build_mac.sh`)
+* `installer/` — установщик для Windows (Inno Setup)
+* `tests/` — тесты, `tests/samples/` — примеры логов, `tests/cases/` — реальные случаи с известной поломкой
+* `tools/` — скриншоты для README, сбор фраз для перевода, проверка точности на случаях (`check_cases.py`)
+* `docs/` — эта страница, текст к релизу (`RELEASE_NOTES.md`), скриншоты
 * `assets/` — иконка программы (`icon.svg` — исходник, `.ico` для Windows, `.icns` для Mac)
+* `VERSION` — номер версии: новый номер → GitHub сам выпустит релиз
 
 ## Ограничения
 
@@ -78,7 +84,7 @@ DISPLAY=:99 python3 tools/screenshots.py          # ru, en, uk
 ## Как устроено автообновление
 
 Как в 3uTools. При каждом запуске программа проверяет последний релиз на GitHub. Если версия новее —
-окно «Доступна новая версия» со списком изменений (`RELEASE_NOTES.md`) и кнопками «Обновить сейчас»,
+окно «Доступна новая версия» со списком изменений (`docs/RELEASE_NOTES.md`) и кнопками «Обновить сейчас»,
 «Позже», галочка «Не напоминать об этой версии». «Обновить сейчас» — окно загрузки с прогрессом и
 кнопкой «Отмена»; файл проверяется (размер и sha256), затем отдельный скрипт дожидается закрытия
 программы, заменяет её и запускает новую версию. Проверку при запуске можно выключить в окне

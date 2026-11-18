@@ -107,7 +107,7 @@ def shoot(lang):
     os.environ["HOME"] = home
     os.environ["USERPROFILE"] = home
     os.environ["IOSPR_LANG"] = lang
-    sys.path.insert(0, ROOT)
+    sys.path.insert(0, os.path.join(ROOT, "app"))
     import tkinter as tk
     import gui
     import core

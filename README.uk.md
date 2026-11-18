@@ -77,7 +77,7 @@
    xattr -dr com.apple.quarantine /Applications/iOSPanicReader.app
    ```
 
-Драйвер на Mac не потрібен — він вбудований у систему. На Mac з Intel запускайте з вихідних кодів (`start.command`).
+Драйвер на Mac не потрібен — він вбудований у систему. На Mac з Intel запускайте з вихідних кодів (`scripts/start.command`).
 
 ## Як користуватися
 

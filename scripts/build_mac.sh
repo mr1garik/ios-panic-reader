@@ -1,7 +1,7 @@
 #!/bin/bash
 # Сборка iOSPanicReader.app на Mac
 set -e
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 python3 -m pip install -r requirements.txt pyinstaller
-python3 build.py
+python3 scripts/build.py
 echo "Готово: dist/iOSPanicReader.app"

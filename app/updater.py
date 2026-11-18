@@ -33,12 +33,15 @@ ASSET_MAC = "iOSPanicReader-macOS.zip"
 # Версии
 # ---------------------------------------------------------------------------
 def current_version():
-    base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-    try:
-        with open(os.path.join(base, "VERSION"), encoding="utf-8") as f:
-            return f.read().strip()
-    except OSError:
-        return "0.0.0"
+    here = os.path.dirname(os.path.abspath(__file__))
+    # в сборке VERSION лежит рядом с программой, в исходниках — в корне проекта
+    for base in (getattr(sys, "_MEIPASS", here), os.path.dirname(here)):
+        try:
+            with open(os.path.join(base, "VERSION"), encoding="utf-8") as f:
+                return f.read().strip()
+        except OSError:
+            pass
+    return "0.0.0"
 
 
 def parse_version(v):
