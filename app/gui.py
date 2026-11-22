@@ -12,6 +12,7 @@ from datetime import datetime
 from tkinter import ttk, filedialog, messagebox, simpledialog
 import tkinter.font as tkfont
 
+import screen
 import themes
 
 import core
@@ -369,6 +370,7 @@ class App:
             self.watcher = None
         root.after(300, self.poll)
         self.restore_window()
+        self.root.after(200, self.fit_zoom_to_screen)
         root.after(4000, self.auto_check)
         if initial_paths:
             root.after(200, lambda: self.load(list(initial_paths)))
@@ -434,34 +436,70 @@ class App:
             self.nav_title.pack(side="left", padx=(0, px(20)), before=self.nav_buttons["phone"])
         b.configure(text=self.nav_long["kb"][1 if width < full else 0])
 
+    def _deco(self, win=None):
+        """Сколько добавляет система вокруг окна: (рамка слева+справа, заголовок+рамка снизу).
+        Измеряется у показанного окна, иначе — оценка для системы."""
+        win = win or self.root
+        try:
+            if win.winfo_ismapped():
+                m = re.match(r"\d+x\d+\+(-?\d+)\+(-?\d+)$", win.geometry())
+                left = win.winfo_rootx() - int(m.group(1))
+                top = win.winfo_rooty() - int(m.group(2))
+                if 0 < top < 200 and 0 <= left < 50:
+                    return 2 * left, top + left
+        except (tk.TclError, AttributeError, TypeError):
+            pass
+        d = UI["dpi"]
+        if IS_WIN:
+            return int(16 * d), int(48 * d)
+        return (0, 28) if IS_MAC else (0, 30)
+
+    def _area(self, win=None):
+        return screen.work_area(self.root, window=win or self.root)
+
     def _update_minsize(self):
         self.root.update_idletasks()
-        self.root.minsize(min(px(720), self.root.winfo_screenwidth() - 40),
-                          min(px(500), self.root.winfo_screenheight() - 80))
+        ax, ay, aw, ah = self._area()
+        dw, dh = self._deco()
+        self.root.minsize(min(px(720), aw - dw), min(px(500), ah - dh))
 
     def restore_window(self):
-        """Размер и место окна: как в прошлый раз, если помещается на текущий экран,
-        иначе 85% экрана по центру."""
+        """Размер и место окна: как в прошлый раз, если тот экран есть, иначе 90% рабочей области
+        по центру. Окно целиком в рабочей области — не заходит под панель задач Windows и Dock на Mac."""
         self._update_minsize()
-        sw, sh = self.root.winfo_screenwidth(), self.root.winfo_screenheight()
         saved = self.history.setting("window", {}) or {}
-        geo = saved.get("geometry", "")
-        m = re.match(r"(\d+)x(\d+)\+(-?\d+)\+(-?\d+)$", geo)
+        m = re.match(r"(\d+)x(\d+)\+(-?\d+)\+(-?\d+)$", saved.get("geometry", ""))
+        rect, area = None, None
         if m:
-            w, h, x, y = map(int, m.groups())
-            fits = w <= sw and h <= sh and -50 <= x <= sw - 200 and 0 <= y <= sh - 100
-        else:
-            fits = False
-        if not fits:
-            w = min(px(1200), int(sw * 0.85))
-            h = min(px(820), int(sh * 0.85))
-            x, y = (sw - w) // 2, max(0, (sh - h) // 3)
+            rect = tuple(map(int, m.groups()))
+            area = screen.work_area(self.root, point=(rect[2] + rect[0] // 2, rect[3] + 10))
+            if area is None:
+                rect = None        # тот монитор отключён — ставим на основной
+        area = area or screen.work_area(self.root)
+        w, h, x, y = screen.fit_main(area, px(1200), px(820), self._deco(), rect,
+                                     min(px(720), area[2]), min(px(500), area[3]))
         self.root.geometry(f"{w}x{h}+{x}+{y}")
         if saved.get("zoomed"):
             try:
                 self.root.state("zoomed")
             except tk.TclError:
                 pass
+        self.root.after(400, self._keep_on_screen)
+
+    def _keep_on_screen(self, win=None):
+        """После показа окна: с настоящей рамкой проверяем, что низ не под панелью задач."""
+        win = win or self.root
+        try:
+            if not win.winfo_exists() or (win is self.root and self.root.state() == "zoomed"):
+                return
+            win.update_idletasks()
+            m = re.match(r"(\d+)x(\d+)\+(-?\d+)\+(-?\d+)$", win.geometry())
+            rect = tuple(map(int, m.groups()))
+            w, h, x, y = screen.fit_main(self._area(win), 0, 0, self._deco(win), rect)
+            if (w, h, x, y) != rect:
+                win.geometry(f"{w}x{h}+{x}+{y}")
+        except (tk.TclError, AttributeError):
+            pass
 
     def on_close(self):
         try:
@@ -696,27 +734,30 @@ class App:
 
     def show_about(self):
         w = self.popup(_("О программе"), w_frac=None)
-        w.configure(padx=px(24), pady=px(20))
-        label(w, "iOS Panic Reader", 16, True).pack(anchor="w")
-        label(w, _("Версия {0}", updater.current_version()), 11, color=C["muted"]).pack(anchor="w", pady=(0, px(12)))
-        label(w, _("Ваши данные (история, логи, заметки) хранятся отдельно от программы и при обновлении не удаляются:"), 10, wrap=440).pack(anchor="w")
-        FlatButton(w, text=self._data_dir(), font=font(10), fg=C["blue"], bg=C["card"], activebackground=C["card"],
+        sf = ScrollFrame(w, C["card"])          # на маленьком экране окно прокручивается, а не обрезается
+        sf.pack(fill="both", expand=True)
+        b = sf.body
+        b.configure(padx=px(24), pady=px(20))
+        label(b, "iOS Panic Reader", 16, True).pack(anchor="w")
+        label(b, _("Версия {0}", updater.current_version()), 11, color=C["muted"]).pack(anchor="w", pady=(0, px(12)))
+        label(b, _("Ваши данные (история, логи, заметки) хранятся отдельно от программы и при обновлении не удаляются:"), 10, wrap=440).pack(anchor="w")
+        FlatButton(b, text=self._data_dir(), font=font(10), fg=C["blue"], bg=C["card"], activebackground=C["card"],
                    activeforeground=C["link_hover"], padx=0, command=lambda: open_path(self._data_dir())).pack(anchor="w",
                                                                                                     pady=(0, px(12)))
         auto = tk.BooleanVar(value=self.history.setting("auto_update", True))
-        tk.Checkbutton(w, text=_("Проверять обновления при запуске"), variable=auto,
+        tk.Checkbutton(b, text=_("Проверять обновления при запуске"), variable=auto,
                        bg=C["card"], activebackground=C["card"], font=font(10),
                        command=lambda: self.history.set_setting("auto_update", auto.get())).pack(anchor="w")
-        row = tk.Frame(w, bg=C["card"])
+        row = tk.Frame(b, bg=C["card"])
         row.pack(anchor="w", pady=(px(14), 0))
         button(row, _("Проверить обновления"), lambda: (w.destroy(), self.check_updates(manual=True)),
                True, size=10).pack(side="left")
         button(row, _("Все версии"), lambda: open_path(updater.RELEASES_PAGE), size=10).pack(side="left", padx=px(8))
 
         # другие проекты автора
-        tk.Frame(w, bg=C["line"], height=1).pack(fill="x", pady=(px(18), px(12)))
-        label(w, _("ДРУГИЕ ПРОЕКТЫ"), 9, True, C["muted"]).pack(anchor="w")
-        proj = tk.Frame(w, bg=C["card"])
+        tk.Frame(b, bg=C["line"], height=1).pack(fill="x", pady=(px(18), px(12)))
+        label(b, _("ДРУГИЕ ПРОЕКТЫ"), 9, True, C["muted"]).pack(anchor="w")
+        proj = tk.Frame(b, bg=C["card"])
         proj.pack(fill="x", pady=(px(4), 0))
         label(proj, "iActivator", 13, True).pack(anchor="w")
         label(proj, _("Активация и настройка iPhone в один клик: активация, язык, регион, Wi-Fi и пропуск "
@@ -727,15 +768,15 @@ class App:
         button(prow, _("О проекте"), lambda: open_path(IACTIVATOR_URL), size=10).pack(side="left", padx=px(8))
 
         # поддержка проекта
-        tk.Frame(w, bg=C["line"], height=1).pack(fill="x", pady=(px(18), px(12)))
-        label(w, _("ПОДДЕРЖАТЬ ПРОЕКТ"), 9, True, C["muted"]).pack(anchor="w")
-        label(w, _("Программа бесплатная. Если она помогает в работе, можно поддержать автора:"), 10,
+        tk.Frame(b, bg=C["line"], height=1).pack(fill="x", pady=(px(18), px(12)))
+        label(b, _("ПОДДЕРЖАТЬ ПРОЕКТ"), 9, True, C["muted"]).pack(anchor="w")
+        label(b, _("Программа бесплатная. Если она помогает в работе, можно поддержать автора:"), 10,
               color=C["muted"], wrap=440).pack(anchor="w", pady=(px(4), px(6)))
-        dbox = tk.Frame(w, bg=C["card"])
+        dbox = tk.Frame(b, bg=C["card"])
         dbox.pack(fill="x")
         qr = asset_image("donate_qr.png")
         if qr:
-            w._qr = qr                      # ссылку держим, иначе картинку удалит сборщик мусора
+            b._qr = qr                      # ссылку держим, иначе картинку удалит сборщик мусора
             tk.Label(dbox, image=qr, bg=C["card"], bd=0).pack(side="right", padx=(px(12), 0))
         dcol = tk.Frame(dbox, bg=C["card"])
         dcol.pack(side="left", anchor="n", fill="x", expand=True)
@@ -758,16 +799,48 @@ class App:
         copied.pack(side="left", padx=px(10))
         label(dcol, _("Отправляйте только USDT и только в сети TRC20 — перевод в другой сети пропадёт."), 9,
               color=C["muted"], wrap=260).pack(anchor="w", pady=(px(6), 0))
+        self._fit_scroll(w, sf)
 
     def zoom_step(self, d):
         i = min(range(len(ZOOMS)), key=lambda k: abs(ZOOMS[k] - UI["zoom"]))
         self.set_zoom(ZOOMS[max(0, min(len(ZOOMS) - 1, i + d))])
 
-    def set_zoom(self, z):
+    def _nav_need(self):
+        """Самая узкая ширина верхнего меню (без названия, с короткими подписями)."""
+        b = self.nav_buttons["kb"]
+        text = b.cget("text")
+        b.configure(text=self.nav_long["kb"][1])
+        title = self.nav_title.winfo_ismapped()
+        if title:
+            self.nav_title.pack_forget()
+        self.nav.update_idletasks()
+        need = self.nav.winfo_reqwidth()
+        if title:
+            self.nav_title.pack(side="left", padx=(0, px(20)), before=self.nav_buttons["phone"])
+        b.configure(text=text)
+        return need
+
+    def _zoom_fits(self):
+        ax, ay, aw, ah = self._area()
+        return self._nav_need() <= aw - self._deco()[0]
+
+    def fit_zoom_to_screen(self):
+        """Масштаб, сохранённый на большом мониторе, на маленьком экране уменьшается, чтобы меню помещалось."""
+        while UI["zoom"] > ZOOMS[0] and not self._zoom_fits():
+            i = ZOOMS.index(UI["zoom"]) if UI["zoom"] in ZOOMS else len(ZOOMS)
+            self.set_zoom(ZOOMS[max(0, i - 1)], save=False)
+
+    def set_zoom(self, z, save=True):
         if z == UI["zoom"]:
             return
+        old = UI["zoom"]
         apply_zoom(z)
-        self.history.set_setting("zoom", z)
+        if z > old and not self._zoom_fits():
+            apply_zoom(old)
+            self.status.set(_("Крупнее не поместится на этом экране"))
+            return
+        if save:
+            self.history.set_setting("zoom", z)
         self.zoom_label.configure(text=f"{round(z * 100)}%")
         self._style_trees()
         self._update_minsize()
@@ -806,7 +879,8 @@ class App:
         rx, ry = self.root.winfo_rootx(), self.root.winfo_rooty()
         if w_frac:
             ww, wh = max(px(480), int(rw * w_frac)), max(px(320), int(rh * h_frac))
-            w.geometry(f"{ww}x{wh}+{rx + (rw - ww) // 2}+{ry + (rh - wh) // 3}")
+            ww, wh, x, y = screen.fit_popup(self._area(), (rx, ry, rw, rh), ww, wh, self._deco())
+            w.geometry(f"{ww}x{wh}+{x}+{y}")
         else:
             w.withdraw()
             w.after_idle(lambda: self._center(w))
@@ -815,12 +889,23 @@ class App:
             w.after_idle(lambda: (w.grab_set(), w.focus_force()))
         return w
 
+    def _fit_scroll(self, w, sf):
+        """Окно с прокруткой: по размеру содержимого, но не выше рабочей области экрана."""
+        sf.body.update_idletasks()
+        ax, ay, aw, ah = self._area()
+        dw, dh = self._deco()
+        sf.canvas.configure(width=sf.body.winfo_reqwidth(),
+                            height=min(sf.body.winfo_reqheight(), ah - dh - px(8)))
+        self._center(w)
+
     def _center(self, w):
+        """Окно по размеру содержимого — по центру главного, но не больше рабочей области экрана."""
         w.update_idletasks()
         rw, rh = self.root.winfo_width(), self.root.winfo_height()
         rx, ry = self.root.winfo_rootx(), self.root.winfo_rooty()
         ww, wh = w.winfo_reqwidth(), w.winfo_reqheight()
-        w.geometry(f"+{rx + max(0, (rw - ww) // 2)}+{ry + max(0, (rh - wh) // 3)}")
+        fw, fh, x, y = screen.fit_popup(self._area(), (rx, ry, rw, rh), ww, wh, self._deco())
+        w.geometry(f"{fw}x{fh}+{x}+{y}" if (fw, fh) != (ww, wh) else f"+{x}+{y}")
         w.deiconify()
 
     # ------------------------------------------------------------- навигация

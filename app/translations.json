@@ -659,6 +659,10 @@
   "en": "A copy is already saved on the computer",
   "uk": "Копію вже збережено на комп'ютері"
  },
+ "Крупнее не поместится на этом экране": {
+  "en": "Any larger won't fit on this screen",
+  "uk": "Більше не поміститься на цьому екрані"
+ },
  "Лог": {
   "en": "Log",
   "uk": "Лог"
