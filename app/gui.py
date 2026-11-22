@@ -369,6 +369,7 @@ class App:
         else:
             self.watcher = None
         root.after(300, self.poll)
+        self._size_columns()
         self.restore_window()
         self.root.after(200, self.fit_zoom_to_screen)
         root.after(4000, self.auto_check)
@@ -385,6 +386,7 @@ class App:
             root.option_add(f"*{cls}.selectForeground", C["on_accent"])
         root.option_add("*Text.insertBackground", C["text"])
         for cls in ("Checkbutton", "Radiobutton"):
+            root.option_add(f"*{cls}.highlightThickness", 0)      # без рамки вокруг галочки
             root.option_add(f"*{cls}.foreground", C["text"])
             root.option_add(f"*{cls}.activeForeground", C["text"])
             root.option_add(f"*{cls}.selectColor", C["card"])
@@ -396,6 +398,31 @@ class App:
         root.option_add("*TCombobox*Listbox.selectBackground", C["blue"])
         root.option_add("*TCombobox*Listbox.selectForeground", C["on_accent"])
         root.option_add("*Toplevel.background", C["card"])
+
+    def _size_columns(self):
+        """Ширина колонок по тексту в текущем шрифте — на любом экране и масштабе ничего не обрезается."""
+        body, head = font(11), font(10, True)
+
+        def fit(tree, col, title, *samples, extra=28):
+            need = max([head.measure(title)] + [body.measure(x) for x in samples]) + px(extra)
+            tree.column(col, width=need, minwidth=min(need, px(90)))
+
+        if getattr(self, "tree", None):
+            fit(self.tree, "what", _("Что случилось"), "● " + "W" * 18, extra=40)
+            fit(self.tree, "date", _("Дата"), "2026-12-31 23:59")
+            fit(self.tree, "kind", _("Вид"), core.tkind("Паника ядра"), "Jetsam (нехватка памяти)")
+        if getattr(self, "htree", None):
+            fit(self.htree, "model", _("Модель"), "iPhone 16 Pro Max")
+            fit(self.htree, "serial", _("Серийный"), "F17DEMO00000")
+            fit(self.htree, "last", _("Последний визит"), "31.12.2026 23:59")
+            fit(self.htree, "result", _("Результат"), "W" * 14)
+
+    def _fill_column(self, tree, col):
+        """Колонка `col` занимает остаток ширины таблицы — таблица не вылезает за край панели."""
+        def on_resize(e):
+            others = sum(tree.column(c, "width") for c in tree["columns"] if c != col)
+            tree.column(col, width=max(px(100), e.width - others - 2))
+        tree.bind("<Configure>", on_resize, add="+")
 
     def _style_trees(self):
         st = self.style
@@ -843,6 +870,7 @@ class App:
             self.history.set_setting("zoom", z)
         self.zoom_label.configure(text=f"{round(z * 100)}%")
         self._style_trees()
+        self._size_columns()
         self._update_minsize()
         # экраны, которые рисуются заново, подхватят новые отступы
         self.render_phone()
@@ -1621,9 +1649,10 @@ class App:
         paned.pack(fill="both", expand=True)
         left = tk.Frame(paned, bg=C["card"])
         self.tree = ttk.Treeview(left, columns=("what", "date", "kind"), show="headings", selectmode="browse")
-        for c_, t, w in (("what", _("Что случилось"), 330), ("date", _("Дата"), 140), ("kind", _("Вид"), 170)):
+        self._fill_column(self.tree, "what")
+        for c_, t in (("what", _("Что случилось")), ("date", _("Дата")), ("kind", _("Вид"))):
             self.tree.heading(c_, text=t)
-            self.tree.column(c_, width=px(w), minwidth=px(80), anchor="w", stretch=(c_ == "what"))
+            self.tree.column(c_, anchor="w", stretch=(c_ == "what"))
         for lvl in ("red", "orange", "gray"):
             self.tree.tag_configure(lvl, foreground=LEVEL[lvl][2])
         self.tree.tag_configure("odd", background=C["stripe"])
@@ -1758,8 +1787,8 @@ class App:
               10, color=C["muted"], wrap=560).pack(anchor="w", pady=(px(4), px(8)))
         row = tk.Frame(w, bg=C["card"])
         row.pack(side="bottom", fill="x", pady=(px(10), 0))
-        t = tk.Text(w, font=font(9, family=MONO), wrap="word", bd=1, relief="solid", highlightthickness=0,
-                    padx=px(8), pady=px(6))
+        t = tk.Text(w, font=font(9, family=MONO), wrap="word", bd=0, relief="flat", highlightthickness=1,
+                    highlightbackground=C["border"], highlightcolor=C["blue"], padx=px(8), pady=px(6))
         t.insert("1.0", _("Что оказалось неисправным (если известно): ") + "\n\n" + body)
         t.pack(fill="both", expand=True)
 
@@ -1817,10 +1846,10 @@ class App:
         left = tk.Frame(paned, bg=C["card"])
         self.htree = ttk.Treeview(left, columns=("model", "serial", "last", "result"), show="headings",
                                   selectmode="browse")
-        for c_, t, w in (("model", _("Модель"), 140), ("serial", _("Серийный"), 130), ("last", _("Последний визит"), 130),
-                         ("result", _("Результат"), 220)):
+        for c_, t in (("model", _("Модель")), ("serial", _("Серийный")), ("last", _("Последний визит")),
+                      ("result", _("Результат"))):
             self.htree.heading(c_, text=t)
-            self.htree.column(c_, width=px(w), anchor="w")
+            self.htree.column(c_, anchor="w", stretch=(c_ == "result"))
         for lvl in ("red", "orange", "green"):
             self.htree.tag_configure(lvl, foreground=LEVEL[lvl][2])
         self.htree.tag_configure("odd", background=C["stripe"])
@@ -1832,6 +1861,7 @@ class App:
         self.hdetail = ScrollFrame(paned, C["card"])
         paned.add(self.hdetail, weight=2)
         self.htree.bind("<<TreeviewSelect>>", lambda e: self.show_phone_history())
+        self._fill_column(self.htree, "result")
         return root
 
     def refresh_history(self):
@@ -1843,7 +1873,11 @@ class App:
         for key, p in items:
             v = p["visits"][-1] if p["visits"] else {}
             result = ", ".join(v.get("problems", [])) or _("в порядке")
-            row = (p.get("model", "?"), p.get("serial", key), v.get("date", "")[:16], result)
+            try:
+                when = datetime.strptime(v.get("date", ""), "%Y-%m-%d %H:%M:%S").strftime("%d.%m.%Y %H:%M")
+            except ValueError:
+                when = v.get("date", "")[:16]
+            row = (p.get("model", "?"), p.get("serial", key), when, result)
             if q and q not in (" ".join(row) + p.get("note", "") + p.get("imei", "")).lower():
                 continue
             odd = ("odd",) if len(self.htree.get_children()) % 2 else ()
@@ -1872,8 +1906,9 @@ class App:
               color=C["muted"]).pack(anchor="w", pady=(px(2), px(10)))
 
         label(b, _("ЗАМЕТКА"), 9, True, C["muted"]).pack(anchor="w")
-        t = tk.Text(b, height=4, width=40, font=font(11), wrap="word", bd=1, relief="solid",
-                    highlightthickness=0)
+        t = tk.Text(b, height=4, width=40, font=font(11), wrap="word", bd=0, relief="flat", padx=px(8), pady=px(6),
+                    highlightbackground=C["border"], highlightcolor=C["blue"],
+                    highlightthickness=1)
         t.insert("1.0", p.get("note", ""))
         t.pack(fill="x", pady=(px(2), px(6)))
         button(b, _("Сохранить заметку"), lambda: (self.history.set_note(key, t.get("1.0", "end").strip()),
@@ -2206,8 +2241,9 @@ class App:
         models = [""] + [f"{v} ({k})" for k, v in sorted(PRODUCTS.items(), key=lambda kv: kv[1])]
         model = ttk.Combobox(top, values=models, state="readonly", width=34, font=font(10))
         model.pack(side="left", padx=px(8))
-        t = tk.Text(w, height=12, font=font(10, family=MONO), wrap="word", bd=1, relief="solid",
-                    highlightthickness=0, padx=px(8), pady=px(6))
+        t = tk.Text(w, height=12, font=font(10, family=MONO), wrap="word", bd=0, relief="flat", padx=px(8),
+                    pady=px(6), highlightbackground=C["border"], highlightcolor=C["blue"],
+                    highlightthickness=1)
         t.pack(fill="both", expand=True, pady=px(8))
         t.focus_set()
         row = tk.Frame(w, bg=C["card"])
