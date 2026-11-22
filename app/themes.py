@@ -19,15 +19,15 @@ _LIGHT = dict(
     text="#1f2937", head="#111827", muted="#4b5563",
     blue="#2563eb", accent_hover="#1d4ed8", blue_bg="#eff6ff", on_accent="#ffffff", link_hover="#1e3a8a",
     red="#dc2626", red_text="#b91c1c", red_bg="#fef2f2",
-    orange="#ea580c", orange_text="#b45309", orange_bg="#fff7ed",
-    green="#16a34a", green_text="#15803d", green_bg="#f0fdf4",
-    gray="#9ca3af", gray_bg="#f3f4f6", stripe="#f8fafc", tip_bg="#111827", tip_fg="#ffffff",
+    orange="#ea580c", orange_text="#a14a08", orange_bg="#fff7ed",
+    green="#16a34a", green_text="#166534", green_bg="#f0fdf4",
+    gray="#7b828e", gray_bg="#f3f4f6", stripe="#f8fafc", tip_bg="#111827", tip_fg="#ffffff",
 )
 
 _DARK = dict(
     bg="#0f1115", card="#171a21", bar="#12151b", line="#262b35", border="#353c49",
     text="#e5e7eb", head="#f9fafb", muted="#9ca3af",
-    blue="#3b82f6", accent_hover="#2563eb", blue_bg="#16213a", on_accent="#ffffff", link_hover="#93c5fd",
+    blue="#60a5fa", accent_hover="#3b82f6", blue_bg="#16213a", on_accent="#0b1220", link_hover="#bfdbfe",
     red="#ef4444", red_text="#f87171", red_bg="#2a1416",
     orange="#f97316", orange_text="#fbbf24", orange_bg="#2a1d0f",
     green="#22c55e", green_text="#4ade80", green_bg="#0f2418",
@@ -41,7 +41,7 @@ THEMES = {
                   muted="#94a3b8", blue="#60a5fa", accent_hover="#3b82f6", blue_bg="#14244a",
                   on_accent="#0b1220", link_hover="#bfdbfe", gray_bg="#18233b", stripe="#14203a"),
     "mint": dict(_LIGHT, bg="#eef5f3", bar="#f5faf8", line="#dce9e5", border="#c4d8d2",
-                 blue="#0d9488", accent_hover="#0f766e", blue_bg="#ecfdf9", link_hover="#115e59",
+                 blue="#0f766e", accent_hover="#115e59", blue_bg="#ecfdf9", link_hover="#134e4a",
                  gray_bg="#eef4f2", stripe="#f6fbf9"),
     "graphite": dict(_DARK, bg="#141414", card="#1e1e1e", bar="#181818", line="#2c2c2c", border="#3d3d3d",
                      muted="#a3a3a3", blue="#f59e0b", accent_hover="#d97706", blue_bg="#2a2112",
