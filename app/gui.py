@@ -519,11 +519,15 @@ class App:
         title_w = self.nav_title.winfo_reqwidth() + px(20)
         use_long = width >= base + extra + 2
         show_title = width >= base + (extra if use_long else 0) + title_w + 2
-        if not show_title and self.nav_title.winfo_ismapped():
+        if not show_title and (self.nav_title.winfo_manager() == "pack"):
             self.nav_title.pack_forget()
-        elif show_title and not self.nav_title.winfo_ismapped():
+        elif show_title and not (self.nav_title.winfo_manager() == "pack"):
             self.nav_title.pack(side="left", padx=(0, px(20)), before=self.nav_buttons["phone"])
-        b.configure(text=long_t if use_long else short_t)
+        new_text = long_t if use_long else short_t
+        if b.cget("text") != new_text:
+            b.configure(text=new_text)
+            if getattr(self, "current_tab", None):
+                self._style_nav(self.current_tab)
 
     def _deco(self, win=None):
         """Сколько добавляет система вокруг окна: (рамка слева+справа, заголовок+рамка снизу).
@@ -899,7 +903,7 @@ class App:
         b = self.nav_buttons["kb"]
         text = b.cget("text")
         b.configure(text=self.nav_long["kb"][1])
-        title = self.nav_title.winfo_ismapped()
+        title = (self.nav_title.winfo_manager() == "pack")
         if title:
             self.nav_title.pack_forget()
         self.nav.update_idletasks()
@@ -920,6 +924,8 @@ class App:
             i = ZOOMS.index(UI["zoom"]) if UI["zoom"] in ZOOMS else len(ZOOMS)
             self.set_zoom(ZOOMS[max(0, i - 1)], save=False)
         self._widen_for_nav()
+        self.root.update_idletasks()
+        self._fit_nav()
 
     def _widen_for_nav(self):
         try:
@@ -943,7 +949,11 @@ class App:
             apply_zoom(old)
             self.status.set(_("Крупнее не поместится на этом экране"))
             return
+        if getattr(self, "current_tab", None):
+            self._style_nav(self.current_tab)
         self._widen_for_nav()
+        self.root.update_idletasks()
+        self._fit_nav()
         if save:
             self.history.set_setting("zoom", z)
         self.zoom_label.configure(text=f"{round(z * 100)}%")
@@ -1019,17 +1029,25 @@ class App:
         for k, f in self.frames.items():
             f.pack_forget()
         self.frames[key].pack(fill="both", expand=True, padx=0, pady=0)
-        for k, b in self.nav_buttons.items():
-            on = k == key
-            b.configure(bg=C["blue"] if on else C["card"], fg=C["on_accent"] if on else C["text"],
-                        activebackground=C["blue"] if on else C["gray_bg"],
-                        activeforeground=C["on_accent"] if on else C["text"], font=font(11, on))
+        self._style_nav(key)
         self.current_tab = key
         if key == "parts":
             self.render_parts()
         elif key == "history":
             self.refresh_history()
         self.update_status()
+
+    def _style_nav(self, key):
+        for k, b in self.nav_buttons.items():
+            on = k == key
+            # выбранная вкладка — жирным; у остальных отступы шире ровно на разницу,
+            # поэтому меню не меняет ширину и кнопки не «прыгают» при переключении
+            text = b.cget("text")
+            extra = 0 if on else (font(11, True).measure(text) - font(11).measure(text) + 1) // 2
+            b.configure(bg=C["blue"] if on else C["card"], fg=C["on_accent"] if on else C["text"],
+                        activebackground=C["blue"] if on else C["gray_bg"],
+                        activeforeground=C["on_accent"] if on else C["text"], font=font(11, on),
+                        padx=px(16) + extra)
 
     def update_status(self):
         panics = sum(l["is_panic"] for l in self.logs)
