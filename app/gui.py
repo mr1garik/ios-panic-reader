@@ -731,13 +731,21 @@ class App:
         label(w, _("ПОДДЕРЖАТЬ ПРОЕКТ"), 9, True, C["muted"]).pack(anchor="w")
         label(w, _("Программа бесплатная. Если она помогает в работе, можно поддержать автора:"), 10,
               color=C["muted"], wrap=440).pack(anchor="w", pady=(px(4), px(6)))
-        label(w, DONATE_NETWORK, 10, True).pack(anchor="w")
-        addr = tk.Entry(w, font=font(10, family=MONO), relief="flat", bd=0, readonlybackground=C["gray_bg"],
+        dbox = tk.Frame(w, bg=C["card"])
+        dbox.pack(fill="x")
+        qr = asset_image("donate_qr.png")
+        if qr:
+            w._qr = qr                      # ссылку держим, иначе картинку удалит сборщик мусора
+            tk.Label(dbox, image=qr, bg=C["card"], bd=0).pack(side="right", padx=(px(12), 0))
+        dcol = tk.Frame(dbox, bg=C["card"])
+        dcol.pack(side="left", anchor="n", fill="x", expand=True)
+        label(dcol, DONATE_NETWORK, 10, True).pack(anchor="w")
+        addr = tk.Entry(dcol, font=font(10, family=MONO), relief="flat", bd=0, readonlybackground=C["gray_bg"],
                         fg=C["text"], width=len(DONATE_ADDRESS) + 2, highlightthickness=0)
         addr.insert(0, DONATE_ADDRESS)
         addr.configure(state="readonly")
         addr.pack(anchor="w", pady=(px(2), px(6)), ipady=px(4), ipadx=px(4))
-        drow = tk.Frame(w, bg=C["card"])
+        drow = tk.Frame(dcol, bg=C["card"])
         drow.pack(anchor="w")
 
         def copy_address():
@@ -748,8 +756,8 @@ class App:
         button(drow, _("Скопировать адрес"), copy_address, size=10).pack(side="left")
         copied = tk.Label(drow, text="", font=font(10), fg=C["green_text"], bg=C["card"])
         copied.pack(side="left", padx=px(10))
-        label(w, _("Отправляйте только USDT и только в сети TRC20 — перевод в другой сети пропадёт."), 9,
-              color=C["muted"], wrap=440).pack(anchor="w", pady=(px(6), 0))
+        label(dcol, _("Отправляйте только USDT и только в сети TRC20 — перевод в другой сети пропадёт."), 9,
+              color=C["muted"], wrap=260).pack(anchor="w", pady=(px(6), 0))
 
     def zoom_step(self, d):
         i = min(range(len(ZOOMS)), key=lambda k: abs(ZOOMS[k] - UI["zoom"]))
@@ -2138,6 +2146,16 @@ class App:
         button(row, _("Вставить из буфера"), paste, size=10).pack(side="left")
         button(row, _("Разобрать"), analyze, True, size=10).pack(side="right")
         button(row, _("Отмена"), w.destroy, size=10).pack(side="right", padx=px(8))
+
+
+def asset_image(name):
+    """Картинка из assets/ (в сборке — рядом с программой, в исходниках — в корне проекта) или None."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.join(getattr(sys, "_MEIPASS", os.path.dirname(here)), "assets", name)
+    try:
+        return tk.PhotoImage(file=path)
+    except (tk.TclError, OSError):
+        return None
 
 
 def set_window_icon(root):

@@ -36,7 +36,8 @@ def main():
            "--add-data", f"{version_file}{os.pathsep}.",
            "--add-data", f"{os.path.join(APP, 'errors_db.json')}{os.pathsep}.",
            "--add-data", f"{os.path.join(APP, 'translations.json')}{os.pathsep}.",
-           "--add-data", f"{os.path.join(HERE, 'assets', 'icon_256.png')}{os.pathsep}assets"]
+           "--add-data", f"{os.path.join(HERE, 'assets', 'icon_256.png')}{os.pathsep}assets",
+           "--add-data", f"{os.path.join(HERE, 'assets', 'donate_qr.png')}{os.pathsep}assets"]
     for m in MODULES:
         cmd += ["--hidden-import", m]
     if sys.platform == "win32":

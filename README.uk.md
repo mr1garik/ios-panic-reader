@@ -109,6 +109,8 @@
 
 Програма безкоштовна. Якщо вона допомагає в роботі, можна підтримати автора:
 
+<img src="assets/donate_qr.png" width="160" alt="USDT TRC20" align="right">
+
 **USDT · TRC20 (Tron)**
 ```
 TQKtZpsdz7pm9cuXWPE3ZQEboPHva4Uuas

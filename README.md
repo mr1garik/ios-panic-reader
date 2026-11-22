@@ -108,6 +108,8 @@ sources and reliability: Apple documentation, repeatedly confirmed, or “report
 
 The app is free. If it helps you in your work, you can support the author:
 
+<img src="assets/donate_qr.png" width="160" alt="USDT TRC20" align="right">
+
 **USDT · TRC20 (Tron)**
 ```
 TQKtZpsdz7pm9cuXWPE3ZQEboPHva4Uuas
