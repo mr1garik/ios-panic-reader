@@ -499,18 +499,31 @@ class App:
         st.configure("Sash", sashthickness=px(6), background=C["bg"], lightcolor=C["bg"], bordercolor=C["bg"])
 
     def _fit_nav(self, e=None):
-        """Верхнее меню на узком окне: прячем название программы, сокращаем подписи."""
-        if e is not None and e.widget is not self.root:
+        """Верхнее меню на узком окне: прячем название программы, сокращаем подписи —
+        по точному расчёту ширины, чтобы кнопки никогда не сжимались."""
+        if (e is not None and e.widget is not self.root) or getattr(self, "_fitting_nav", False):
             return
+        self._fitting_nav = True
+        try:
+            self._fit_nav_now()
+        finally:
+            self._fitting_nav = False
+
+    def _fit_nav_now(self):
         width = self.root.winfo_width()
         b = self.nav_buttons["kb"]
-        full = sum(w.winfo_reqwidth() for w in self.nav.winfo_children() if w is not self.nav_title) + px(140)
-        short = width < full + self.nav_title.winfo_reqwidth()
-        if short and self.nav_title.winfo_ismapped():
+        long_t, short_t = self.nav_long["kb"]
+        f = tkfont.Font(font=b.cget("font"))
+        extra = f.measure(long_t) - f.measure(short_t)
+        base = self._nav_need()                      # без названия, с короткой подписью
+        title_w = self.nav_title.winfo_reqwidth() + px(20)
+        use_long = width >= base + extra + 2
+        show_title = width >= base + (extra if use_long else 0) + title_w + 2
+        if not show_title and self.nav_title.winfo_ismapped():
             self.nav_title.pack_forget()
-        elif not short and not self.nav_title.winfo_ismapped():
+        elif show_title and not self.nav_title.winfo_ismapped():
             self.nav_title.pack(side="left", padx=(0, px(20)), before=self.nav_buttons["phone"])
-        b.configure(text=self.nav_long["kb"][1 if width < full else 0])
+        b.configure(text=long_t if use_long else short_t)
 
     def _deco(self, win=None):
         """Сколько добавляет система вокруг окна: (рамка слева+справа, заголовок+рамка снизу).
