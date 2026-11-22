@@ -187,6 +187,30 @@ jobs:
         with:
           files: iOSPanicReader-macOS.zip
 
+  # Окно на разных экранах: не под панелью задач, текст не обрезан и не налезает, контраст во всех темах
+  screens:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Установка
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb imagemagick fonts-dejavu python3-tk > /dev/null
+          python -m pip install -q -r requirements.txt
+      - name: Проверка экранов
+        timeout-minutes: 40
+        run: |
+          python tools/screen_matrix.py --out screens --screens 1280x720@96,1366x768@120,1920x1080@144,3840x2160@288 --zooms 1.0,1.6 --langs ru,en,uk
+          python tools/screen_matrix.py --out screens --screens 1366x768@96 --themes dark,night,mint,graphite
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screens
+          path: screens
+
   # Релиз выпускается сам, когда в файле VERSION новая версия (такого тега ещё нет)
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

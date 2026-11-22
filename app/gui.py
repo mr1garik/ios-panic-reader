@@ -901,10 +901,25 @@ class App:
         return self._nav_need() <= aw - self._deco()[0]
 
     def fit_zoom_to_screen(self):
-        """Масштаб, сохранённый на большом мониторе, на маленьком экране уменьшается, чтобы меню помещалось."""
+        """Масштаб, сохранённый на большом мониторе, на маленьком экране уменьшается, чтобы меню помещалось.
+        Если меню помещается на экран, но не в окно — окно расширяется."""
         while UI["zoom"] > ZOOMS[0] and not self._zoom_fits():
             i = ZOOMS.index(UI["zoom"]) if UI["zoom"] in ZOOMS else len(ZOOMS)
             self.set_zoom(ZOOMS[max(0, i - 1)], save=False)
+        self._widen_for_nav()
+
+    def _widen_for_nav(self):
+        try:
+            if self.root.state() == "zoomed":
+                return
+            need = self._nav_need()
+            m = re.match(r"(\d+)x(\d+)\+(-?\d+)\+(-?\d+)$", self.root.geometry())
+            w, h, x, y = map(int, m.groups())
+            if need > w:
+                w, h, x, y = screen.fit_main(self._area(), 0, 0, self._deco(), (need, h, x, y))
+                self.root.geometry(f"{w}x{h}+{x}+{y}")
+        except (tk.TclError, AttributeError):
+            pass
 
     def set_zoom(self, z, save=True):
         if z == UI["zoom"]:
@@ -915,6 +930,7 @@ class App:
             apply_zoom(old)
             self.status.set(_("Крупнее не поместится на этом экране"))
             return
+        self._widen_for_nav()
         if save:
             self.history.set_setting("zoom", z)
         self.zoom_label.configure(text=f"{round(z * 100)}%")
@@ -1673,21 +1689,22 @@ class App:
     # ------------------------------------------------------------- экран «Все логи»
     def _build_logs(self):
         root = tk.Frame(self.content, bg=C["bg"], padx=px(16), pady=px(14))
-        bar = tk.Frame(root, bg=C["bg"])
+        bar = FlowRow(root, C["bg"], gap=8)
         bar.pack(fill="x", pady=(px(0), px(10)))
-        label(bar, _("Поиск"), 11, color=C["muted"], bg=C["bg"]).pack(side="left")
+        sbox = bar.add(tk.Frame(bar, bg=C["bg"]))
+        label(sbox, _("Поиск"), 11, color=C["muted"], bg=C["bg"]).pack(side="left")
         self.log_q = tk.StringVar()
-        e = ttk.Entry(bar, textvariable=self.log_q, width=22, font=font(11))
+        e = ttk.Entry(sbox, textvariable=self.log_q, width=22, font=font(11))
         e.pack(side="left", padx=px(8))
         self.only_panic = tk.BooleanVar(value=False)
-        tk.Checkbutton(bar, text=_("Только паники"), variable=self.only_panic, bg=C["bg"], font=font(11),
-                       command=self.refresh_logs, activebackground=C["bg"]).pack(side="left", padx=px(8))
+        bar.add(tk.Checkbutton(bar, text=_("Только паники"), variable=self.only_panic, bg=C["bg"], font=font(11),
+                               command=self.refresh_logs, activebackground=C["bg"]))
         self.chip_row = tk.Frame(root, bg=C["bg"])
         self.filter_chip = FlatButton(self.chip_row, text="", font=font(10, True), bg=C["blue"], fg=C["on_accent"],
                                       activebackground=C["accent_hover"], activeforeground=C["on_accent"], padx=px(12), pady=px(4),
                                       command=self._clear_part_filter)
-        button(bar, _("Открыть файлы…"), self.open_files, size=10).pack(side="right", padx=px(3))
-        button(bar, _("Открыть папку…"), self.open_folder, size=10).pack(side="right", padx=px(3))
+        bar.add(button(bar, _("Открыть папку…"), self.open_folder, size=10))
+        bar.add(button(bar, _("Открыть файлы…"), self.open_files, size=10))
         self.log_q.trace_add("write", lambda *_: self.refresh_logs())
         self.filter_chip.pack(side="left")
         label(self.chip_row, _("показаны только паники этой детали — нажмите, чтобы снять фильтр"), 10,
