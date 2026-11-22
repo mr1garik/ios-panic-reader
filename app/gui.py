@@ -182,6 +182,39 @@ def button(parent, text, cmd, primary=False, size=11):
                       highlightthickness=1, highlightbackground=C["border"], highlightcolor=C["blue"])
 
 
+class FlowRow(tk.Frame):
+    """Ряд кнопок, который переносится на следующую строку, если не помещается по ширине.
+    Кнопки создаются с этим рядом как родителем и добавляются через add()."""
+
+    def __init__(self, master, bg, gap=8):
+        super().__init__(master, bg=bg, height=1)
+        self.items = []
+        self.gap = gap
+        self.bind("<Configure>", lambda e: self._layout())
+
+    def add(self, w):
+        self.items.append(w)
+        self.after_idle(self._layout)
+        return w
+
+    def _layout(self):
+        if not self.winfo_exists():
+            return
+        width = max(self.winfo_width(), 1)
+        gap = px(self.gap)
+        x = y = line_h = 0
+        for w in self.items:
+            rw, rh = w.winfo_reqwidth(), w.winfo_reqheight()
+            if x and x + rw > width:
+                x, y, line_h = 0, y + line_h + gap, 0
+            w.place(x=x, y=y)
+            x += rw + gap
+            line_h = max(line_h, rh)
+        h = y + line_h
+        if int(self.cget("height")) != h:
+            self.configure(height=h)
+
+
 class WrapLabel(tk.Label):
     """Текст, который переносится по ширине доступного места и перестраивается при
     изменении размера окна. По умолчанию растягивается по ширине."""
@@ -337,8 +370,24 @@ class App:
         bar = tk.Frame(root, bg=C["bar"])
         bar.pack(fill="x", side="bottom")
         tk.Frame(bar, bg=C["line"], height=1).pack(fill="x")
-        tk.Label(bar, textvariable=self.status, font=font(10), fg=C["muted"], bg=C["bar"],
-                 anchor="w", padx=px(16), pady=px(6)).pack(fill="x")
+        sl = tk.Label(bar, font=font(10), fg=C["muted"], bg=C["bar"], anchor="w", padx=px(16), pady=px(6))
+        sl.pack(fill="x")
+
+        def show_status(*_a):
+            # длинный путь в строке состояния сокращается многоточием посередине, а не обрезается
+            text = self.status.get().replace(os.path.expanduser("~"), "~")
+            f, room = font(10), sl.winfo_width() - 2 * px(16) - 4
+            if room > 50 and f.measure(text) > room:
+                lo, hi = 0, len(text)
+                while lo < hi:
+                    k = (lo + hi + 1) // 2
+                    cut = text[:k // 2 + 8] + "…" + text[len(text) - (k - k // 2 - 8):] if k > 16 else text[:k] + "…"
+                    lo, hi = (k, hi) if f.measure(cut) <= room else (lo, k - 1)
+                k = lo
+                text = text[:k // 2 + 8] + "…" + text[len(text) - (k - k // 2 - 8):] if k > 16 else text[:k] + "…"
+            sl.configure(text=text)
+        self.status.trace_add("write", show_status)
+        sl.bind("<Configure>", show_status)
 
         self.content = tk.Frame(root, bg=C["bg"])
         self.content.pack(fill="both", expand=True)
@@ -622,8 +671,8 @@ class App:
         bottom = tk.Frame(w, bg=C["card"], padx=px(22), pady=px(14))
         bottom.pack(side="bottom", fill="x")
         skip = tk.BooleanVar(value=False)
-        tk.Checkbutton(bottom, text=_("Не напоминать об этой версии"), variable=skip, bg=C["card"],
-                       activebackground=C["card"], font=font(10)).pack(side="left")
+        tk.Checkbutton(w, text=_("Не напоминать об этой версии"), variable=skip, bg=C["card"],
+                       activebackground=C["card"], font=font(10)).pack(side="bottom", anchor="w", padx=px(20))
 
         def later():
             if skip.get():
@@ -1429,14 +1478,14 @@ class App:
             if jetsam:
                 self._dot_line(c, "gray", _("{0} раз не хватило памяти (Jetsam) — это нормально", len(jetsam)), wl)
 
-        row = tk.Frame(right, bg=C["bg"])
-        row.pack(anchor="w", pady=px(16))
-        button(row, _("PDF для клиента"), self.save_pdf, True).pack(side="left", padx=(px(0), px(8)))
-        button(row, _("Посмотреть логи"), lambda: self.show("logs")).pack(side="left", padx=(px(0), px(8)))
-        button(row, _("Детали"), lambda: self.show("parts")).pack(side="left", padx=(px(0), px(8)))
-        button(row, _("Отчёт .txt"), self.save_report).pack(side="left", padx=(px(0), px(8)))
+        row = FlowRow(right, C["bg"])
+        row.pack(fill="x", pady=px(16))
+        row.add(button(row, _("PDF для клиента"), self.save_pdf, True))
+        row.add(button(row, _("Посмотреть логи"), lambda: self.show("logs")))
+        row.add(button(row, _("Детали"), lambda: self.show("parts")))
+        row.add(button(row, _("Отчёт .txt"), self.save_report))
         if d and d.get("dir"):
-            button(row, _("Папка с логами"), lambda: open_path(d["dir"])).pack(side="left")
+            row.add(button(row, _("Папка с логами"), lambda: open_path(d["dir"])))
         if self.watcher and d and d.get("udid") in self.connected:
             row2 = tk.Frame(right, bg=C["bg"])
             row2.pack(anchor="w", pady=(px(0), px(16)))
@@ -1601,7 +1650,8 @@ class App:
         o.pack(fill="x")
         heads = (_("Деталь"), _("Данные с телефона"), _("Сбои в логах"), _("Статус"))
         for j, h in enumerate(heads):
-            label(tbl, h, 10, True, C["muted"]).grid(row=0, column=j, sticky="w", padx=px(8), pady=(px(0), px(8)))
+            label(tbl, h, 10, True, C["muted"], wrap=200).grid(row=0, column=j, sticky="we", padx=px(8),
+                                                             pady=(px(0), px(8)))
         tbl.columnconfigure(1, weight=1)
         tbl.columnconfigure(2, weight=1)
         status_txt = {"green": _("в порядке"), "orange": _("подозрение"), "red": _("проблема")}
@@ -1665,11 +1715,11 @@ class App:
         right = tk.Frame(paned, bg=C["card"])
         fr, self.log_text = text_view(right)
         fr.pack(fill="both", expand=True)
-        rb = tk.Frame(right, bg=C["card"], padx=px(12), pady=px(8))
-        rb.pack(fill="x")
-        button(rb, _("Исходный текст лога"), self.show_raw, size=10).pack(side="left")
-        button(rb, _("Полный разбор"), self.show_full, size=10).pack(side="left", padx=px(6))
-        button(rb, _("Предложить для базы"), self.suggest_for_db, size=10).pack(side="left")
+        rb = FlowRow(right, C["card"], gap=6)
+        rb.pack(fill="x", padx=px(12), pady=px(8))
+        rb.add(button(rb, _("Исходный текст лога"), self.show_raw, size=10))
+        rb.add(button(rb, _("Полный разбор"), self.show_full, size=10))
+        rb.add(button(rb, _("Предложить для базы"), self.suggest_for_db, size=10))
         paned.add(right, weight=1)
         self.tree.bind("<<TreeviewSelect>>", lambda e: self.show_log())
         return root
@@ -1903,7 +1953,7 @@ class App:
         b.pack(fill="both", expand=True)
         label(b, p.get("model", "?"), 17, True).pack(anchor="w")
         label(b, _("Серийный {0}", p.get('serial', key)) + (f" · IMEI {p['imei']}" if p.get("imei") else ""), 10,
-              color=C["muted"]).pack(anchor="w", pady=(px(2), px(10)))
+              color=C["muted"], wrap=380).pack(anchor="w", pady=(px(2), px(10)))
 
         label(b, _("ЗАМЕТКА"), 9, True, C["muted"]).pack(anchor="w")
         t = tk.Text(b, height=4, width=40, font=font(11), wrap="word", bd=0, relief="flat", padx=px(8), pady=px(6),
@@ -1937,19 +1987,19 @@ class App:
             extra.append(_("паник {0}", v.get('panics', 0)))
             label(col, info + " · " + ", ".join(extra), 10, color=C["muted"], wrap=360).pack(anchor="w")
 
-        row = tk.Frame(b, bg=C["card"])
-        row.pack(anchor="w", pady=(px(16), px(0)))
+        row = FlowRow(b, C["card"])
+        row.pack(fill="x", pady=(px(16), px(0)))
         folder = next((os.path.join(logs_root(), n) for n in os.listdir(logs_root())
                        if n.endswith("_" + p.get("serial", key))), None)
         if folder:
-            button(row, _("Открыть логи"), lambda: self.open_history_logs(folder), size=10).pack(side="left", padx=(px(0), px(8)))
-            button(row, _("Отчёт .txt"), lambda: self.save_history_report(p, folder), size=10).pack(side="left", padx=(px(0), px(8)))
+            row.add(button(row, _("Открыть логи"), lambda: self.open_history_logs(folder), size=10))
+            row.add(button(row, _("Отчёт .txt"), lambda: self.save_history_report(p, folder), size=10))
 
         def delete():
             if messagebox.askyesno(APP_TITLE, _("Удалить этот телефон из истории?\n(логи на диске останутся)")):
                 self.history.delete(key)
                 self.refresh_history()
-        button(row, _("Удалить из истории"), delete, size=10).pack(side="left")
+        row.add(button(row, _("Удалить из истории"), delete, size=10))
 
     def open_history_logs(self, folder):
         self.dev = None
@@ -1982,23 +2032,23 @@ class App:
         label(root, _("Код ошибки, слово, датчик, процесс или строка из паники. Например: 4013, mic1, перезагружается, SEP, i2c3, SpringBoard"), 10, color=C["muted"], bg=C["bg"],
               wrap=700).pack(anchor="w", pady=(px(4), 0))
 
-        opts = tk.Frame(root, bg=C["bg"])
+        opts = FlowRow(root, C["bg"], gap=14)
         opts.pack(fill="x", pady=(px(8), 0))
         self.search_scope = tk.StringVar(value="base_logs")
         for val, txt in (("base", _("Только база")), ("base_logs", _("База + открытые логи")),
                          ("all", _("База + все логи в архиве"))):
-            tk.Radiobutton(opts, text=txt, value=val, variable=self.search_scope, bg=C["bg"],
-                           activebackground=C["bg"], font=font(10),
-                           command=self._kb_refresh).pack(side="left", padx=(0, px(14)))
+            opts.add(tk.Radiobutton(opts, text=txt, value=val, variable=self.search_scope, bg=C["bg"],
+                                    activebackground=C["bg"], font=font(10), command=self._kb_refresh))
         self.model_names = dict(core.model_choices())          # название → код модели
         self.kb_model = tk.StringVar(value=_("Все модели"))
-        mc = ttk.Combobox(opts, textvariable=self.kb_model, state="readonly", width=22, font=font(10),
+        mbox = opts.add(tk.Frame(opts, bg=C["bg"]))
+        label(mbox, _("Модель:"), 10, color=C["muted"], bg=C["bg"]).pack(side="left", padx=(0, px(6)))
+        mc = ttk.Combobox(mbox, textvariable=self.kb_model, state="readonly", width=22, font=font(10),
                           values=[_("Все модели")] + list(self.model_names))
-        mc.pack(side="right")
-        label(opts, _("Модель:"), 10, color=C["muted"], bg=C["bg"]).pack(side="right", padx=(0, px(6)))
+        mc.pack(side="left")
         mc.bind("<<ComboboxSelected>>", lambda e: self._kb_refresh())
 
-        chips = tk.Frame(root, bg=C["bg"])
+        chips = FlowRow(root, C["bg"], gap=6)
         chips.pack(fill="x", pady=px(8))
         self.kb_cat = "Все"
         self.chip_buttons = {}
@@ -2009,7 +2059,7 @@ class App:
             b = FlatButton(chips, text=_(short.get(cat, cat)), font=font(10), padx=px(14), pady=px(5),
                            highlightthickness=1, highlightbackground=C["border"],
                            command=lambda c_=cat: self._kb_pick(c_))
-            b.pack(side="left", padx=px(3))
+            chips.add(b)
             self.chip_buttons[cat] = b
 
         paned = ttk.PanedWindow(root, orient="horizontal")
