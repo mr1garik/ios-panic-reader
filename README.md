@@ -104,6 +104,16 @@ sources and reliability: Apple documentation, repeatedly confirmed, or “report
 > The hints are a guide for diagnostics, not a final diagnosis: sensor and bus locations depend on
 > the model.
 
+## Support the project
+
+The app is free. If it helps you in your work, you can support the author:
+
+**USDT · TRC20 (Tron)**
+```
+TQKtZpsdz7pm9cuXWPE3ZQEboPHva4Uuas
+```
+<sub>Send only USDT and only on the TRC20 network — a transfer on another network will be lost.</sub>
+
 ## My other projects
 
 **[iActivator](https://github.com/mr1garik/iActivator)** — one-click iPhone activation and setup: activation, language, region, Wi-Fi, skipping the setup screens, diagnostics and a PDF report. Windows and macOS, free.

@@ -259,6 +259,10 @@
   "en": "Capacity {0}% of original",
   "uk": "Ємність {0}% від заводської"
  },
+ "Адрес скопирован": {
+  "en": "Address copied",
+  "uk": "Адресу скопійовано"
+ },
  "Аккумулятор": {
   "en": "Battery",
   "uk": "Акумулятор"
@@ -975,6 +979,10 @@
   "en": "Mark repair",
   "uk": "Позначити ремонт"
  },
+ "Отправляйте только USDT и только в сети TRC20 — перевод в другой сети пропадёт.": {
+  "en": "Send only USDT and only on the TRC20 network — a transfer on another network will be lost.",
+  "uk": "Надсилайте лише USDT і лише в мережі TRC20 — переказ в іншій мережі пропаде."
+ },
  "Отчёт .txt": {
   "en": "Report .txt",
   "uk": "Звіт .txt"
@@ -1030,6 +1038,10 @@
  "ПО МОДЕЛЯМ\n": {
   "en": "BY MODEL\n",
   "uk": "ЗА МОДЕЛЯМИ\n"
+ },
+ "ПОДДЕРЖАТЬ ПРОЕКТ": {
+  "en": "SUPPORT THE PROJECT",
+  "uk": "ПІДТРИМАТИ ПРОЄКТ"
  },
  "ПОЧЕМУ": {
   "en": "WHY",
@@ -1251,6 +1263,10 @@
   "en": "Check for updates at startup",
   "uk": "Перевіряти оновлення під час запуску"
  },
+ "Программа бесплатная. Если она помогает в работе, можно поддержать автора:": {
+  "en": "The app is free. If it helps you in your work, you can support the author:",
+  "uk": "Програма безкоштовна. Якщо вона допомагає в роботі, можна підтримати автора:"
+ },
  "Программа запущена из исходников — обновите её через git pull или скачайте новую версию.": {
   "en": "The app is running from source — update it with git pull or download the new version.",
   "uk": "Програму запущено з вихідних кодів — оновіть її через git pull або завантажте нову версію."
@@ -1394,6 +1410,10 @@
  "Скопировать": {
   "en": "Copy",
   "uk": "Скопіювати"
+ },
+ "Скопировать адрес": {
+  "en": "Copy address",
+  "uk": "Скопіювати адресу"
  },
  "Служба Apple Mobile Device не найдена": {
   "en": "Apple Mobile Device service not found",

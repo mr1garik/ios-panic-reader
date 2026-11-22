@@ -50,6 +50,8 @@ def apply_theme(name):
 apply_theme("light")
 IACTIVATOR_URL = "https://github.com/mr1garik/iActivator"
 IACTIVATOR_DOWNLOAD = "https://github.com/mr1garik/iActivator/releases/latest"   # последняя версия, Windows и Mac
+DONATE_ADDRESS = "TQKtZpsdz7pm9cuXWPE3ZQEboPHva4Uuas"   # USDT, сеть TRC20 (Tron)
+DONATE_NETWORK = "USDT · TRC20 (Tron)"
 IS_MAC = sys.platform == "darwin"
 IS_WIN = sys.platform == "win32"
 F = "Helvetica Neue" if IS_MAC else "Segoe UI"
@@ -723,6 +725,31 @@ class App:
         prow.pack(anchor="w", pady=(px(8), 0))
         button(prow, _("Скачать iActivator"), lambda: open_path(IACTIVATOR_DOWNLOAD), True, size=10).pack(side="left")
         button(prow, _("О проекте"), lambda: open_path(IACTIVATOR_URL), size=10).pack(side="left", padx=px(8))
+
+        # поддержка проекта
+        tk.Frame(w, bg=C["line"], height=1).pack(fill="x", pady=(px(18), px(12)))
+        label(w, _("ПОДДЕРЖАТЬ ПРОЕКТ"), 9, True, C["muted"]).pack(anchor="w")
+        label(w, _("Программа бесплатная. Если она помогает в работе, можно поддержать автора:"), 10,
+              color=C["muted"], wrap=440).pack(anchor="w", pady=(px(4), px(6)))
+        label(w, DONATE_NETWORK, 10, True).pack(anchor="w")
+        addr = tk.Entry(w, font=font(10, family=MONO), relief="flat", bd=0, readonlybackground=C["gray_bg"],
+                        fg=C["text"], width=len(DONATE_ADDRESS) + 2, highlightthickness=0)
+        addr.insert(0, DONATE_ADDRESS)
+        addr.configure(state="readonly")
+        addr.pack(anchor="w", pady=(px(2), px(6)), ipady=px(4), ipadx=px(4))
+        drow = tk.Frame(w, bg=C["card"])
+        drow.pack(anchor="w")
+
+        def copy_address():
+            self.root.clipboard_clear()
+            self.root.clipboard_append(DONATE_ADDRESS)
+            copied.configure(text=_("Адрес скопирован"))
+
+        button(drow, _("Скопировать адрес"), copy_address, size=10).pack(side="left")
+        copied = tk.Label(drow, text="", font=font(10), fg=C["green_text"], bg=C["card"])
+        copied.pack(side="left", padx=px(10))
+        label(w, _("Отправляйте только USDT и только в сети TRC20 — перевод в другой сети пропадёт."), 9,
+              color=C["muted"], wrap=440).pack(anchor="w", pady=(px(6), 0))
 
     def zoom_step(self, d):
         i = min(range(len(ZOOMS)), key=lambda k: abs(ZOOMS[k] - UI["zoom"]))
