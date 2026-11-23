@@ -91,16 +91,47 @@ jobs:
           if (Test-Path "$dir\iOSPanicReader.exe") { Write-Error "после обновления программа не удаляется"; exit 1 }
           Write-Host "установка → обновление → ярлык → удаление: всё работает"
 
-      - name: Обновление с последнего выпущенного релиза до новой сборки
+      # Репетиция выпуска: новая сборка с номером следующей версии, выпущенная версия с GitHub
+      # обновляется до неё так же, как у людей — через окно программы и после установщика
+      - name: Репетиция выпуска — сборка следующей версии
+        shell: pwsh
+        run: |
+          $v = (Get-Content VERSION -Raw).Trim().Split('.'); $v[2] = [int]$v[2] + 1; $next = $v -join '.'
+          "NEXT=$next" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          python scripts/build.py --dist dist-rc --version $next
+
+      - name: Репетиция выпуска — выпущенная версия (портативная) обновляется из окна
         timeout-minutes: 10
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download --repo $env:GITHUB_REPOSITORY --pattern iOSPanicReader.exe --dir published
+          gh release download --repo $env:GITHUB_REPOSITORY --pattern iOSPanicReader.exe --pattern iOSPanicReader-Setup.exe --dir published
           if ($LASTEXITCODE -ne 0) { exit 1 }
-          python tests/e2e_update.py --old published/iOSPanicReader.exe --new dist-next/iOSPanicReader.exe
+          python tests/e2e_update.py --old published/iOSPanicReader.exe --new dist-rc/iOSPanicReader.exe
           if ($LASTEXITCODE -ne 0) { exit 1 }
+          python tests/e2e_update.py --mode gui --old published/iOSPanicReader.exe --new dist-rc/iOSPanicReader.exe
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+      - name: Репетиция выпуска — установленная выпущенным установщиком обновляется из окна
+        timeout-minutes: 15
+        shell: pwsh
+        run: |
+          $dir = "$env:RUNNER_TEMP\iospr-rc\iOS Panic Reader"
+          $p = Start-Process published\iOSPanicReader-Setup.exe -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/CURRENTUSER","/DIR=`"$dir`"" -PassThru -Wait
+          if ($p.ExitCode -ne 0) { Write-Error "установка: код $($p.ExitCode)"; exit 1 }
+          python tests/e2e_update.py --mode gui --installed "$dir\iOSPanicReader.exe" --old published/iOSPanicReader.exe --new dist-rc/iOSPanicReader.exe
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          $lnk = Get-ChildItem "$env:APPDATA\Microsoft\Windows\Start Menu\Programs" -Recurse -Filter "iOS Panic Reader.lnk" | Select-Object -First 1
+          $target = (New-Object -ComObject WScript.Shell).CreateShortcut($lnk.FullName).TargetPath
+          $out = "$env:RUNNER_TEMP\ver-rc.txt"
+          Start-Process $target -ArgumentList "--version","--out",$out -Wait
+          $ver = (Get-Content $out -Raw).Trim()
+          if ($ver -ne $env:NEXT) { Write-Error "по ярлыку версия $ver, ждали $env:NEXT"; exit 1 }
+          Start-Process "$dir\unins000.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -Wait
+          Start-Sleep -Seconds 3
+          if (Test-Path "$dir\iOSPanicReader.exe") { Write-Error "не удаляется после обновления"; exit 1 }
+          Write-Host "выпущенный установщик → обновление до $env:NEXT → ярлык → удаление: всё работает"
 
       - name: Проверка запуска (консольный режим)
         shell: pwsh
@@ -154,14 +185,17 @@ jobs:
         timeout-minutes: 10
         run: python tests/e2e_update.py --mode gui --old dist/iOSPanicReader.app --new dist-next/iOSPanicReader.app
 
-      - name: Обновление с последнего выпущенного релиза до новой сборки
-        timeout-minutes: 10
+      - name: Репетиция выпуска — выпущенная версия обновляется до следующей (тихо и из окна)
+        timeout-minutes: 15
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          NEXT=$(python -c "v=open('VERSION').read().strip().split('.'); v[2]=str(int(v[2])+1); print('.'.join(v))")
+          python scripts/build.py --dist dist-rc --version "$NEXT"
           gh release download --repo "$GITHUB_REPOSITORY" --pattern iOSPanicReader-macOS.zip --dir published
           ditto -x -k published/iOSPanicReader-macOS.zip published
-          python tests/e2e_update.py --old published/iOSPanicReader.app --new dist-next/iOSPanicReader.app
+          python tests/e2e_update.py --old published/iOSPanicReader.app --new dist-rc/iOSPanicReader.app
+          python tests/e2e_update.py --mode gui --old published/iOSPanicReader.app --new dist-rc/iOSPanicReader.app
 
       - name: Проверка запуска (консольный режим)
         run: dist/iOSPanicReader.app/Contents/MacOS/iOSPanicReader --cli tests/samples > /dev/null
