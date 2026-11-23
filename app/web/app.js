@@ -172,17 +172,17 @@ async function renderPhone() {
   if (d.repair) right += `<div class="card lvl-blue"><div class="section-title"><b>${esc(d.repair.title)}</b>
       <button class="btn small" data-a="toggle_after_repair">${esc(d.repair.after ? T.show_all : T.only_after)}</button></div>
       <div class="t-${d.repair.level}" style="margin-top:6px">${esc(d.repair.text)}</div></div>`;
-  if (!d.problems.length) {
-    right += `<div class="card lvl-green"><div class="cap t-green" style="margin-top:0">${esc(T.found_none)}</div>
-      <h1>${esc(T.phone_ok)}</h1><div>${esc(d.ok_text)}</div></div>`;
-  }
-  d.problems.forEach((p, i) => { right += problemCard(p, i + 1, d.problems.length); });
   if (d.probability.length) {
     right += `<div class="card"><div class="section-title"><h2>${esc(T.probability)}</h2><span class="muted small">${esc(T.probability_hint)}</span></div>
       <div class="prob">${d.probability.map(p => `<div class="prob-row ${p.pct >= 50 ? "hi" : ""}" data-toggle>
         <div class="name">${esc(p.title)}</div><div class="pct">${p.pct}%</div><div class="bar"><i style="width:${p.pct}%"></i></div>
         <div class="why">${esc(p.why)}</div></div>`).join("")}</div></div>`;
   }
+  if (!d.problems.length) {
+    right += `<div class="card lvl-green"><div class="cap t-green" style="margin-top:0">${esc(T.found_none)}</div>
+      <h1>${esc(T.phone_ok)}</h1><div>${esc(d.ok_text)}</div></div>`;
+  }
+  d.problems.forEach((p, i) => { right += problemCard(p, i + 1, d.problems.length); });
   if (d.groups.length) {
     right += `<div class="card"><h2>${esc(T.groups)}</h2><div class="groups">${d.groups.map(g =>
       `<div class="group"><span class="dot ${g.level}"></span><span class="t" title="${esc(g.title)}">${esc(g.title)}</span><span class="n">${g.n}/${g.total}</span></div>`).join("")}</div></div>`;
