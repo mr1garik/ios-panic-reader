@@ -14,7 +14,8 @@ import tempfile
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # корень проекта
 APP = os.path.join(HERE, "app")
-MODULES = ["gui", "core", "device", "knowledge_base", "history", "report_pdf", "updater", "i18n", "themes"]
+MODULES = ["gui", "webui", "views", "screen", "core", "device", "knowledge_base", "history", "report_pdf", "updater",
+           "i18n", "themes"]
 
 
 def main():
@@ -37,7 +38,11 @@ def main():
            "--add-data", f"{os.path.join(APP, 'errors_db.json')}{os.pathsep}.",
            "--add-data", f"{os.path.join(APP, 'translations.json')}{os.pathsep}.",
            "--add-data", f"{os.path.join(HERE, 'assets', 'icon_256.png')}{os.pathsep}assets",
-           "--add-data", f"{os.path.join(HERE, 'assets', 'donate_qr.png')}{os.pathsep}assets"]
+           "--add-data", f"{os.path.join(HERE, 'assets', 'donate_qr.png')}{os.pathsep}assets",
+           "--add-data", f"{os.path.join(APP, 'web')}{os.pathsep}web",       # новый интерфейс
+           "--collect-all", "webview"]
+    if sys.platform == "win32":
+        cmd += ["--collect-all", "clr_loader", "--collect-all", "pythonnet", "--hidden-import", "clr"]
     for m in MODULES:
         cmd += ["--hidden-import", m]
     if sys.platform == "win32":

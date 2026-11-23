@@ -1,3 +1,4 @@
 pymobiledevice3
 reportlab
 certifi
+pywebview>=5.3

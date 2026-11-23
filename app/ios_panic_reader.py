@@ -63,6 +63,14 @@ def main():
         for info in parsed:
             print(core.build_report(info))
         return
+    # новый интерфейс (веб-окно); если движка нет или он не запустился — прежнее окно
+    import webui
+    if webui.webview_available():
+        try:
+            webui.run(args)
+            return
+        except Exception as e:
+            print("веб-окно не запустилось, открываю прежнее:", e, file=sys.stderr)
     from gui import run_gui
     run_gui(args)
 

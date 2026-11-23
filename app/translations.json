@@ -163,6 +163,10 @@
   "en": "ExcResource — resource limit exceeded",
   "uk": "ExcResource — перевищення ресурсів"
  },
+ "Face ID / Touch ID и их разъём": {
+  "en": "Face ID / Touch ID and their connector",
+  "uk": "Face ID / Touch ID та їхній роз'єм"
+ },
  "IMEI не прочитан": {
   "en": "IMEI not read",
   "uk": "IMEI не прочитано"
@@ -231,6 +235,10 @@
   "en": "{0} of {1} {2} point to this component",
   "uk": "{0} з {1} {2} вказують на цю деталь"
  },
+ "{0} из {1} {2} указывают на эту деталь. Причины в логах: {3}.": {
+  "en": "{0} of {1} {2} point to this part. Causes in the logs: {3}.",
+  "uk": "{0} з {1} {2} вказують на цю деталь. Причини в логах: {3}."
+ },
  "{0} паник без явной причины": {
   "en": "{0} panics with no clear cause",
   "uk": "{0} панік без явної причини"
@@ -267,6 +275,10 @@
   "en": "Battery",
   "uk": "Акумулятор"
  },
+ "Аккумулятор и его разъём на плате": {
+  "en": "The battery and its connector on the board",
+  "uk": "Акумулятор і його роз'єм на платі"
+ },
  "Аккумулятор изношен": {
   "en": "Battery worn out",
   "uk": "Акумулятор зношений"
@@ -282,6 +294,14 @@
  "Аналитика / диагностика": {
   "en": "Analytics / diagnostics",
   "uk": "Аналітика / діагностика"
+ },
+ "Аудиокодек и динамики": {
+  "en": "Audio codec and speakers",
+  "uk": "Аудіокодек і динаміки"
+ },
+ "Аудиокодек, полифонический динамик, разговорный динамик.": {
+  "en": "Audio codec, loudspeaker, earpiece speaker.",
+  "uk": "Аудіокодек, поліфонічний динамік, розмовний динамік."
  },
  "База + все логи в архиве": {
   "en": "Database + all archived logs",
@@ -299,6 +319,10 @@
   "en": "Drains quickly, may shut down at 20–30% charge or in the cold.",
   "uk": "Швидко сідає, може вимикатися на 20–30% заряду або на холоді."
  },
+ "В базе ошибок": {
+  "en": "In the error database",
+  "uk": "У базі помилок"
+ },
  "В базе ошибок ({0})": {
   "en": "In the error database ({0})",
   "uk": "У базі помилок ({0})"
@@ -306,6 +330,10 @@
  "В журналах телефона нет повторяющихся сбоев.": {
   "en": "The phone's logs show no repeated faults.",
   "uk": "У журналах телефону немає повторюваних збоїв."
+ },
+ "В логах": {
+  "en": "In the logs",
+  "uk": "У логах"
  },
  "В логах ({0})": {
   "en": "In logs ({0})",
@@ -351,13 +379,33 @@
   "en": "Your data (history, logs, notes) is stored separately from the app and is not deleted when updating:",
   "uk": "Ваші дані (історія, логи, нотатки) зберігаються окремо від програми й не видаляються під час оновлення:"
  },
+ "Введите код-пароль на телефоне.": {
+  "en": "Enter the passcode on the phone.",
+  "uk": "Введіть код-пароль на телефоні."
+ },
+ "Вероятность по деталям": {
+  "en": "Probability by part",
+  "uk": "Ймовірність за деталями"
+ },
  "Версия {0}": {
   "en": "Version {0}",
   "uk": "Версія {0}"
  },
+ "Верх платы: разъёмы камер": {
+  "en": "Top of the board: camera connectors",
+  "uk": "Верх плати: роз'єми камер"
+ },
+ "Верх телефона: верхний шлейф (датчики, фронтальная камера, микрофон)": {
+  "en": "Top of the phone: top flex (sensors, front camera, microphone)",
+  "uk": "Верх телефона: верхній шлейф (датчики, фронтальна камера, мікрофон)"
+ },
  "Верхний шлейф (датчики, микрофон)": {
   "en": "Top flex cable (sensors, microphone)",
   "uk": "Верхній шлейф (датчики, мікрофон)"
+ },
+ "Верхний шлейф и его разъём на плате, датчик приближения, фронтальный микрофон.": {
+  "en": "The top flex and its connector on the board, proximity sensor, front microphone.",
+  "uk": "Верхній шлейф і його роз'єм на платі, датчик наближення, фронтальний мікрофон."
  },
  "Вид": {
   "en": "Type",
@@ -366,6 +414,14 @@
  "Вид лога:    ": {
   "en": "Log type:    ",
   "uk": "Вид логу:    "
+ },
+ "Визиты": {
+  "en": "Visits",
+  "uk": "Візити"
+ },
+ "Все": {
+  "en": "All",
+  "uk": "Усі"
  },
  "Все версии": {
   "en": "All versions",
@@ -391,6 +447,10 @@
   "en": "Paste from clipboard",
   "uk": "Вставити з буфера"
  },
+ "Вставьте текст паники (из Настройки → Конфиденциальность → Аналитика или из сообщения клиента).": {
+  "en": "Paste the panic text (from Settings → Privacy → Analytics or from the customer's message).",
+  "uk": "Вставте текст паніки (з Параметри → Приватність → Аналітика або з повідомлення клієнта)."
+ },
  "Вставьте текст паники или лога": {
   "en": "Paste the panic or log text",
   "uk": "Вставте текст паніки або логу"
@@ -398,6 +458,10 @@
  "Выберите логи": {
   "en": "Choose logs",
   "uk": "Виберіть логи"
+ },
+ "Выберите телефон слева": {
+  "en": "Pick a phone on the left",
+  "uk": "Виберіть телефон ліворуч"
  },
  "Вывод основан на журналах сбоев iPhone и является ориентиром для диагностики.": {
   "en": "The conclusion is based on the iPhone's fault logs and is a guide for diagnostics.",
@@ -423,9 +487,17 @@
   "en": "LOCATION\n",
   "uk": "ДЕ СТОЇТЬ\n"
  },
+ "Где искать на плате": {
+  "en": "Where to look on the board",
+  "uk": "Де шукати на платі"
+ },
  "Графит": {
   "en": "Graphite",
   "uk": "Графіт"
+ },
+ "Группы ошибок": {
+  "en": "Error groups",
+  "uk": "Групи помилок"
  },
  "ДАТЧИКИ ИЗ «MISSING SENSOR» И ГДЕ ОНИ СТОЯТ\n": {
   "en": "SENSORS FROM “MISSING SENSOR” AND WHERE THEY ARE\n",
@@ -483,6 +555,10 @@
   "en": "Parts of {0} — condition and faults",
   "uk": "Деталі {0} — стан і збої"
  },
+ "Детали — состояние и сбои": {
+  "en": "Parts — state and faults",
+  "uk": "Деталі — стан і збої"
+ },
  "Деталь": {
   "en": "Part",
   "uk": "Деталь"
@@ -503,9 +579,21 @@
   "en": "Display and touch",
   "uk": "Дисплей і тач"
  },
+ "Дисплей и тач: разъёмы дисплея на плате": {
+  "en": "Display and touch: display connectors on the board",
+  "uk": "Дисплей і тач: роз'єми дисплея на платі"
+ },
  "Для iPhone 15–17 данных о датчиках и шинах пока мало. Если у вас есть паники с них — предложите их для базы кнопкой у лога.\n": {
   "en": "There is little sensor and bus data for iPhone 15–17 yet. If you have panics from them, suggest them for the database with the button next to the log.\n",
   "uk": "Для iPhone 15–17 даних про датчики й шини поки мало. Якщо у вас є паніки з них — запропонуйте їх для бази кнопкою біля логу.\n"
+ },
+ "Доля паник, которые указывают на деталь. Нажмите, чтобы увидеть почему.": {
+  "en": "Share of panics pointing to the part. Click to see why.",
+  "uk": "Частка панік, що вказують на деталь. Натисніть, щоб побачити чому."
+ },
+ "Доступ запрещён": {
+  "en": "Access denied",
+  "uk": "Доступ заборонено"
  },
  "Доступна новая версия {0}": {
   "en": "New version {0} is available",
@@ -559,6 +647,10 @@
   "en": "Downloading version {0}",
   "uk": "Завантаження версії {0}"
  },
+ "Закрыть": {
+  "en": "Close",
+  "uk": "Закрити"
+ },
  "Заменить аккумулятор": {
   "en": "Replace the battery",
   "uk": "Замінити акумулятор"
@@ -594,6 +686,14 @@
  "ИСТОЧНИКИ\n": {
   "en": "SOURCES\n",
   "uk": "ДЖЕРЕЛА\n"
+ },
+ "Из буфера": {
+  "en": "From clipboard",
+  "uk": "З буфера"
+ },
+ "Изменение вступит после перезапуска программы. Перезапустить сейчас?": {
+  "en": "The change takes effect after restarting the app. Restart now?",
+  "uk": "Зміна набуде чинності після перезапуску програми. Перезапустити зараз?"
  },
  "Исключение:  ": {
   "en": "Exception:   ",
@@ -655,6 +755,10 @@
   "en": "Charging / USB controller",
   "uk": "Контролер заряджання / USB"
  },
+ "Контроллер питания (PMU), память (NAND), процессор; у «бутербродных» плат — связь половин.": {
+  "en": "Power controller (PMU), storage (NAND), processor; on stacked boards — the link between the halves.",
+  "uk": "Контролер живлення (PMU), пам'ять (NAND), процесор; у «бутербродних» плат — зв'язок половин."
+ },
  "Копия уже сохранена на компьютере": {
   "en": "A copy is already saved on the computer",
   "uk": "Копію вже збережено на комп'ютері"
@@ -687,13 +791,25 @@
   "en": "Logs on the phone cleared",
   "uk": "Логи на телефоні очищено"
  },
+ "Логи снимутся сами, и программа скажет, что не так.": {
+  "en": "The logs are collected automatically and the app tells you what's wrong.",
+  "uk": "Логи знімуться самі, і програма скаже, що не так."
+ },
  "Логов нет.": {
   "en": "No logs.",
   "uk": "Логів немає."
  },
+ "Логов нет. Подключите телефон или откройте файл лога.": {
+  "en": "No logs. Connect a phone or open a log file.",
+  "uk": "Логів немає. Під'єднайте телефон або відкрийте файл логу."
+ },
  "МОДЕЛИ\n": {
   "en": "MODELS\n",
   "uk": "МОДЕЛІ\n"
+ },
+ "Мастерская (для PDF)": {
+  "en": "Workshop (for PDF)",
+  "uk": "Майстерня (для PDF)"
  },
  "Мастерская (для PDF):": {
   "en": "Workshop (for PDF):",
@@ -702,6 +818,10 @@
  "Мастерская [НАЗВАНИЕ]": {
   "en": "Workshop [NAME]",
   "uk": "Майстерня [НАЗВА]"
+ },
+ "Масштаб": {
+  "en": "Zoom",
+  "uk": "Масштаб"
  },
  "Масштаб {0}%": {
   "en": "Zoom {0}%",
@@ -731,9 +851,29 @@
   "en": "Modem (network, IMEI)",
   "uk": "Модем (мережа, IMEI)"
  },
+ "Модем и его питание, антенны, SIM-лоток и eSIM.": {
+  "en": "The modem and its power, antennas, SIM tray and eSIM.",
+  "uk": "Модем і його живлення, антени, SIM-лоток і eSIM."
+ },
  "Модем не отдал IMEI. Бывает при неисправном модеме или его питании.": {
   "en": "The modem did not report an IMEI. Happens with a faulty modem or its power supply.",
   "uk": "Модем не віддав IMEI. Буває за несправного модему або його живлення."
+ },
+ "Модемная часть платы": {
+  "en": "Modem part of the board",
+  "uk": "Модемна частина плати"
+ },
+ "Модуль Face ID или кнопка Touch ID и шлейф, разъём на плате, Secure Enclave в процессоре.": {
+  "en": "Face ID module or Touch ID button and flex, the connector on the board, Secure Enclave in the processor.",
+  "uk": "Модуль Face ID або кнопка Touch ID і шлейф, роз'єм на платі, Secure Enclave у процесорі."
+ },
+ "Модуль Wi-Fi / Bluetooth на плате": {
+  "en": "Wi-Fi / Bluetooth module on the board",
+  "uk": "Модуль Wi-Fi / Bluetooth на платі"
+ },
+ "Модуль Wi-Fi/Bluetooth, его антенны и питание.": {
+  "en": "The Wi-Fi/Bluetooth module, its antennas and power.",
+  "uk": "Модуль Wi-Fi/Bluetooth, його антени й живлення."
  },
  "Модуль pymobiledevice3 не найден — используйте собранную программу или выполните: pip install pymobiledevice3": {
   "en": "The pymobiledevice3 module was not found — use the built app or run: pip install pymobiledevice3",
@@ -779,6 +919,10 @@
   "en": "All fault logs (panics, app crashes) will be deleted from the phone. A copy is already saved on the computer, in the logs folder. After the repair only new logs will appear on the phone — this makes it easier to check that the fix worked.",
   "uk": "З телефона буде видалено всі логи збоїв (паніки, вильоти програм). Копію вже збережено на комп'ютері, у теці з логами. Після ремонту на телефоні з'являться лише нові логи — так простіше перевірити, що все виправлено."
  },
+ "Нажмите «Доверять» на iPhone": {
+  "en": "Tap “Trust” on the iPhone",
+  "uk": "Натисніть «Довіряти» на iPhone"
+ },
  "Нажмите «Доверять» на телефоне": {
   "en": "Tap “Trust” on the phone",
   "uk": "Натисніть «Довіряти» на телефоні"
@@ -795,9 +939,17 @@
   "en": "Found",
   "uk": "Знайдено"
  },
+ "Не найден драйвер Apple": {
+  "en": "Apple driver not found",
+  "uk": "Не знайдено драйвер Apple"
+ },
  "Не напоминать об этой версии": {
   "en": "Don't remind me about this version",
   "uk": "Не нагадувати про цю версію"
+ },
+ "Не отключайте телефон.": {
+  "en": "Don't disconnect the phone.",
+  "uk": "Не від'єднуйте телефон."
  },
  "Не срочно": {
   "en": "Not urgent",
@@ -843,6 +995,10 @@
   "en": "Unknown sensor",
   "uk": "Невідомий датчик"
  },
+ "Неон": {
+  "en": "Neon",
+  "uk": "Неон"
+ },
  "Нет датчика: ": {
   "en": "Missing sensor: ",
   "uk": "Немає датчика: "
@@ -862,6 +1018,14 @@
  "Нехватка памяти (Jetsam)": {
   "en": "Low memory (Jetsam)",
   "uk": "Нестача пам'яті (Jetsam)"
+ },
+ "Низ телефона: шлейф зарядки и его разъём на плате": {
+  "en": "Bottom of the phone: charging flex and its connector on the board",
+  "uk": "Низ телефона: шлейф заряджання і його роз'єм на платі"
+ },
+ "Ничего не найдено. Попробуйте другое слово или код.": {
+  "en": "Nothing found. Try another word or code.",
+  "uk": "Нічого не знайдено. Спробуйте інше слово або код."
  },
  "Ничего не найдено. Попробуйте другое слово или код.\n": {
   "en": "Nothing found. Try another word or code.\n",
@@ -903,6 +1067,10 @@
   "en": "ERRORS TYPICAL FOR THIS MODEL\n",
   "uk": "ПОМИЛКИ, ХАРАКТЕРНІ ДЛЯ ЦІЄЇ МОДЕЛІ\n"
  },
+ "Обновите или восстановите iOS; если не помогло — проверьте питание.": {
+  "en": "Update or restore iOS; if that doesn't help, check the power circuits.",
+  "uk": "Оновіть або відновіть iOS; якщо не допомогло — перевірте живлення."
+ },
  "Обновить или восстановить iOS": {
   "en": "Update or restore iOS",
   "uk": "Оновити або відновити iOS"
@@ -942,6 +1110,10 @@
  "Основание: ": {
   "en": "Basis: ",
   "uk": "Підстава: "
+ },
+ "Основная и фронтальная камеры, их разъёмы, цепи питания камер.": {
+  "en": "Rear and front cameras, their connectors, camera power circuits.",
+  "uk": "Основна й фронтальна камери, їхні роз'єми, кола живлення камер."
  },
  "Отключите и снова подключите кабель, затем нажмите «Доверять».": {
   "en": "Disconnect and reconnect the cable, then tap “Trust”.",
@@ -1111,6 +1283,10 @@
   "en": "Panics on different iOS versions: ",
   "uk": "Паніки на різних версіях iOS: "
  },
+ "Паники по дням": {
+  "en": "Panics per day",
+  "uk": "Паніки за днями"
+ },
  "Паники по дням · {0} – {1} · всего {2}": {
   "en": "Panics per day · {0} – {1} · total {2}",
   "uk": "Паніки за днями · {0} – {1} · усього {2}"
@@ -1130,6 +1306,14 @@
  "Перезапустите программу вручную.": {
   "en": "Please restart the app manually.",
   "uk": "Перезапустіть програму вручну."
+ },
+ "Перезапустить": {
+  "en": "Restart",
+  "uk": "Перезапустити"
+ },
+ "Переподключите кабель и нажмите «Доверять».": {
+  "en": "Reconnect the cable and tap “Trust”.",
+  "uk": "Перепід'єднайте кабель і натисніть «Довіряти»."
  },
  "Плата (питание, память, процессор)": {
   "en": "Logic board (power, memory, processor)",
@@ -1279,6 +1463,10 @@
   "en": "The app can't connect to the usbmuxd service that the computer uses to talk to the iPhone.",
   "uk": "Програма не може під'єднатися до служби usbmuxd, через яку комп'ютер спілкується з iPhone."
  },
+ "Программная часть": {
+  "en": "Software",
+  "uk": "Програмна частина"
+ },
  "Программное обеспечение": {
   "en": "Software",
   "uk": "Програмне забезпечення"
@@ -1311,6 +1499,10 @@
   "en": "Unlock the phone and tap “Trust”. The app will pull the logs and show what is wrong with the phone.",
   "uk": "Розблокуйте телефон і натисніть «Довіряти». Програма сама зніме логи й покаже, що з телефоном."
  },
+ "Разблокируйте телефон и подтвердите подключение.": {
+  "en": "Unlock the phone and confirm the connection.",
+  "uk": "Розблокуйте телефон і підтвердіть під'єднання."
+ },
  "Разбор вставленного текста": {
   "en": "Analysis of pasted text",
   "uk": "Розбір вставленого тексту"
@@ -1339,6 +1531,22 @@
   "en": "Connector",
   "uk": "Роз'єм"
  },
+ "Разъём аккумулятора, сам аккумулятор, контроллер аккумулятора (на шлейфе аккумулятора).": {
+  "en": "Battery connector, the battery itself, battery controller (on the battery flex).",
+  "uk": "Роз'єм акумулятора, сам акумулятор, контролер акумулятора (на шлейфі акумулятора)."
+ },
+ "Разъём зарядки, контроллер USB (Tristar/Hydra), контроллер зарядки.": {
+  "en": "Charging port, USB controller (Tristar/Hydra), charging controller.",
+  "uk": "Роз'єм заряджання, контролер USB (Tristar/Hydra), контролер заряджання."
+ },
+ "Разъём зарядки, контроллер зарядки и USB": {
+  "en": "Charging port, charging and USB controller",
+  "uk": "Роз'єм заряджання, контролер заряджання і USB"
+ },
+ "Разъёмы дисплея и тача, сам дисплей (проверка заведомо рабочим).": {
+  "en": "Display and touch connectors, the display itself (test with a known-good one).",
+  "uk": "Роз'єми дисплея й тача, сам дисплей (перевірка свідомо робочим)."
+ },
  "Результат": {
   "en": "Result",
   "uk": "Результат"
@@ -1346,6 +1554,10 @@
  "Ремонт отмечен {0}": {
   "en": "Repair marked {0}",
   "uk": "Ремонт позначено {0}"
+ },
+ "Ремонты": {
+  "en": "Repairs",
+  "uk": "Ремонти"
  },
  "С этого момента программа будет показывать только новые сбои — так видно, помог ли ремонт. Подключите телефон после ремонта ещё раз.": {
   "en": "From now on the app will show only new faults — so you can see whether the repair helped. Connect the phone again after the repair.",
@@ -1402,6 +1614,10 @@
  "Синяя ночь": {
   "en": "Midnight blue",
   "uk": "Синя ніч"
+ },
+ "Системная плата: питание, память, процессор": {
+  "en": "Logic board: power, storage, processor",
+  "uk": "Системна плата: живлення, пам'ять, процесор"
  },
  "Скачать": {
   "en": "Download",
@@ -1478,6 +1694,10 @@
  "Стёрто на {0} из {1}. Не удалось:\n": {
   "en": "Erased on {0} of {1}. Failed:\n",
   "uk": "Стерто на {0} з {1}. Не вдалося:\n"
+ },
+ "Схема — ориентир: точное место смотрите по схеме своей платы.": {
+  "en": "The sketch is a guide: find the exact spot on your board's schematic.",
+  "uk": "Схема — орієнтир: точне місце дивіться за схемою своєї плати."
  },
  "Счётчик перезагрузок": {
   "en": "Reset counter",
@@ -1567,6 +1787,10 @@
   "en": "Remove this phone from history?\n(logs on disk will remain)",
   "uk": "Видалити цей телефон з історії?\n(логи на диску залишаться)"
  },
+ "Установите «Apple Devices» из Microsoft Store (или iTunes) и переподключите телефон.": {
+  "en": "Install “Apple Devices” from the Microsoft Store (or iTunes) and reconnect the phone.",
+  "uk": "Встановіть «Apple Devices» з Microsoft Store (або iTunes) і перепід'єднайте телефон."
+ },
  "Установлена версия {0}. Ваши данные при обновлении не изменятся.": {
   "en": "Installed version: {0}. Your data won't change during the update.",
   "uk": "Встановлено версію {0}. Ваші дані під час оновлення не зміняться."
@@ -1627,6 +1851,10 @@
   "en": "Reading the log archive for search…",
   "uk": "Читаю архів логів для пошуку…"
  },
+ "Что делать": {
+  "en": "What to do",
+  "uk": "Що робити"
+ },
  "Что ещё нашлось в логах": {
   "en": "What else was found in the logs",
   "uk": "Що ще знайшлося в логах"
@@ -1679,6 +1907,10 @@
   "en": "Charging flex (bottom microphone, barometer)",
   "uk": "Шлейф заряджання (нижній мікрофон, барометр)"
  },
+ "Шлейф зарядки (нижний микрофон, барометр), разъём шлейфа на плате, следы влаги у разъёма.": {
+  "en": "Charging flex (bottom microphone, barometer), the flex connector on the board, traces of liquid near the connector.",
+  "uk": "Шлейф заряджання (нижній мікрофон, барометр), роз'єм шлейфа на платі, сліди вологи біля роз'єму."
+ },
  "ЭТОТ ТЕЛЕФОН УЖЕ БЫЛ": {
   "en": "THIS PHONE HAS BEEN HERE BEFORE",
   "uk": "ЦЕЙ ТЕЛЕФОН УЖЕ БУВ"
@@ -1686,6 +1918,10 @@
  "Это расположение для iPhone — на {0} датчики стоят иначе, сверяйтесь со схемой.": {
   "en": "This is the location on iPhone — on {0} the sensors are placed differently, check the schematic.",
   "uk": "Це розташування для iPhone — на {0} датчики стоять інакше, звіряйтеся зі схемою."
+ },
+ "Язык": {
+  "en": "Language",
+  "uk": "Мова"
  },
  "Язык изменится после перезапуска программы. Перезапустить сейчас?": {
   "en": "The language will change after the app restarts. Restart now?",
@@ -1914,6 +2150,10 @@
  "файлы логов": {
   "en": "log files",
   "uk": "файли логів"
+ },
+ "циклов": {
+  "en": "cycles",
+  "uk": "циклів"
  },
  "ёмкость {0}%": {
   "en": "capacity {0}%",

@@ -2301,4 +2301,6 @@ def run_gui(initial_paths=()):
     root = tk.Tk()
     set_window_icon(root)
     App(root, initial_paths)
+    import webui
+    webui._test_hooks("classic", lambda: root.after(0, root.destroy))
     root.mainloop()

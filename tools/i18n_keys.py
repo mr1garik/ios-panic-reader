@@ -7,7 +7,7 @@ import os
 import re
 
 HERE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "app")
-FILES = ["gui.py", "views.py", "core.py", "knowledge_base.py", "report_pdf.py", "updater.py", "ios_panic_reader.py", "history.py", "device.py"]
+FILES = ["gui.py", "views.py", "webui.py", "core.py", "knowledge_base.py", "report_pdf.py", "updater.py", "ios_panic_reader.py", "history.py", "device.py"]
 CYR = re.compile("[А-Яа-яЁё]")
 
 

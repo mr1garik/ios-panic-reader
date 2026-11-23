@@ -34,7 +34,19 @@ _DARK = dict(
     gray="#6b7280", gray_bg="#20242c", stripe="#1b1f27", tip_bg="#f9fafb", tip_fg="#111827",
 )
 
+_NEON = dict(
+    bg="#0a0f24", card="#121a38", bar="#0d1430", line="#232d5c", border="#34407e",
+    text="#e6e9ff", head="#ffffff", muted="#a3acd6",
+    blue="#5b8cff", accent_hover="#7aa2ff", blue_bg="#17224d", on_accent="#0a0f24", link_hover="#a9c1ff",
+    red="#ff5d7a", red_text="#ff8fa3", red_bg="#2a1330",
+    orange="#ffa94d", orange_text="#ffc078", orange_bg="#2a2015",
+    green="#3ddc97", green_text="#6ee7b7", green_bg="#0f2a24",
+    gray="#7c86b8", gray_bg="#1a2247", stripe="#141c3e", tip_bg="#e6e9ff", tip_fg="#0a0f24",
+    accent2="#b56bff",
+)
+
 THEMES = {
+    "neon": dict(_NEON),
     "light": dict(_LIGHT),
     "dark": dict(_DARK),
     "night": dict(_DARK, bg="#0b1220", card="#111a2e", bar="#0d1526", line="#1e2a44", border="#2b3a5c",
@@ -49,9 +61,9 @@ THEMES = {
 }
 
 # Названия по-русски — переводятся через i18n при показе
-NAMES = {"system": "Как в системе", "light": "Светлая", "dark": "Тёмная", "night": "Синяя ночь",
+NAMES = {"system": "Как в системе", "neon": "Неон", "light": "Светлая", "dark": "Тёмная", "night": "Синяя ночь",
          "mint": "Мятная", "graphite": "Графит"}
-DARK_THEMES = {"dark", "night", "graphite"}
+DARK_THEMES = {"neon", "dark", "night", "graphite"}
 
 
 def system_is_dark():

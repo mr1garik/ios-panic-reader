@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iOS Panic Reader</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div id="splash">
+  <div class="splash-glow"></div>
+  <img src="icon.png" alt="" class="splash-logo">
+  <div class="splash-name">iOS Panic Reader</div>
+  <div class="splash-tag">diagnostics · logs · repair</div>
+  <div class="splash-bar"><i></i></div>
+</div>
+
+<div id="app" hidden>
+  <aside id="side">
+    <div class="brand"><img src="icon.png" alt=""><div><b>iOS Panic Reader</b><span id="ver"></span></div></div>
+    <nav id="nav"></nav>
+    <div class="side-foot">
+      <div class="side-row">
+        <button class="icon-btn" id="btn-theme" data-tip="theme"></button>
+        <button class="icon-btn lang" id="btn-lang"></button>
+        <button class="icon-btn" id="btn-about" data-tip="about"></button>
+      </div>
+      <div class="side-row zoom">
+        <button class="icon-btn" id="zoom-out">−</button><span id="zoom-val"></span><button class="icon-btn" id="zoom-in">+</button>
+      </div>
+    </div>
+  </aside>
+  <main id="main">
+    <section id="view-phone" class="view"></section>
+    <section id="view-parts" class="view"></section>
+    <section id="view-logs" class="view"></section>
+    <section id="view-history" class="view"></section>
+    <section id="view-kb" class="view"></section>
+  </main>
+</div>
+
+<div id="modal" hidden><div class="modal-box"></div></div>
+<div id="menu" hidden></div>
+<div id="toasts"></div>
+<script src="app.js"></script>
+</body>
+</html>
