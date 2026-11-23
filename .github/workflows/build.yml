@@ -56,6 +56,18 @@ jobs:
           if (Test-Path "$dir\iOSPanicReader.exe") { Write-Error "программа не удалилась"; exit 1 }
           Write-Host "установка и удаление прошли"
 
+      - name: Новый интерфейс открывается (а не запасное окно)
+        timeout-minutes: 5
+        shell: pwsh
+        run: |
+          $env:IOSPR_UI_REPORT = "$env:RUNNER_TEMP\ui.txt"; $env:IOSPR_TEST_EXIT_AFTER = "10"
+          $env:USERPROFILE = "$env:RUNNER_TEMP\ui-home"; New-Item -ItemType Directory -Force $env:USERPROFILE | Out-Null
+          $p = Start-Process dist\iOSPanicReader.exe -PassThru
+          if (-not $p.WaitForExit(120000)) { Stop-Process -Id $p.Id -Force; Write-Error "окно не закрылось"; exit 1 }
+          $ui = (Get-Content $env:IOSPR_UI_REPORT -Raw).Trim()
+          Write-Host "интерфейс: $ui"
+          if ($ui -ne "web") { Write-Error "открылось запасное окно вместо нового"; exit 1 }
+
       - name: Сборка тестовой «новой» версии 9.9.9
         run: python scripts/build.py --dist dist-next --version 9.9.9
 
@@ -174,6 +186,17 @@ jobs:
       - name: Сборка iOSPanicReader.app
         run: python scripts/build.py
 
+      - name: Новый интерфейс открывается (а не запасное окно)
+        timeout-minutes: 5
+        run: |
+          export IOSPR_UI_REPORT="$RUNNER_TEMP/ui.txt" IOSPR_TEST_EXIT_AFTER=10 HOME="$RUNNER_TEMP/ui-home"
+          mkdir -p "$HOME"
+          dist/iOSPanicReader.app/Contents/MacOS/iOSPanicReader & pid=$!
+          for i in $(seq 1 120); do kill -0 $pid 2>/dev/null || break; sleep 1; done
+          kill -0 $pid 2>/dev/null && { kill $pid; echo "окно не закрылось"; exit 1; }
+          echo "интерфейс: $(cat "$IOSPR_UI_REPORT")"
+          test "$(cat "$IOSPR_UI_REPORT")" = "web"
+
       - name: Сборка тестовой «новой» версии 9.9.9
         run: python scripts/build.py --dist dist-next --version 9.9.9
 
@@ -244,6 +267,33 @@ jobs:
         with:
           name: screens
           path: screens
+
+  # Новый интерфейс в браузере: экраны, масштаб Windows, языки, темы — без обрезанного и налезающего текста
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Установка
+        run: |
+          python -m pip install -q -r requirements.txt
+          npm install --no-save playwright@1.63.0
+          npx playwright install --with-deps chromium
+      - name: Проверка нового интерфейса
+        timeout-minutes: 40
+        env:
+          PYTHON: python
+        run: node tools/web_matrix.js web-screens
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: web-screens
+          path: web-screens
 
   # Релиз выпускается сам, когда в файле VERSION новая версия (такого тега ещё нет)
   release:
