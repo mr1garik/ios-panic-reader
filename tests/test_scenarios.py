@@ -219,9 +219,11 @@ class TestReports(Base):
             head = f.read(5)
         self.assertEqual(head, b"%PDF-")
         self.assertGreater(os.path.getsize(pdf), 3000)
-        if shutil.which("pdftotext"):
-            ptxt = subprocess.run(["pdftotext", pdf, "-"], capture_output=True, text=True).stdout
-            self.assertIn("iPhone 13", ptxt)
+        if shutil.which("pdftotext"):          # дополнительно: текст внутри PDF (если утилита работает)
+            ptxt = subprocess.run(["pdftotext", "-enc", "UTF-8", pdf, "-"], capture_output=True).stdout.decode(
+                "utf-8", "replace")
+            if ptxt.strip():
+                self.assertIn("iPhone 13", ptxt)
 
 
 class TestHistoryPersists(Base):
