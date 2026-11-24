@@ -97,6 +97,24 @@ const PORT = 8899;
     if (!(await pg.$(".result"))) throw new Error("после снятия логов нет результата");
   });
 
+  // Настройки и перенос
+  await step("настройки: тема, масштаб, мастерская, проверка обновлений", async () => {
+    await pg.click("#btn-settings"); await pg.waitForSelector("#st-theme");
+    await pg.selectOption("#st-theme", "light"); await pg.waitForTimeout(400);
+    await pg.selectOption("#st-zoom", "1.25"); await pg.waitForTimeout(300);
+    await pg.fill("#st-ws", "Мастерская Тест"); await pg.click("#st-ws-save");
+    await pg.click("#st-auto"); await pg.click("#st-auto");
+    const theme = await api("app_info"); if (theme.theme !== "light" || theme.workshop !== "Мастерская Тест") throw new Error("настройки не сохранились");
+    await pg.selectOption("#st-zoom", "1"); await pg.selectOption("#st-theme", "neon"); await closeModal();
+  });
+  await step("перенос: сохранить в файл и загрузить обратно", async () => {
+    const path = require("os").tmpdir() + "/iospr-smoke-transfer.zip";
+    const r = await api("export_data", true, path);
+    if (!r || !r.phones) throw new Error("файл переноса пустой");
+    const r2 = await api("import_data", path);
+    if (!r2 || r2.visits !== 0) throw new Error("повторная загрузка удвоила данные: " + JSON.stringify(r2));
+  });
+
   // Сообщить об ошибке программы
   await step("сообщить об ошибке: окно с журналом", async () => {
     await pg.click("#btn-bug"); await pg.waitForSelector("#b-det");

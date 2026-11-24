@@ -35,6 +35,7 @@ const I = {
   clip: '<rect x="8" y="3" width="8" height="4" rx="1"/><path d="M8 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2"/>',
   pdf: '<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 13h6M9 17h4"/>',
   wrench: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L3 17.8V21h3.2l6.3-6.3a4 4 0 0 0 5.2-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
   bug: '<path d="M8 8a4 4 0 0 1 8 0v1H8z"/><rect x="7" y="9" width="10" height="11" rx="5"/><path d="M12 12v8M3 13h4M17 13h4M4 7l3 2M20 7l-3 2M4 20l3-2M20 20l-3-2"/>',
   pen: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/>',
   trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
@@ -63,6 +64,7 @@ async function boot() {
   $("#btn-theme").onclick = e => menu(e.currentTarget, Object.entries(INFO.themes).map(([k, v]) => [v, k === INFO.theme, () => setTheme(k)]));
   $("#btn-lang").onclick = e => menu(e.currentTarget, Object.entries(INFO.langs).map(([k, v]) => [v, k === INFO.lang, () => setLang(k)]));
   $("#btn-about").onclick = about;
+  $("#btn-settings").innerHTML = icon("gear"); $("#btn-settings").title = T.settings; $("#btn-settings").onclick = settingsDialog;
   $("#btn-bug").innerHTML = icon("bug"); $("#btn-bug").title = T.bug; $("#btn-bug").onclick = bugDialog;
   $("#zoom-in").onclick = () => zoomStep(1);
   $("#zoom-out").onclick = () => zoomStep(-1);
@@ -528,6 +530,45 @@ function about() {
   $("#a-iact", b).onclick = () => api.open_url("https://github.com/mr1garik/iActivator/releases/latest");
   $("#a-proj", b).onclick = () => api.open_url("https://github.com/mr1garik/iActivator");
   $("#a-copy", b).onclick = () => { copyText(INFO.donate.address); $("#a-copied", b).textContent = T.copied; };
+}
+
+// ---------- настройки и перенос на другой компьютер ----------
+function settingsDialog() {
+  const opt = (list, cur) => list.map(([k, v]) => `<option value="${esc(k)}" ${k === cur ? "selected" : ""}>${esc(v)}</option>`).join("");
+  const b = modal(`<div class="row" style="flex-wrap:nowrap">${icon("gear", "hdr-ic")}<h2 style="margin:0">${esc(T.settings)}</h2></div>
+    <div class="cap">${esc(T.s_look)}</div>
+    <div class="row" style="gap:12px">
+      <label class="small muted" style="flex:1 1 160px">${esc(T.theme)}<select id="st-theme" style="width:100%;margin-top:4px">${opt(Object.entries(INFO.themes), INFO.theme)}</select></label>
+      <label class="small muted" style="flex:1 1 160px">${esc(T.lang)}<select id="st-lang" style="width:100%;margin-top:4px">${opt(Object.entries(INFO.langs), INFO.lang)}</select></label>
+      <label class="small muted" style="flex:1 1 120px">${esc(T.zoom)}<select id="st-zoom" style="width:100%;margin-top:4px">${opt(ZOOMS.map(z => [String(z), Math.round(z * 100) + "%"]), String(INFO.zoom))}</select></label>
+    </div>
+    <div class="cap">${esc(T.workshop)}</div>
+    <div class="row" style="flex-wrap:nowrap"><input type="text" id="st-ws" style="flex:1" value="${esc(INFO.workshop)}"><button class="btn small" id="st-ws-save">${esc(T.save)}</button></div>
+    <div class="cap">${esc(T.s_updates)}</div>
+    <label class="chk"><input type="checkbox" id="st-auto" ${INFO.auto_update ? "checked" : ""}> ${esc(T.auto_update)}</label>
+    <hr><div class="cap" style="margin-top:0">${esc(T.s_transfer)}</div>
+    <div class="muted small">${esc(T.s_transfer_desc)}</div>
+    <label class="chk" style="margin-top:10px"><input type="checkbox" id="st-logs"> ${esc(T.s_with_logs)}</label>
+    <div class="row" style="margin-top:10px">
+      <button class="btn primary" id="st-export">${esc(T.s_export)}</button>
+      <button class="btn" id="st-import">${esc(T.s_import)}</button>
+      <button class="btn" id="st-dir">${icon("folder")}${esc(T.s_data)}</button></div>
+    <div class="modal-foot"><button class="btn" id="m-no">${esc(T.close)}</button></div>`);
+  $("#m-no", b).onclick = closeModal;
+  $("#st-theme", b).onchange = e => setTheme(e.target.value);
+  $("#st-lang", b).onchange = e => { closeModal(); setLang(e.target.value); };
+  $("#st-zoom", b).onchange = e => setZoom(+e.target.value);
+  $("#st-ws-save", b).onclick = async () => { await api.set_workshop($("#st-ws", b).value); INFO.workshop = $("#st-ws", b).value; toast("ok", T.save + " ✓"); };
+  $("#st-auto", b).onchange = e => { INFO.auto_update = e.target.checked; api.set_setting("auto_update", e.target.checked); };
+  $("#st-dir", b).onclick = () => api.open_path(INFO.data_dir);
+  $("#st-export", b).onclick = () => api.export_data($("#st-logs", b).checked);
+  $("#st-import", b).onclick = async () => {
+    const r = await api.import_data();
+    if (!r) return;
+    INFO = await api.app_info(); T = INFO.t; applyTheme(); setZoom(INFO.zoom || 1, false);
+    closeModal(); LAST_V = -1;
+    if (r.lang_changed) confirmBox(T.lang, T.restart_q, T.restart, () => api.restart());
+  };
 }
 
 // ---------- сообщить об ошибке программы ----------

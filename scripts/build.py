@@ -14,7 +14,7 @@ import tempfile
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # корень проекта
 APP = os.path.join(HERE, "app")
-MODULES = ["gui", "webui", "views", "screen", "core", "device", "knowledge_base", "history", "report_pdf", "updater",
+MODULES = ["gui", "webui", "views", "screen", "backup", "core", "device", "knowledge_base", "history", "report_pdf", "updater",
            "i18n", "themes"]
 
 

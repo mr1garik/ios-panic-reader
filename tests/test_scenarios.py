@@ -282,5 +282,82 @@ print(json.dumps(out, ensure_ascii=False))
         self.assertEqual(russian_only, [], "русские слова в украинской версии")
 
 
+class TestTransfer(Base):
+    """Перенос настроек и данных: компьютер А → файл → компьютер Б."""
+
+    def switch_home(self):
+        home = tempfile.mkdtemp(prefix="iospr-scn-b-")
+        os.environ["HOME"] = os.environ["USERPROFILE"] = home
+        self.core.KB[:] = [e for e in self.core.KB if not e.get("user")]
+        return home
+
+    def test_move_to_another_computer(self):
+        import zipfile
+        # компьютер А: телефон, заметка, ремонт, своё описание, логи, настройки
+        panic_file(self.logs_dir, datetime.now() - timedelta(days=1))
+        a = self.backend()
+        a.events.put(("pulled", self.dev()))
+        a.poll()
+        a.set_note(SERIAL, "клиент А")
+        a.mark_repair("шлейф", False)
+        a.set_workshop("Мастерская А")
+        a.set_setting("theme", "mint")
+        a.save_entry({"title": "Моя поломка", "pattern": "ZZDriver stuck", "part": "board", "fix": "перепайка"})
+        out = os.path.join(self.home, "перенос.zip")
+        res = a.export_data(True, out)
+        self.assertEqual(res["phones"], 1)
+        self.assertGreaterEqual(res["logs"], 1)
+        self.assertEqual(res["entries"], 1)
+
+        # компьютер Б: свой телефон и та же модель с другой заметкой
+        self.switch_home()
+        b = self.webui.Backend(with_device=False)
+        b.history.phones[SERIAL] = {"model": "iPhone 13", "serial": SERIAL, "note": "клиент Б", "visits": [],
+                                    "repairs": []}
+        b.history.phones["OTHER1"] = {"model": "iPhone 11", "serial": "OTHER1", "note": "", "visits": [], "repairs": []}
+        b.history.save()
+        r = b.import_data(out)
+        self.assertEqual(r["phones_merged"], 1)
+        p = b.phone_history(SERIAL)
+        self.assertIn("клиент А", p["note"])
+        self.assertIn("клиент Б", p["note"])           # своё не затёрто
+        self.assertEqual(len(p["repairs"]), 1)
+        self.assertIsNotNone(b.phone_history("OTHER1"))
+        self.assertEqual(b.app_info()["workshop"], "Мастерская А")
+        self.assertEqual(b.app_info()["theme"], "mint")
+        self.assertTrue(b.kb("Моя поломка")[0]["items"])
+        self.assertTrue(b.open_history_logs(SERIAL), "логи телефона не перенеслись")
+        # повторная загрузка того же файла ничего не удваивает
+        r2 = b.import_data(out)
+        self.assertEqual((r2["visits"], r2["repairs"], r2["entries"], r2["logs"]), (0, 0, 0, 0))
+        self.assertEqual(len(b.phone_history(SERIAL)["repairs"]), 1)
+        # перед загрузкой сделана копия истории
+        self.assertTrue(os.listdir(os.path.join(os.path.dirname(self.core.logs_root()), "backups")))
+
+    def test_bad_files_are_refused(self):
+        import zipfile
+        b = self.backend()
+        bad = os.path.join(self.home, "чужой.zip")
+        with zipfile.ZipFile(bad, "w") as z:
+            z.writestr("readme.txt", "не перенос")
+        self.assertIsNone(b.import_data(bad))
+        notes = b.poll()["notices"]
+        self.assertTrue(any(n["kind"] == "error" for n in notes))
+        # файл переноса с опасными путями: ничего не пишется за пределы папки логов
+        evil = os.path.join(self.home, "evil.zip")
+        with zipfile.ZipFile(evil, "w") as z:
+            z.writestr("manifest.json", json.dumps({"format": "iospr-backup"}))
+            z.writestr("Logs/../../escape.txt", "x")
+            z.writestr("Logs/a/../../escape2.txt", "x")
+            z.writestr("Logs//etc/passwd", "x")
+            z.writestr("Logs/ok phone/panic-full-ok.ips", "{}")
+        r = b.import_data(evil)
+        self.assertEqual(r["logs"], 1)
+        data = os.path.dirname(self.core.logs_root())
+        self.assertFalse(os.path.exists(os.path.join(data, "escape.txt")))
+        self.assertFalse(os.path.exists(os.path.join(self.home, "escape.txt")))
+        self.assertTrue(os.path.isfile(os.path.join(self.core.logs_root(), "ok phone", "panic-full-ok.ips")))
+
+
 if __name__ == "__main__":
     unittest.main()

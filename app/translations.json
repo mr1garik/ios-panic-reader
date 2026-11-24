@@ -211,6 +211,10 @@
   "en": "Stackshot / tailspin",
   "uk": "Stackshot / tailspin"
  },
+ "iOSPanicReader — перенос {0}.zip": {
+  "en": "iOSPanicReader — transfer {0}.zip",
+  "uk": "iOSPanicReader — перенесення {0}.zip"
+ },
  "iPhone подключён · ожидание подтверждения «Доверять»": {
   "en": "iPhone connected · waiting for “Trust” confirmation",
   "uk": "iPhone під'єднано · очікую підтвердження «Довіряти»"
@@ -422,6 +426,10 @@
  "Визиты": {
   "en": "Visits",
   "uk": "Візити"
+ },
+ "Вместе с логами телефонов (файл будет больше)": {
+  "en": "Include phone logs (the file will be larger)",
+  "uk": "Разом з логами телефонів (файл буде більшим)"
  },
  "Все": {
   "en": "All",
@@ -650,6 +658,14 @@
  "Загружено {0} из {1} МБ · {2}%": {
   "en": "Downloaded {0} of {1} MB · {2}%",
   "uk": "Завантажено {0} з {1} МБ · {2}%"
+ },
+ "Загружено: новых телефонов {0}, дополнено {1} (визитов +{2}, ремонтов +{3}), своих описаний +{4}, логов +{5}.": {
+  "en": "Loaded: {0} new phones, {1} updated (+{2} visits, +{3} repairs), +{4} own descriptions, +{5} logs.",
+  "uk": "Завантажено: нових телефонів {0}, доповнено {1} (візитів +{2}, ремонтів +{3}), своїх описів +{4}, логів +{5}."
+ },
+ "Загрузить из файла…": {
+  "en": "Load from file…",
+  "uk": "Завантажити з файлу…"
  },
  "Загрузка версии {0}": {
   "en": "Downloading version {0}",
@@ -971,6 +987,10 @@
   "en": "Found",
   "uk": "Знайдено"
  },
+ "Настройки": {
+  "en": "Settings",
+  "uk": "Налаштування"
+ },
  "Не найден драйвер Apple": {
   "en": "Apple driver not found",
   "uk": "Не знайдено драйвер Apple"
@@ -1115,9 +1135,17 @@
   "en": "Update",
   "uk": "Оновлення"
  },
+ "Обновления": {
+  "en": "Updates",
+  "uk": "Оновлення"
+ },
  "Один из шлейфов с микрофоном (зависит от модели).": {
   "en": "One of the flex cables with a microphone (depends on the model).",
   "uk": "Один зі шлейфів з мікрофоном (залежить від моделі)."
+ },
+ "Один файл с настройками, историей телефонов (визиты, ремонты, заметки) и своими описаниями ошибок. На другом компьютере данные из файла добавятся к имеющимся — ничего не затрётся.": {
+  "en": "One file with settings, phone history (visits, repairs, notes) and your own error descriptions. On another computer the data is added to what is already there — nothing is overwritten.",
+  "uk": "Один файл з налаштуваннями, історією телефонів (візити, ремонти, нотатки) і своїми описами помилок. На іншому комп'ютері дані з файлу додадуться до наявних — нічого не затреться."
  },
  "Ожидание iPhone…": {
   "en": "Waiting for an iPhone…",
@@ -1335,6 +1363,10 @@
   "en": "The panics differ and don't point to one part — usually software, less often power or memory.",
   "uk": "Паніки різні й не вказують на одну деталь — частіше ПЗ, рідше живлення або пам'ять."
  },
+ "Папка с данными": {
+  "en": "Data folder",
+  "uk": "Тека з даними"
+ },
  "Папка с логами": {
   "en": "Logs folder",
   "uk": "Тека з логами"
@@ -1350,6 +1382,10 @@
  "Перезапустить": {
   "en": "Restart",
   "uk": "Перезапустити"
+ },
+ "Перенос на другой компьютер": {
+  "en": "Move to another computer",
+  "uk": "Перенесення на інший комп'ютер"
  },
  "Переподключите кабель и нажмите «Доверять».": {
   "en": "Reconnect the cable and tap “Trust”.",
@@ -1727,9 +1763,17 @@
   "en": "Report a problem with the app",
   "uk": "Повідомити про помилку програми"
  },
+ "Сохранено в файл: {0}": {
+  "en": "Saved to file: {0}",
+  "uk": "Збережено у файл: {0}"
+ },
  "Сохранить": {
   "en": "Save",
   "uk": "Зберегти"
+ },
+ "Сохранить в файл…": {
+  "en": "Save to file…",
+  "uk": "Зберегти у файл…"
  },
  "Сохранить заметку": {
   "en": "Save note",
@@ -1822,6 +1866,10 @@
  "Телефон не видит: {0}. Где стоит: {1}": {
   "en": "The phone doesn't see: {0}. Located: {1}",
   "uk": "Телефон не бачить: {0}. Де стоїть: {1}"
+ },
+ "Телефонов: {0}, своих описаний: {1}, логов: {2}.": {
+  "en": "Phones: {0}, own descriptions: {1}, logs: {2}.",
+  "uk": "Телефонів: {0}, своїх описів: {1}, логів: {2}."
  },
  "Телефоны, которые подключали": {
   "en": "Phones that have been connected",
@@ -2022,6 +2070,10 @@
  "ЭТОТ ТЕЛЕФОН УЖЕ БЫЛ": {
   "en": "THIS PHONE HAS BEEN HERE BEFORE",
   "uk": "ЦЕЙ ТЕЛЕФОН УЖЕ БУВ"
+ },
+ "Это не файл переноса iOS Panic Reader.": {
+  "en": "This is not an iOS Panic Reader transfer file.",
+  "uk": "Це не файл перенесення iOS Panic Reader."
  },
  "Это расположение для iPhone — на {0} датчики стоят иначе, сверяйтесь со схемой.": {
   "en": "This is the location on iPhone — on {0} the sensors are placed differently, check the schematic.",

@@ -137,6 +137,12 @@ def _ui_strings():
         "f_fix": _("Что помогло / как исправить"), "f_models": _("Модели"),
         "save_local": _("Сохранить у себя"), "send_base": _("Сохранить и отправить в общую базу"),
         "delete": _("Удалить"), "no_part": _("— не указано —"),
+        "settings": _("Настройки"), "s_look": _("Вид"), "s_updates": _("Обновления"),
+        "s_transfer": _("Перенос на другой компьютер"),
+        "s_transfer_desc": _("Один файл с настройками, историей телефонов (визиты, ремонты, заметки) и своими описаниями ошибок. На другом компьютере данные из файла добавятся к имеющимся — ничего не затрётся."),
+        "s_with_logs": _("Вместе с логами телефонов (файл будет больше)"),
+        "s_export": _("Сохранить в файл…"), "s_import": _("Загрузить из файла…"),
+        "s_data": _("Папка с данными"),
         "erase_all": _("На всех подключённых ({0})"), "update_t": _("Доступна новая версия {0}"),
         "installed": _("Установлена версия {0}. Ваши данные при обновлении не изменятся."),
     }
@@ -867,6 +873,45 @@ class Backend:
         self.update_progress = None
         self._changed()
         return True
+
+    # ------------------------------------------------------------------ перенос настроек и данных
+    def export_data(self, include_logs=False, path=None):
+        """Сохранить настройки, историю и свои описания (и по желанию логи) в один файл .zip."""
+        import backup
+        if not path:
+            f = self._dialog("save", save_filename=_("iOSPanicReader — перенос {0}.zip", f"{datetime.now():%Y-%m-%d}"),
+                             file_types=("ZIP (*.zip)",))
+            if not f:
+                return None
+            path = f[0] if isinstance(f, (list, tuple)) else f
+        if not path.lower().endswith(".zip"):
+            path += ".zip"
+        self.history.save()
+        s = backup.export_backup(path, bool(include_logs), updater.current_version())
+        self._notice("ok", _("Сохранено в файл: {0}", path) + "\n" +
+                     _("Телефонов: {0}, своих описаний: {1}, логов: {2}.", s["phones"], s["entries"], s["logs"]))
+        return {"path": path, **s}
+
+    def import_data(self, path=None):
+        """Загрузить файл переноса: данные добавляются к имеющимся, ничего не затирается."""
+        import backup
+        if not path:
+            f = self._dialog("open", file_types=("ZIP (*.zip)",))
+            if not f:
+                return None
+            path = f[0] if isinstance(f, (list, tuple)) else f
+        old_lang, old_theme = self.history.setting("lang", ""), self.history.setting("theme", "neon")
+        try:
+            s = backup.import_backup(path)
+        except ValueError:
+            self._notice("error", _("Это не файл переноса iOS Panic Reader."))
+            return None
+        self.history = History()                # перечитать с диска
+        self._reanalyze()
+        self._notice("ok", _("Загружено: новых телефонов {0}, дополнено {1} (визитов +{2}, ремонтов +{3}), своих описаний +{4}, логов +{5}.",
+                             s["phones_new"], s["phones_merged"], s["visits"], s["repairs"], s["entries"], s["logs"]))
+        return {**s, "lang_changed": self.history.setting("lang", "") != old_lang,
+                "theme_changed": self.history.setting("theme", "neon") != old_theme}
 
     # ------------------------------------------------------------------ сообщить об ошибке программы
     def log_error(self, text):
