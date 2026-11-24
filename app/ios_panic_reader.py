@@ -69,8 +69,14 @@ def main():
         try:
             webui.run(args)
             return
-        except Exception as e:
-            print("веб-окно не запустилось, открываю прежнее:", e, file=sys.stderr)
+        except Exception:
+            import traceback
+            try:     # причина — в журнал рядом с данными, чтобы её можно было прислать
+                with open(os.path.join(os.path.dirname(core.logs_root()), "updates", "ui-error.log"), "w",
+                          encoding="utf-8") as f:
+                    f.write(traceback.format_exc())
+            except OSError:
+                pass
     from gui import run_gui
     run_gui(args)
 

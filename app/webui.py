@@ -907,10 +907,27 @@ def _test_hooks(ui, close):
     secs = os.environ.get("IOSPR_TEST_EXIT_AFTER")
     if secs:
         threading.Timer(float(secs), close).start()
-        threading.Timer(float(secs) + 60, lambda: os._exit(3)).start()    # если окно так и не закрылось
+
+
+def _ui_log():
+    """Журнал запуска окна (Документы/iOSPanicReader/updates/ui.log): ошибки веб-движка — для разбора."""
+    import logging
+    path = os.path.join(os.path.dirname(core.logs_root()), "updates", "ui.log")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    h = logging.FileHandler(path, mode="w", encoding="utf-8")
+    h.setFormatter(logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s"))
+    for name in ("pywebview", "webview"):
+        lg = logging.getLogger(name)
+        lg.addHandler(h)
+        lg.setLevel(logging.DEBUG if os.environ.get("IOSPR_UI_REPORT") else logging.INFO)
+    return path
 
 
 def run(initial_paths=()):
+    _ui_log()
+    secs = os.environ.get("IOSPR_TEST_EXIT_AFTER")
+    if secs:          # автотест: если окно так и не закрылось — выйти в любом случае
+        threading.Timer(float(secs) + 90, lambda: os._exit(3)).start()
     import webview
     backend = Backend()
     if initial_paths:

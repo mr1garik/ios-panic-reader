@@ -63,7 +63,11 @@ jobs:
           $env:IOSPR_UI_REPORT = "$env:RUNNER_TEMP\ui.txt"; $env:IOSPR_TEST_EXIT_AFTER = "10"
           $env:USERPROFILE = "$env:RUNNER_TEMP\ui-home"; New-Item -ItemType Directory -Force $env:USERPROFILE | Out-Null
           $p = Start-Process dist\iOSPanicReader.exe -PassThru
-          if (-not $p.WaitForExit(120000)) { Stop-Process -Id $p.Id -Force; Write-Error "окно не закрылось"; exit 1 }
+          $ok = $p.WaitForExit(150000)
+          $logs = "$env:USERPROFILE\Documents\iOSPanicReader\updates"
+          foreach ($f in "ui.log", "ui-error.log") { if (Test-Path "$logs\$f") { Write-Host "--- $f"; Get-Content "$logs\$f" | Select-Object -Last 60 } }
+          if (-not $ok) { Stop-Process -Id $p.Id -Force; Write-Error "окно не закрылось"; exit 1 }
+          if (-not (Test-Path $env:IOSPR_UI_REPORT)) { Write-Error "страница не загрузилась"; exit 1 }
           $ui = (Get-Content $env:IOSPR_UI_REPORT -Raw).Trim()
           Write-Host "интерфейс: $ui"
           if ($ui -ne "web") { Write-Error "открылось запасное окно вместо нового"; exit 1 }
@@ -192,7 +196,8 @@ jobs:
           export IOSPR_UI_REPORT="$RUNNER_TEMP/ui.txt" IOSPR_TEST_EXIT_AFTER=10 HOME="$RUNNER_TEMP/ui-home"
           mkdir -p "$HOME"
           dist/iOSPanicReader.app/Contents/MacOS/iOSPanicReader & pid=$!
-          for i in $(seq 1 120); do kill -0 $pid 2>/dev/null || break; sleep 1; done
+          for i in $(seq 1 150); do kill -0 $pid 2>/dev/null || break; sleep 1; done
+          for f in ui.log ui-error.log; do [ -f "$HOME/Documents/iOSPanicReader/updates/$f" ] && { echo "--- $f"; tail -60 "$HOME/Documents/iOSPanicReader/updates/$f"; }; done
           kill -0 $pid 2>/dev/null && { kill $pid; echo "окно не закрылось"; exit 1; }
           echo "интерфейс: $(cat "$IOSPR_UI_REPORT")"
           test "$(cat "$IOSPR_UI_REPORT")" = "web"
