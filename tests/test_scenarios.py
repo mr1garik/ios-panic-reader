@@ -249,7 +249,8 @@ out = dict(t=b.app_info()["t"], problems=[{{k: p[k] for k in ("title", "how", "w
            parts=[r["name"] + r["fails"] for r in b.parts()["rows"]])
 print(json.dumps(out, ensure_ascii=False))
 """
-        env = dict(os.environ, IOSPR_LANG=lang, HOME=tempfile.mkdtemp(), USERPROFILE=tempfile.mkdtemp())
+        env = dict(os.environ, IOSPR_LANG=lang, HOME=tempfile.mkdtemp(), USERPROFILE=tempfile.mkdtemp(),
+                   PYTHONIOENCODING="utf-8")          # консоль Windows по умолчанию не в UTF-8
         r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, env=env, encoding="utf-8")
         self.assertEqual(r.returncode, 0, r.stderr[-2000:])
         data = json.loads(r.stdout.strip().splitlines()[-1])
