@@ -16,13 +16,19 @@ fs.mkdirSync(out, { recursive: true });
 // окно программы в CSS-пикселях = экран (без панели задач и рамки) / масштаб Windows
 const SCREENS = [[1280, 720, 1], [1366, 768, 1], [1366, 768, 1.25], [1536, 864, 1.25], [1920, 1080, 1],
   [1920, 1080, 1.5], [2560, 1440, 1.5], [3840, 2160, 2], [3840, 2160, 3]];
-const LANGS = quick ? ["ru"] : ["ru", "en", "uk"];
-const THEMES = quick ? ["neon"] : ["neon", "light", "dark", "night", "mint", "graphite"];
+const opt = k => { const a = process.argv.find(x => x.startsWith(`--${k}=`)); return a && a.split("=")[1].split(","); };
+const LANGS = opt("langs") || (quick ? ["ru"] : ["ru", "en", "uk"]);
+const THEMES = opt("themes") || (quick ? ["neon"] : ["neon", "light", "dark", "night", "mint", "graphite"]);
+const ONLY = opt("screens");            // например --screens=1366x768@1.25,1920x1080@1
 
 function server(lang, port) {
-  const p = spawn(process.env.PYTHON || "python3", [path.join(ROOT, "tools", "webui_dev.py"), "--demo", "--port", String(port), "--lang", lang],
-    { stdio: ["ignore", "pipe", "inherit"] });
-  return new Promise(res => p.stdout.on("data", d => { if (String(d).includes("http")) res(p); }));
+  const p = spawn(process.env.PYTHON || "python3", ["-u", path.join(ROOT, "tools", "webui_dev.py"), "--demo", "--port", String(port), "--lang", lang],
+    { stdio: ["ignore", "pipe", "inherit"], env: { ...process.env, PYTHONUNBUFFERED: "1" } });
+  return new Promise((res, rej) => {
+    const t = setTimeout(() => { p.kill(); rej(new Error("страница с демо-данными не запустилась за 60 с")); }, 60000);
+    p.stdout.on("data", d => { if (String(d).includes("http")) { clearTimeout(t); res(p); } });
+    p.on("exit", c => { clearTimeout(t); rej(new Error("webui_dev.py завершился с кодом " + c)); });
+  });
 }
 
 // аудит страницы (выполняется в браузере)
@@ -71,7 +77,8 @@ function audit() {
     const srv = await server(lang, ++port);
     const url = `http://127.0.0.1:${port}/index.html`;
     for (const theme of THEMES) {
-      const screens = theme === "neon" ? SCREENS : [[1366, 768, 1.25]];
+      let screens = theme === "neon" ? SCREENS : [[1366, 768, 1.25]];
+      if (ONLY) screens = screens.filter(([w, h, d]) => ONLY.includes(`${w}x${h}@${d}`));
       for (const [sw, sh, dpr] of screens) {
         const w = Math.round((sw - 16) / dpr), h = Math.round((sh - 48 - 40) / dpr);   // рамка, панель задач, заголовок
         const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: dpr });

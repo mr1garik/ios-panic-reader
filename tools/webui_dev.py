@@ -74,5 +74,5 @@ if __name__ == "__main__":
     ap.add_argument("--lang", default="ru")
     a = ap.parse_args()
     s = make_server(a.port, a.demo, a.lang)
-    print(f"http://127.0.0.1:{s.server_address[1]}/index.html")
+    print(f"http://127.0.0.1:{s.server_address[1]}/index.html", flush=True)
     s.serve_forever()
