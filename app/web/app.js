@@ -185,7 +185,7 @@ async function renderPhone() {
   d.problems.forEach((p, i) => { right += problemCard(p, i + 1, d.problems.length); });
   if (d.groups.length) {
     right += `<div class="card"><h2>${esc(T.groups)}</h2><div class="groups">${d.groups.map(g =>
-      `<div class="group"><span class="dot ${g.level}"></span><span class="t" title="${esc(g.title)}">${esc(g.title)}</span><span class="n">${g.n}/${g.total}</span></div>`).join("")}</div></div>`;
+      `<div class="group" data-group="${esc(g.title)}" title="${esc(T.show_logs)}"><span class="dot ${g.level}"></span><span class="t" title="${esc(g.title)}">${esc(g.title)}</span><span class="n">${g.n}/${g.total}</span></div>`).join("")}</div></div>`;
   }
   if (d.chart) right += chart(d.chart);
   if (d.other.length) right += `<div class="card"><h2>${esc(T.other)}</h2>${d.other.map(([l, t]) => `<div class="row" style="flex-wrap:nowrap;align-items:flex-start;margin:4px 0"><span class="dot ${l}" style="margin-top:7px"></span><span>${esc(t)}</span></div>`).join("")}</div>`;
@@ -199,6 +199,9 @@ async function renderPhone() {
     ${d.connected ? `<div class="row"><button class="btn danger" data-a="erase">${icon("trash")}${esc(T.erase)}</button><span class="muted small">${esc(T.erase_note)}</span></div>` : ""}`;
   el.innerHTML = `<div class="result"><div class="col">${left}</div><div class="col">${right}</div></div>`;
   el.querySelectorAll("[data-toggle]").forEach(r => r.onclick = () => r.classList.toggle("open"));
+  el.querySelectorAll("[data-group]").forEach(g => g.onclick = () => {      // группа → её логи
+    STATE.logQ = g.dataset.group; STATE.part = null; STATE.logSel = null; show("logs");
+    const q = $("#logs-q"); if (q) q.value = STATE.logQ; });
   bindActions(el);
 }
 
@@ -282,6 +285,7 @@ async function renderLogs() {
       </div>
       <div class="split-body"><div class="card panel" style="padding:8px"><div class="list" id="logs-list"></div></div>
       <div class="card panel" id="logs-detail"></div></div>`;
+    $("#logs-q").value = STATE.logQ;
     $("#logs-q").oninput = e => { STATE.logQ = e.target.value; renderLogs(); };
     $("#logs-panic").onchange = e => { STATE.onlyPanic = e.target.checked; renderLogs(); };
     bindActions(el);

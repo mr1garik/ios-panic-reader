@@ -191,6 +191,7 @@ select option { background: var(--c-card); color: var(--c-text); }
 .groups { display: grid; gap: 6px; }
 .group { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 12px;
   border-radius: 10px; background: color-mix(in srgb, var(--c-bg) 40%, transparent); border: 1px solid var(--c-line); }
+.group { cursor: pointer; } .group:hover { border-color: var(--c-blue); }
 .group .n { font-weight: 700; font-size: 12px; padding: 2px 9px; border-radius: 8px; background: var(--c-gray_bg); white-space: nowrap; }
 .group .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chart { display: flex; align-items: flex-end; gap: 3px; height: 120px; padding-top: 18px; position: relative; }
