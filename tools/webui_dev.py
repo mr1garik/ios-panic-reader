@@ -42,6 +42,15 @@ def make_server(port=0, demo=True, lang="ru", theme=None):
             pass
 
         def do_POST(self):
+            if self.path == "/test/event":          # только для тестов: событие телефона, как от DeviceWatcher
+                n = int(self.headers.get("Content-Length") or 0)
+                ev = json.loads(self.rfile.read(n) or b"[]")
+                if ev and ev[0] == "pulled" and dev:
+                    ev = ["pulled", dict(dev)]
+                backend.events.put(tuple(ev))
+                self.send_response(204)
+                self.end_headers()
+                return
             name = self.path.rsplit("/", 1)[-1]
             n = int(self.headers.get("Content-Length") or 0)
             args = json.loads(self.rfile.read(n) or b"[]")

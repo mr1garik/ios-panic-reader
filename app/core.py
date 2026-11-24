@@ -875,7 +875,9 @@ _PRIVATE = [
     (re.compile(r"\b[0-9a-fA-F]{40}\b"), "<UDID>"),                             # старый UDID
     (re.compile(r"\b[0-9A-F]{8}-[0-9A-F]{16}\b"), "<UDID>"),                    # новый UDID
     (re.compile(r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b"), "<UUID>"),
-    (re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+"), "<email>"),
+    # длины частей ограничены (как у настоящих адресов) — без этого длинный текст без пробелов
+    # обрабатывается квадратично и окно зависает
+    (re.compile(r"(?<![\w.+-])[\w.+-]{1,64}@[\w-]{1,63}\.[\w.-]{1,190}"), "<email>"),
     (re.compile(r"(?i)(serial(?:number)?|sn|imei|meid|ecid|udid)[\"']?\s*[:=]\s*[\"']?[\w-]+"), r"\1: <скрыто>"),
     (re.compile(r"(/Users/|/home/|C:\\\\Users\\\\|C:\\Users\\)[^/\\\s\"]+"), r"\1<user>"),
 ]
@@ -896,7 +898,7 @@ def report_for_database(info, limit=3500):
              "Recognized: " + (", ".join(e["id"] for e, _hit in info["findings"]) or "nothing"),
              f"Missing sensors: {', '.join(info['missing_sensors']) or '—'}", "", "```"]
     body = info["panic"] or info["exception"] or ""
-    body = anonymize(body.strip())
+    body = anonymize(body.strip()[:limit * 2])
     if len(body) > limit:
         body = body[:limit] + "\n…"
     lines += [body, "```"]

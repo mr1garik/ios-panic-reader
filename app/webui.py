@@ -329,7 +329,9 @@ class Backend:
     # ------------------------------------------------------------------ экран «Телефон»
     def phone(self):
         st = self.phone_state
-        if st != "result" and not self.logs:
+        # подключение нового телефона (Доверять / разблокировать / снимаю логи / ошибка) показывается
+        # поверх прошлого результата — как в прежнем окне
+        if st != "result":
             return {"state": st, "error": self.error_text, "dev": self._dev_view()}
         logs = self._view_logs()
         d = self.dev

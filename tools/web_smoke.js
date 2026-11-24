@@ -79,6 +79,21 @@ const PORT = 8899;
     await pg.evaluate(() => updateDialog({ version: "9.9.9", notes: "## Новое\n* пункт", can_self: false }));
     await pg.waitForSelector("#u-later"); await pg.click("#u-later"); });
 
+  // Подключение телефона: экраны состояний, как их показывает связь с iPhone
+  const ev = (...e) => pg.evaluate(e => fetch("/test/event", { method: "POST", body: JSON.stringify(e) }), e);
+  await step("телефон: экраны «Доверять», «Разблокируйте», «Снимаю логи», ошибка", async () => {
+    await pg.click('.nav-item[data-view="phone"]');
+    await api("again");
+    for (const [code, want] of [["trust", ".hero h1"], ["unlock", ".hero h1"], ["denied", ".hero.err"], ["error", ".hero.err"]]) {
+      await ev("state", code, code === "error" ? "Тестовая ошибка связи" : ""); await pg.waitForTimeout(900);
+      if (!(await pg.$(want))) throw new Error("нет экрана " + code);
+    }
+    await ev("info", { model: "iPhone 13", ios: "18.6", serial: "F17DEMO0000", udid: "F17DEMO0000" }); await pg.waitForTimeout(900);
+    if (!(await pg.$(".spinner"))) throw new Error("нет экрана «Снимаю логи»");
+    await ev("pulled"); await pg.waitForTimeout(1200);
+    if (!(await pg.$(".result"))) throw new Error("после снятия логов нет результата");
+  });
+
   // Сообщить об ошибке программы
   await step("сообщить об ошибке: окно с журналом", async () => {
     await pg.click("#btn-bug"); await pg.waitForSelector("#b-det");
