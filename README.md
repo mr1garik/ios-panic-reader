@@ -30,13 +30,16 @@
 |---|---|
 | 🔌 **Pulls the logs for you** | Connect the cable, tap “Trust” on the phone — the app collects every fault log and shows the model, iOS, IMEI, battery wear and cycle count. |
 | 🩺 **Tells you what's broken** | Not “thermalmonitord panic” but “**Charging flex** — the phone can't see the bottom microphone and the barometer”. With how the phone behaves, why, and what to do. |
-| 📊 **Confidence and a chart** | “17 of 18 panics point to this part”, plus panics per day — you can see when the trouble started. |
+| 📊 **Probability and a chart** | “Charging flex 94%” — and why; error groups with counts and panics per day — you can see when the trouble started. |
+| 🧭 **Where to look on the board** | For every problem — the zone of the phone on a sketch and what to check. The raw log with found lines highlighted. |
 | 🔧 **Before and after repair** | “Mark repair” — from then on only new faults count: “No panics since the repair ✓”. |
 | 🗂 **Phone history** | Every connected phone with visits, repairs and notes. When a customer comes back, you see what happened last time. |
 | 📄 **PDF for the customer** | A report with the conclusion, the state of each part and your workshop name. |
 | 🔎 **Error search** | A code (4013), a sensor (mic1), a bus (i2c3), a word or a line from a panic — across the database and all logs. Paste panic text from the phone and get the analysis right away. |
 | 🌍 **Three languages, auto-update** | Русский, English, Українська. Like 3uTools: at startup a “New version available” window with the changes, “Update now” downloads with a progress bar and restarts. Your data is never touched. |
 | 📱 **By model** | Pick a model (or it's taken from the connected phone) — connector, Face ID / Touch ID, eSIM, which parts are serialized, where the sensors are, I2C buses and errors typical for that model. |
+| ✍️ **Your own fixes** | “Add my description” on any log: what helped. The app recognises that panic from then on; you can send it to the shared database. |
+| 🐞 **Report a problem** | One button — version, system and error logs without personal data, as a GitHub issue. |
 | 🤝 **Grow the database** | “Suggest for the database” on any log: the app removes the serial number, IMEI, UDID and paths, shows exactly what will be sent and opens a GitHub issue. |
 
 ## Screenshots
