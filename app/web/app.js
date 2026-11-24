@@ -52,7 +52,10 @@ async function boot() {
   $("#btn-about").innerHTML = icon("info");
   $("#btn-lang").textContent = INFO.lang.toUpperCase();
   $("#btn-theme").title = T.theme; $("#btn-about").title = T.about; $("#btn-lang").title = T.lang;
-  setZoom(INFO.zoom, false);
+  // масштаб, сохранённый на большом экране, на маленьком уменьшается, чтобы всё помещалось
+  let z0 = INFO.zoom || 1;
+  while (z0 > ZOOMS[0] && window.innerWidth / z0 < 900) z0 = ZOOMS[Math.max(0, ZOOMS.findIndex(x => x >= z0) - 1)];
+  setZoom(z0, false);
   const nav = $("#nav");
   nav.innerHTML = ["phone", "parts", "logs", "history", "kb"].map((k, i) =>
     `<button class="nav-item" data-view="${k}" title="${esc(T[k])} (${INFO.mod}+${i + 1})">${icon(k)}<span>${esc(T[k])}</span></button>`).join("");
@@ -82,10 +85,21 @@ function applyTheme() {
 }
 
 const ZOOMS = [0.8, 0.9, 1.0, 1.1, 1.25, 1.4, 1.6];
+// Высота окна с учётом масштаба: при CSS-zoom «100vh» растягивается в zoom раз и низ уходит за край
+// (так в WebKit на Mac и в Chromium на Windows), поэтому высоту считаем сами.
+function fitHeight() {
+  const z = INFO?.zoom || 1, w = window.innerWidth / z, h = window.innerHeight / z;
+  document.documentElement.style.setProperty("--vh", h + "px");
+  const b = document.body.classList;
+  b.toggle("w-narrow", w <= 1100); b.toggle("w-compact", w <= 980); b.toggle("w-tiny", w <= 560); b.toggle("h-short", h < 820);
+}
+window.addEventListener("resize", fitHeight);
+
 function setZoom(z, save = true) {
   document.body.style.zoom = z;
-  $("#zoom-val").textContent = Math.round(z * 100) + "%";
   INFO.zoom = z;
+  fitHeight();
+  $("#zoom-val").textContent = Math.round(z * 100) + "%";
   if (save) api.set_setting("zoom", z);
 }
 function zoomStep(d) {

@@ -2,7 +2,8 @@
 // языка и масштаба, поиск по архиву, «после ремонта», вставку паники. Ловит ошибки JavaScript
 // и ошибки Python (ответ 500). Выход с кодом 1, если что-то упало.
 //   node tools/web_smoke.js
-const { chromium } = require("playwright");
+const pw = require("playwright");
+const ENGINE = process.env.BROWSER || "chromium";
 const { spawn } = require("child_process");
 const path = require("path");
 
@@ -16,7 +17,7 @@ const PORT = 8899;
   srv.stderr.on("data", d => pyErr.push(String(d)));
   await new Promise((res, rej) => { srv.stdout.on("data", d => String(d).includes("http") && res()); setTimeout(() => rej(new Error("сервер не запустился")), 60000); });
 
-  const browser = await chromium.launch();
+  const browser = await pw[ENGINE].launch();
   const pg = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   const errs = [];
   pg.on("pageerror", e => errs.push("JS: " + e.message));
