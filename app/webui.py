@@ -123,6 +123,20 @@ def _ui_strings():
         "found_in": _("В базе ошибок"), "in_logs": _("В логах"), "model_profile": _("Профиль модели"),
         "show_all": _("Показать все логи"), "only_after": _("Только после ремонта"), "zoom": _("Масштаб"),
         "board_hint": _("Схема — ориентир: точное место смотрите по схеме своей платы."),
+        "bug": _("Сообщить об ошибке"), "bug_title": _("Сообщить об ошибке программы"),
+        "bug_desc": _("Опишите, что случилось. Программа добавит версию, систему и журналы ошибок — без серийных номеров, IMEI и путей. Откроется страница GitHub — отправляете вы сами."),
+        "bug_what": _("Что случилось и что вы делали перед этим"),
+        "bug_details": _("Что будет отправлено вместе с описанием"),
+        "add_entry": _("Добавить своё описание"), "edit_entry": _("Изменить своё описание"),
+        "entry_title": _("Своё описание ошибки"),
+        "entry_desc": _("Запись сохранится у вас, и программа сразу начнёт узнавать такую ошибку в логах. По желанию её можно отправить в общую базу."),
+        "f_title": _("Название"), "f_part": _("Деталь"), "f_cat": _("Раздел"),
+        "f_pattern": _("Текст из лога, по которому узнавать"),
+        "f_pattern_hint": _("Адреса и числа программа заменит на «любые» — подойдёт для логов с другими цифрами."),
+        "f_symptoms": _("Как ведёт себя телефон"), "f_cause": _("Почему (если известно)"),
+        "f_fix": _("Что помогло / как исправить"), "f_models": _("Модели"),
+        "save_local": _("Сохранить у себя"), "send_base": _("Сохранить и отправить в общую базу"),
+        "delete": _("Удалить"), "no_part": _("— не указано —"),
         "erase_all": _("На всех подключённых ({0})"), "update_t": _("Доступна новая версия {0}"),
         "installed": _("Установлена версия {0}. Ваши данные при обновлении не изменятся."),
     }
@@ -561,7 +575,9 @@ class Backend:
             groups.append({"title": _("Профиль модели: {0}", model), "items": [
                 {"id": f"model:{product}", "title": _("Профиль модели: {0}", model), "where": "", "level": "blue"}]})
         groups.append({"title": _("В базе ошибок ({0})", len(rows)),
-                       "items": [{"id": f"{typ}:{key}", "title": title, "where": _(c), "level": ""}
+                       "items": [{"id": f"{typ}:{key}", "title": title,
+                                  "where": _("Своя запись") if typ == "entry" and KB[key].get("user") else _(c),
+                                  "level": "green" if typ == "entry" and KB[key].get("user") else ""}
                                  for typ, key, title, c in rows[:800]]})
         q = (q or "").strip()
         if q and scope != "base":
@@ -610,8 +626,10 @@ class Backend:
             if int(key) >= len(self._kb_logs):
                 return {"parts": [(_("Ничего не найдено. Попробуйте другое слово или код.\n"), "body")]}
             l = self._kb_logs[int(key)]
-            return {"parts": views.log_parts(l)}
-        return {"parts": views.entry_parts(KB[int(key)], self.logs)}
+            return {"parts": views.log_parts(l), "editable": True}
+        e = KB[int(key)]
+        return {"parts": views.entry_parts(e, self.logs), "editable": True, "user": bool(e.get("user")),
+                "entry_id": e["id"]}
 
     # ------------------------------------------------------------------ действия
     def open_files(self):
@@ -844,6 +862,107 @@ class Backend:
         self._changed()
         return True
 
+    # ------------------------------------------------------------------ сообщить об ошибке программы
+    def log_error(self, text):
+        """Ошибка на странице (JavaScript) — в журнал errors.log."""
+        _log_error("page", str(text)[:4000])
+        return True
+
+    def bug_report(self):
+        """Текст отчёта об ошибке программы: версия, система, журналы — без личных данных."""
+        import platform
+        data = self._data_dir()
+        lines = [f"Version: {updater.current_version()}", f"System: {platform.platform()}",
+                 f"Python: {platform.python_version()}", f"Language: {i18n.LANG}",
+                 f"Interface: {'web' if self.window else 'test'}", f"Phone connected: {bool(self.connected)}"]
+        for name in ("errors.log", "ui-error.log", "ui.log", "update.log"):
+            path = os.path.join(data, "updates", name)
+            if os.path.isfile(path):
+                try:
+                    with open(path, encoding="utf-8", errors="replace") as f:
+                        tail = f.read().splitlines()[-40:]
+                    lines += ["", f"--- {name} (last {len(tail)} lines)"] + tail
+                except OSError:
+                    pass
+        text = "\n".join(lines)
+        return core.anonymize(text.replace(os.path.expanduser("~"), "~"))
+
+    def bug_send(self, description, details):
+        body = (_("Что случилось и что вы делали перед этим:") + "\n" + (description or "").strip() + "\n\n```\n" +
+                (details or "")[:5000] + "\n```")
+        title = "[bug] " + ((description or "").strip().splitlines() or ["ошибка в программе"])[0][:80]
+        return self.open_url(ISSUES_URL + urllib.parse.urlencode({"title": title, "body": body, "labels": "bug"}))
+
+    # ------------------------------------------------------------------ своё описание ошибки
+    def entry_form(self, source=""):
+        """Заготовка формы «Своё описание»: из лога (log:N, klog:N) или записи базы (entry:N)."""
+        form = {"id": "", "title": "", "part": "", "cat": "Паника ядра", "symptoms": "", "cause": "", "fix": "",
+                "pattern": "", "models": "", "user": False}
+        typ, _sep, key = (source or "").partition(":")
+        l = None
+        if typ == "log" and key.isdigit() and int(key) < len(self.logs):
+            l = self.logs[int(key)]
+        elif typ == "klog" and key.isdigit() and int(key) < len(self._kb_logs):
+            l = self._kb_logs[int(key)]
+        if l:
+            part = core.panic_part(l)
+            form.update(title=views.log_title(l), part=part or "", pattern=core.pattern_hint(l),
+                        models=l.get("model") or "", cat="Паника ядра" if l["is_panic"] else "Вылет приложения")
+            if l["findings"]:
+                e = l["findings"][0][0]
+                form.update(symptoms=e.get("symptoms", ""), cause=e.get("cause", ""))
+        elif typ == "entry" and key.isdigit() and int(key) < len(KB):
+            e = KB[int(key)]
+            form.update(title=e["title"], cat=e.get("cat", "Паника ядра"), symptoms=e.get("symptoms", ""),
+                        cause=e.get("cause", ""), fix=e.get("fix", ""), models=e.get("models", ""),
+                        part=e.get("part") or core.KB_PART.get(e["id"], ""))
+            if e.get("user"):        # своя запись — редактируем её
+                form.update(id=e["id"], user=True, pattern=e.get("pattern_text") or "")
+        form["parts"] = [[k, v] for k, v in core.PARTS]
+        form["cats"] = [[c, _(c)] for c in CATEGORIES]
+        return form
+
+    def save_entry(self, form):
+        title = (form.get("title") or "").strip()
+        pattern = (form.get("pattern") or "").strip()
+        if not title or not pattern:
+            self._notice("error", _("Заполните название и текст из лога, по которому узнавать ошибку."))
+            return None
+        entry = {"id": form.get("id") or "", "title": title, "cat": form.get("cat") or "Паника ядра",
+                 "part": form.get("part") or "", "symptoms": form.get("symptoms", "").strip(),
+                 "cause": form.get("cause", "").strip(), "fix": form.get("fix", "").strip(),
+                 "models": form.get("models", "").strip(), "node": core.PART_NAMES.get(form.get("part"), _("Своя запись")),
+                 "patterns": [core.text_to_pattern(pattern)], "pattern_text": pattern}
+        entry_id = core.save_user_entry(entry)
+        self._reanalyze()
+        self._notice("ok", _("Описание сохранено. Программа будет узнавать эту ошибку в логах."))
+        return entry_id
+
+    def delete_entry(self, entry_id):
+        core.delete_user_entry(entry_id)
+        self._reanalyze()
+        self._notice("ok", _("Своя запись удалена."))
+        return True
+
+    def send_entry(self, form):
+        body = "\n".join([f"**{_('Название')}:** {form.get('title', '')}",
+                          f"**{_('Деталь')}:** {core.PART_NAMES.get(form.get('part'), form.get('part', ''))}",
+                          f"**{_('Модели')}:** {form.get('models', '')}",
+                          f"**{_('Текст из лога')}:** `{form.get('pattern', '')}`", "",
+                          f"**{_('Как ведёт себя телефон')}:** {form.get('symptoms', '')}",
+                          f"**{_('Почему')}:** {form.get('cause', '')}",
+                          f"**{_('Что помогло')}:** {form.get('fix', '')}"])
+        return self.open_url(ISSUES_URL + urllib.parse.urlencode(
+            {"title": "[база] " + (form.get("title") or "")[:90], "body": core.anonymize(body)[:6000]}))
+
+    def _reanalyze(self):
+        """После изменения своих записей — заново распознать открытые логи."""
+        for l in self.logs:
+            l["findings"] = []
+            l["missing_sensors"] = []
+            core.analyze(l)
+        self._changed()
+
     # ------------------------------------------------------------------ для страницы: проверка шрифтов и окон
     def ping(self):
         return "pong"
@@ -925,13 +1044,31 @@ def _ui_log():
     return path
 
 
+def _log_error(where, text):
+    """Сбои программы — в Документы/iOSPanicReader/updates/errors.log (для «Сообщить об ошибке»)."""
+    try:
+        path = os.path.join(os.path.dirname(core.logs_root()), "updates", "errors.log")
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        if os.path.isfile(path) and os.path.getsize(path) > 200_000:      # не разрастаться
+            os.replace(path, path + ".old")
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(f"{datetime.now():%Y-%m-%d %H:%M:%S} v{updater.current_version()} [{where}] {text}\n")
+    except OSError:
+        pass
+
+
 def js_api(backend):
     """Для страницы — только действия Backend (методы без «_»). Сам Backend со всем содержимым
     (окно, история, поток устройств) странице не отдаётся: pywebview обходит отданный объект целиком,
     и обход окна из чужого потока ломает WebView2 на Windows."""
     def make(name):
         def call(self, *args):
-            return getattr(backend, name)(*args)
+            try:
+                return getattr(backend, name)(*args)
+            except Exception:
+                import traceback
+                _log_error(name, traceback.format_exc())
+                raise
         call.__name__ = name
         return call
     names = [n for n in dir(Backend) if not n.startswith("_") and callable(getattr(Backend, n))]

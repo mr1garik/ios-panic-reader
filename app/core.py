@@ -31,24 +31,96 @@ def logs_root():
     return d
 
 
-def load_user_kb():
-    """Свои записи из user_kb.json: в папке данных (Документы/iOSPanicReader — переживает
-    обновления) или, по-старому, рядом с программой."""
-    path = next((p for p in (os.path.join(os.path.dirname(logs_root()), "user_kb.json"),
-                             os.path.join(app_dir(), "user_kb.json")) if os.path.isfile(p)), None)
+def user_kb_path():
+    return os.path.join(os.path.dirname(logs_root()), "user_kb.json")
+
+
+def _user_entries():
+    path = next((p for p in (user_kb_path(), os.path.join(app_dir(), "user_kb.json")) if os.path.isfile(p)), None)
     if not path:
-        return
+        return []
     try:
         with open(path, encoding="utf-8") as f:
-            extra = json.load(f)
-        for e in extra:
-            e.setdefault("patterns", [])
-            e.setdefault("cat", "Паника ядра")
-            for k in ("node", "symptoms", "cause", "fix"):
-                e.setdefault(k, "")
-            KB.insert(0, e)
+            data = json.load(f)
+        return data if isinstance(data, list) else []
     except Exception as ex:
         print("user_kb.json:", ex)
+        return []
+
+
+def _prepare_user_entry(e):
+    e.setdefault("patterns", [])
+    e.setdefault("cat", "Паника ядра")
+    for k in ("node", "symptoms", "cause", "fix", "title"):
+        e.setdefault(k, "")
+    e.setdefault("id", "user_" + re.sub(r"\W+", "_", e["title"].lower())[:40])
+    e["user"] = True
+    # плохой шаблон не должен ломать разбор логов
+    ok = []
+    for p in e["patterns"]:
+        try:
+            re.compile(p)
+            ok.append(p)
+        except re.error:
+            ok.append(re.escape(p))
+    e["patterns"] = ok
+    return e
+
+
+def load_user_kb():
+    """Свои записи из user_kb.json: в папке данных (Документы/iOSPanicReader — переживает
+    обновления) или, по-старому, рядом с программой. Свои записи проверяются первыми."""
+    for e in reversed(_user_entries()):
+        KB.insert(0, _prepare_user_entry(e))
+
+
+def text_to_pattern(text):
+    """Строка из лога → шаблон: адреса и числа в разных логах разные, поэтому они заменяются на «любое»."""
+    out = []
+    for part in re.split(r"(0x[0-9a-fA-F]+|\d+)", text.strip()):
+        if re.fullmatch(r"0x[0-9a-fA-F]+", part):
+            out.append(r"0x[0-9a-fA-F]+")
+        elif part.isdigit():
+            out.append(r"\d+")
+        else:
+            out.append(re.escape(part))
+    return "".join(out)
+
+
+def pattern_hint(info):
+    """Что предложить как «текст из лога» для своей записи: суть первой строки паники без адресов."""
+    if info.get("missing_sensors"):
+        return "Missing sensor(s): " + " ".join(info["missing_sensors"])
+    first = next((x.strip() for x in (info.get("panic") or "").splitlines() if x.strip()), "")
+    first = re.sub(r"^panic\(cpu \d+ caller 0x[0-9a-fA-F]+\):\s*", "", first)
+    if not first and info.get("exception"):
+        first = info["exception"]
+    return first[:90]
+
+
+def save_user_entry(entry):
+    """Сохранить свою запись (новую или изменённую) в user_kb.json и сразу применить."""
+    items = [e for e in _user_entries() if e.get("id") != entry.get("id")]
+    clean = {k: v for k, v in entry.items() if k in ("id", "cat", "title", "patterns", "node", "symptoms", "cause",
+                                                      "fix", "models", "ios", "part", "pattern_text")}
+    if not clean.get("id"):
+        clean["id"] = "user_" + datetime.now().strftime("%Y%m%d%H%M%S")
+    items.insert(0, clean)
+    path = user_kb_path()
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(items, f, ensure_ascii=False, indent=1)
+    os.replace(tmp, path)
+    KB[:] = [e for e in KB if e.get("id") != clean["id"]]
+    KB.insert(0, _prepare_user_entry(dict(clean)))
+    return clean["id"]
+
+
+def delete_user_entry(entry_id):
+    items = [e for e in _user_entries() if e.get("id") != entry_id]
+    with open(user_kb_path(), "w", encoding="utf-8") as f:
+        json.dump(items, f, ensure_ascii=False, indent=1)
+    KB[:] = [e for e in KB if not (e.get("user") and e.get("id") == entry_id)]
 
 
 # ---------------------------------------------------------------------------
@@ -236,7 +308,10 @@ def analyze(info):
         if e["id"] in ("wd_generic", "wdt_generic") and info["findings"]:
             continue  # общий шаблон — только если ничего конкретнее нет
         for pat in e.get("patterns", []):
-            mm = re.search(pat, hay)
+            try:
+                mm = re.search(pat, hay)
+            except re.error:
+                continue
             if mm:
                 info["findings"].append((e, mm.group(0)))
                 break
@@ -474,6 +549,8 @@ def panic_part(info):
     if info["missing_sensors"]:
         return sensor_part(info["missing_sensors"][0])
     for e, _hit in info["findings"]:
+        if e.get("part") in PART_NAMES:          # своя запись с указанной деталью
+            return e["part"]
         if e["id"] in KB_PART:
             return KB_PART[e["id"]]
     return None

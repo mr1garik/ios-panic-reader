@@ -79,6 +79,40 @@ const PORT = 8899;
     await pg.evaluate(() => updateDialog({ version: "9.9.9", notes: "## Новое\n* пункт", can_self: false }));
     await pg.waitForSelector("#u-later"); await pg.click("#u-later"); });
 
+  // Сообщить об ошибке программы
+  await step("сообщить об ошибке: окно с журналом", async () => {
+    await pg.click("#btn-bug"); await pg.waitForSelector("#b-det");
+    const det = await pg.inputValue("#b-det");
+    if (!det.includes("Version:")) throw new Error("в отчёте нет версии");
+    if (det.includes("/home/") || det.includes("/Users/") || det.includes("C:\\Users")) throw new Error("в отчёте остался путь с именем пользователя");
+    await closeModal(); });
+  // Своё описание: неизвестная паника → описание → программа её узнаёт → правка → удаление
+  const UNKNOWN = "panic(cpu 2 caller 0xfffffff012345678): ZZTestDriver: rail 0x1f stuck at 42 mV";
+  await step("своё описание: создать из лога", async () => {
+    await pg.click('.nav-item[data-view="phone"]'); await pg.click('[data-a="paste"]'); await pg.fill("#p-text", UNKNOWN); await pg.click("#m-ok");
+    await pg.click('.nav-item[data-view="logs"]'); await pg.fill("#logs-q", "ZZTest"); await pg.waitForTimeout(400);
+    const items = await pg.$$("#logs-list .item"); if (!items.length) throw new Error("вставленная паника не нашлась в логах");
+    await items[0].click(); await pg.click("#add-entry"); await pg.waitForSelector("#e-pattern");
+    if (!(await pg.inputValue("#e-pattern")).includes("ZZTestDriver")) throw new Error("текст из лога не подставился");
+    await pg.fill("#e-title", "Тестовая поломка ZZ"); await pg.selectOption("#e-part", "charge_flex");
+    await pg.fill("#e-fix", "Заменить тестовый шлейф"); await pg.click("#m-ok"); await pg.waitForTimeout(800);
+    await pg.fill("#logs-q", ""); await pg.fill("#logs-q", "ZZTest"); await pg.waitForTimeout(500);
+    const t = await pg.textContent("#logs-list"); if (!t.includes("Шлейф")) throw new Error("после описания паника не распозналась: " + t.slice(0, 120));
+  });
+  await step("своё описание: видно в поиске, изменить и удалить", async () => {
+    await pg.click('.nav-item[data-view="kb"]'); await pg.fill("#kb-q", "Тестовая поломка"); await pg.waitForTimeout(700);
+    await pg.click("#kb-list .item"); await pg.waitForSelector("#kb-del");
+    await pg.click("#kb-edit"); await pg.fill("#e-fix", "Заменить шлейф (проверено)"); await pg.click("#m-ok"); await pg.waitForTimeout(700);
+    if (!(await pg.textContent("#kb-detail")).includes("проверено")) throw new Error("правка не сохранилась");
+    await pg.click("#kb-del"); await pg.click("#m-ok"); await pg.waitForTimeout(600);
+    await pg.fill("#kb-q", "Тестовая поломка ZZ"); await pg.waitForTimeout(700);
+    if ((await pg.textContent("#kb-list")).includes("Тестовая поломка ZZ")) throw new Error("запись не удалилась");
+  });
+  await step("ошибки страницы попадают в журнал", async () => {
+    await pg.evaluate(() => api.log_error("тестовая ошибка страницы"));
+    const r = await api("bug_report"); if (!r.includes("тестовая ошибка страницы")) throw new Error("нет в журнале");
+  });
+
   await browser.close();
   srv.kill();
   const py = pyErr.join("").split("\n").filter(l => /Traceback|Error/.test(l));

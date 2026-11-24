@@ -141,5 +141,50 @@ class TestTextReport(unittest.TestCase):
             shutil.rmtree(d)
 
 
+class TestUserEntries(unittest.TestCase):
+    """Своё описание ошибки: сохраняется, сразу распознаётся, переживает перезапуск, удаляется."""
+
+    def setUp(self):
+        import tempfile
+        self.home = tempfile.mkdtemp()
+        self._old = os.environ.get("HOME"), os.environ.get("USERPROFILE")
+        os.environ["HOME"] = os.environ["USERPROFILE"] = self.home
+
+    def tearDown(self):
+        for k, v in zip(("HOME", "USERPROFILE"), self._old):
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+        core.KB[:] = [e for e in core.KB if not e.get("user")]
+
+    def test_pattern_ignores_numbers(self):
+        import re
+        p = core.text_to_pattern("ZZDriver: rail 0x1f stuck at 42 mV (i2c3)")
+        self.assertTrue(re.search(p, "x ZZDriver: rail 0xab stuck at 7 mV (i2c9) y"))
+        self.assertFalse(re.search(p, "OtherDriver: rail 0x1f stuck at 42 mV"))
+
+    def test_save_recognise_delete(self):
+        text = "panic(cpu 2 caller 0xfffffff012345678): ZZTestDriver: rail 0x1f stuck"
+        info = core.parse_pasted(text)
+        self.assertIsNone(core.panic_part(info))
+        eid = core.save_user_entry({"title": "ZZ", "part": "charge_flex", "fix": "x",
+                                    "patterns": [core.text_to_pattern("ZZTestDriver: rail 0x1f stuck")]})
+        info = core.parse_pasted(text)
+        self.assertEqual(core.panic_part(info), "charge_flex")
+        # после перезапуска запись на месте
+        core.KB[:] = [e for e in core.KB if not e.get("user")]
+        core.load_user_kb()
+        self.assertTrue(any(e.get("id") == eid for e in core.KB))
+        core.delete_user_entry(eid)
+        self.assertIsNone(core.panic_part(core.parse_pasted(text)))
+
+    def test_bad_pattern_does_not_break_parsing(self):
+        core.save_user_entry({"title": "bad", "patterns": ["(unclosed"]})
+        core.KB[:] = [e for e in core.KB if not e.get("user")]
+        core.load_user_kb()
+        core.parse_pasted("panic(cpu 0 caller 0x1): (unclosed bracket here")
+
+
 if __name__ == "__main__":
     unittest.main()

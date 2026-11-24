@@ -55,6 +55,7 @@ def make_server(port=0, demo=True, lang="ru", theme=None):
             except Exception as e:
                 import traceback
                 traceback.print_exc()
+                webui._log_error(name, traceback.format_exc())
                 body = json.dumps({"error": str(e)}).encode()
                 self.send_response(500)
             self.send_header("Content-Type", "application/json; charset=utf-8")

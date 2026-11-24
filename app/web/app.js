@@ -35,6 +35,8 @@ const I = {
   clip: '<rect x="8" y="3" width="8" height="4" rx="1"/><path d="M8 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2"/>',
   pdf: '<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 13h6M9 17h4"/>',
   wrench: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L3 17.8V21h3.2l6.3-6.3a4 4 0 0 0 5.2-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>',
+  bug: '<path d="M8 8a4 4 0 0 1 8 0v1H8z"/><rect x="7" y="9" width="10" height="11" rx="5"/><path d="M12 12v8M3 13h4M17 13h4M4 7l3 2M20 7l-3 2M4 20l3-2M20 20l-3-2"/>',
+  pen: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13 7l4 4"/>',
   trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
 };
 const icon = (k, cls = "") => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${I[k] || ""}</svg>`;
@@ -58,6 +60,7 @@ async function boot() {
   $("#btn-theme").onclick = e => menu(e.currentTarget, Object.entries(INFO.themes).map(([k, v]) => [v, k === INFO.theme, () => setTheme(k)]));
   $("#btn-lang").onclick = e => menu(e.currentTarget, Object.entries(INFO.langs).map(([k, v]) => [v, k === INFO.lang, () => setLang(k)]));
   $("#btn-about").onclick = about;
+  $("#btn-bug").innerHTML = icon("bug"); $("#btn-bug").title = T.bug; $("#btn-bug").onclick = bugDialog;
   $("#zoom-in").onclick = () => zoomStep(1);
   $("#zoom-out").onclick = () => zoomStep(-1);
   document.addEventListener("keydown", keys);
@@ -307,10 +310,12 @@ async function showLog(id) {
   const box = $("#logs-detail");
   box.innerHTML = `<div class="tabs"><button class="tab ${STATE.logTab === "explain" ? "on" : ""}" data-t="explain">${esc(T.fix)}</button>
       <button class="tab ${STATE.logTab === "raw" ? "on" : ""}" data-t="raw">${esc(T.raw)}</button>
-      <span style="flex:1"></span><button class="btn small" id="suggest">${esc(T.suggest)}</button></div>
+      <span style="flex:1"></span><button class="btn small" id="add-entry">${icon("pen")}${esc(T.add_entry)}</button>
+      <button class="btn small" id="suggest">${esc(T.suggest)}</button></div>
     <div id="log-body"></div>`;
   box.querySelectorAll(".tab").forEach(t => t.onclick = () => { STATE.logTab = t.dataset.t; showLog(id); });
   $("#suggest").onclick = () => suggestDialog(id, d.suggest);
+  $("#add-entry").onclick = () => entryDialog("log:" + id);
   $("#log-body").innerHTML = STATE.logTab === "raw" ? `<pre class="raw">${highlight(d.raw, d.highlights)}</pre>` : rich(d.parts);
 }
 function rich(parts) {
@@ -416,7 +421,14 @@ async function renderKb() {
     `<div class="item ${i.id === STATE.kbSel ? "sel" : ""}" data-id="${esc(i.id)}"><span class="dot ${i.level || "blue"}"></span>
       <span class="t" title="${esc(i.title)}">${esc(i.title)}</span><span class="s">${esc(i.where)}</span></div>`).join("")).join("");
   $("#kb-list").onclick = e => { const it = e.target.closest(".item"); if (it) { STATE.kbSel = it.dataset.id; renderKb(); } };
-  $("#kb-detail").innerHTML = STATE.kbSel ? rich((await api.kb_item(STATE.kbSel)).parts) : `<div class="empty">${esc(T.nothing)}</div>`;
+  if (!STATE.kbSel) { $("#kb-detail").innerHTML = `<div class="empty">${esc(T.nothing)}</div>`; return; }
+  const it = await api.kb_item(STATE.kbSel);
+  $("#kb-detail").innerHTML = (it.editable ? `<div class="row" style="justify-content:flex-end;margin-bottom:6px">
+      <button class="btn small" id="kb-edit">${icon("pen")}${esc(it.user ? T.edit_entry : T.add_entry)}</button>
+      ${it.user ? `<button class="btn small danger" id="kb-del">${icon("trash")}${esc(T.delete)}</button>` : ""}</div>` : "") + rich(it.parts);
+  if (it.editable) $("#kb-edit").onclick = () => entryDialog(STATE.kbSel);
+  if (it.user) $("#kb-del").onclick = () => confirmBox(T.delete, it.entry_id, T.delete, async () => {
+    await api.delete_entry(it.entry_id); STATE.kbSel = null; renderKb(); });
 }
 
 // ---------- окна ----------
@@ -478,7 +490,7 @@ function about() {
     <p class="small">${esc(T.data_dir)}<br><button class="link" id="a-dir">${esc(INFO.data_dir)}</button></p>
     <label class="chk"><input type="checkbox" id="a-auto" ${INFO.auto_update ? "checked" : ""}> ${esc(T.auto_update)}</label>
     <div class="row" style="margin-top:12px"><button class="btn primary" id="a-check">${esc(T.check_updates)}</button>
-      <button class="btn" id="a-all">${esc(T.all_versions)}</button></div>
+      <button class="btn" id="a-all">${esc(T.all_versions)}</button><button class="btn" id="a-bug">${icon("bug")}${esc(T.bug)}</button></div>
     <hr><div class="cap" style="margin-top:0">${esc(T.other_projects)}</div><b>iActivator</b><div class="muted small">${esc(T.iact_desc)}</div>
     <div class="row" style="margin-top:8px"><button class="btn primary" id="a-iact">${esc(T.iact_dl)}</button><button class="btn" id="a-proj">${esc(T.project)}</button></div>
     <hr><div class="cap" style="margin-top:0">${esc(T.support)}</div>
@@ -492,10 +504,64 @@ function about() {
   $("#a-dir", b).onclick = () => api.open_path(INFO.data_dir);
   $("#a-auto", b).onchange = e => { INFO.auto_update = e.target.checked; api.set_setting("auto_update", e.target.checked); };
   $("#a-check", b).onclick = () => { UPD_SHOWN = false; api.check_updates(true); closeModal(); };
+  $("#a-bug", b).onclick = () => { closeModal(); bugDialog(); };
   $("#a-all", b).onclick = () => api.open_url("https://github.com/mr1garik/ios-panic-reader/releases");
   $("#a-iact", b).onclick = () => api.open_url("https://github.com/mr1garik/iActivator/releases/latest");
   $("#a-proj", b).onclick = () => api.open_url("https://github.com/mr1garik/iActivator");
   $("#a-copy", b).onclick = () => { copyText(INFO.donate.address); $("#a-copied", b).textContent = T.copied; };
+}
+
+// ---------- сообщить об ошибке программы ----------
+async function bugDialog() {
+  const details = await api.bug_report();
+  const b = modal(`<h2>${esc(T.bug_title)}</h2><div class="muted small">${esc(T.bug_desc)}</div>
+    <div class="cap">${esc(T.bug_what)}</div><textarea id="b-what" rows="4"></textarea>
+    <div class="cap">${esc(T.bug_details)}</div>
+    <textarea id="b-det" rows="9" style="font-family:var(--mono);font-size:12px"></textarea>
+    <div class="modal-foot"><button class="btn" id="m-no">${esc(T.cancel)}</button><button class="btn" id="m-copy">${esc(T.copy)}</button>
+      <button class="btn primary" id="m-ok">${esc(T.open_github)}</button></div>`, true);
+  $("#b-det", b).value = details;
+  $("#b-what", b).focus();
+  $("#m-no", b).onclick = closeModal;
+  $("#m-copy", b).onclick = () => { copyText($("#b-what", b).value + "\n\n" + $("#b-det", b).value); toast("ok", T.copy + " ✓"); };
+  $("#m-ok", b).onclick = () => { api.bug_send($("#b-what", b).value, $("#b-det", b).value); closeModal(); };
+}
+
+// ---------- своё описание паники или ошибки ----------
+async function entryDialog(source) {
+  const f = await api.entry_form(source);
+  const opt = (list, cur, empty) => (empty ? `<option value="">${esc(empty)}</option>` : "") +
+    list.map(([k, v]) => `<option value="${esc(k)}" ${k === cur ? "selected" : ""}>${esc(v)}</option>`).join("");
+  const field = (id, label, val, rows = 0, hint = "") => `<div class="cap">${esc(label)}</div>` +
+    (rows ? `<textarea id="${id}" rows="${rows}">${esc(val)}</textarea>` : `<input type="text" id="${id}" value="${esc(val)}" style="width:100%">`) +
+    (hint ? `<div class="muted small">${esc(hint)}</div>` : "");
+  const b = modal(`<h2>${esc(f.user ? T.edit_entry : T.entry_title)}</h2><div class="muted small">${esc(T.entry_desc)}</div>
+    ${field("e-title", T.f_title, f.title)}
+    <div class="row" style="flex-wrap:wrap;gap:12px">
+      <div style="flex:1 1 220px"><div class="cap">${esc(T.f_part)}</div><select id="e-part" style="width:100%">${opt(f.parts, f.part, T.no_part)}</select></div>
+      <div style="flex:1 1 220px"><div class="cap">${esc(T.f_cat)}</div><select id="e-cat" style="width:100%">${opt(f.cats, f.cat)}</select></div></div>
+    ${field("e-pattern", T.f_pattern, f.pattern, 0, T.f_pattern_hint)}
+    ${field("e-models", T.f_models, f.models)}
+    ${field("e-symptoms", T.f_symptoms, f.symptoms, 2)}
+    ${field("e-cause", T.f_cause, f.cause, 2)}
+    ${field("e-fix", T.f_fix, f.fix, 3)}
+    <div class="modal-foot"><button class="btn" id="m-no">${esc(T.cancel)}</button>
+      <button class="btn" id="m-send">${esc(T.send_base)}</button><button class="btn primary" id="m-ok">${esc(T.save_local)}</button></div>`, true);
+  $("#e-fix", b).focus();
+  const read = () => ({ id: f.id, title: $("#e-title", b).value, part: $("#e-part", b).value, cat: $("#e-cat", b).value,
+    pattern: $("#e-pattern", b).value, models: $("#e-models", b).value, symptoms: $("#e-symptoms", b).value,
+    cause: $("#e-cause", b).value, fix: $("#e-fix", b).value });
+  const save = async send => {
+    const form = read();
+    const id = await api.save_entry(form);
+    if (!id) return;
+    if (send) api.send_entry(form);
+    closeModal(); LAST_V = -1;
+    if (VIEW === "kb") renderKb();
+  };
+  $("#m-no", b).onclick = closeModal;
+  $("#m-ok", b).onclick = () => save(false);
+  $("#m-send", b).onclick = () => save(true);
 }
 
 // ---------- обновление (как в 3uTools) ----------
@@ -570,6 +636,10 @@ async function drop(e) {
   const files = [...(e.dataTransfer?.files || [])].map(f => f.path || f.pywebviewFullPath).filter(Boolean);
   if (files.length && await api.load_paths(files)) show("phone");
 }
+
+// сбои страницы — в журнал программы (их увидит «Сообщить об ошибке»)
+window.addEventListener("error", e => { try { api.log_error(`${e.message} @ ${e.filename}:${e.lineno}`); } catch (_) { /* */ } });
+window.addEventListener("unhandledrejection", e => { try { api.log_error("promise: " + (e.reason && (e.reason.stack || e.reason.message) || e.reason)); } catch (_) { /* */ } });
 
 if (window.pywebview) boot();
 else window.addEventListener("pywebviewready", boot);

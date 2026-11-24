@@ -271,6 +271,10 @@
   "en": "Address copied",
   "uk": "Адресу скопійовано"
  },
+ "Адреса и числа программа заменит на «любые» — подойдёт для логов с другими цифрами.": {
+  "en": "The app replaces addresses and numbers with “any”, so it matches logs with different digits.",
+  "uk": "Адреси й числа програма замінить на «будь-які» — підійде для логів з іншими цифрами."
+ },
  "Аккумулятор": {
   "en": "Battery",
   "uk": "Акумулятор"
@@ -587,6 +591,10 @@
   "en": "There is little sensor and bus data for iPhone 15–17 yet. If you have panics from them, suggest them for the database with the button next to the log.\n",
   "uk": "Для iPhone 15–17 даних про датчики й шини поки мало. Якщо у вас є паніки з них — запропонуйте їх для бази кнопкою біля логу.\n"
  },
+ "Добавить своё описание": {
+  "en": "Add my description",
+  "uk": "Додати свій опис"
+ },
  "Доля паник, которые указывают на деталь. Нажмите, чтобы увидеть почему.": {
   "en": "Share of panics pointing to the part. Click to see why.",
   "uk": "Частка панік, що вказують на деталь. Натисніть, щоб побачити чому."
@@ -667,6 +675,14 @@
   "en": "Note saved",
   "uk": "Нотатку збережено"
  },
+ "Запись сохранится у вас, и программа сразу начнёт узнавать такую ошибку в логах. По желанию её можно отправить в общую базу.": {
+  "en": "The entry is saved on your computer and the app starts recognising this error in logs right away. You can also send it to the shared database.",
+  "uk": "Запис збережеться у вас, і програма одразу почне впізнавати таку помилку в логах. За бажанням його можна надіслати до спільної бази."
+ },
+ "Заполните название и текст из лога, по которому узнавать ошибку.": {
+  "en": "Fill in the title and the log text used to recognise the error.",
+  "uk": "Заповніть назву й текст із логу, за яким упізнавати помилку."
+ },
  "Звук (кодек, динамики)": {
   "en": "Audio (codec, speakers)",
   "uk": "Звук (кодек, динаміки)"
@@ -694,6 +710,10 @@
  "Изменение вступит после перезапуска программы. Перезапустить сейчас?": {
   "en": "The change takes effect after restarting the app. Restart now?",
   "uk": "Зміна набуде чинності після перезапуску програми. Перезапустити зараз?"
+ },
+ "Изменить своё описание": {
+  "en": "Edit my description",
+  "uk": "Змінити свій опис"
  },
  "Исключение:  ": {
   "en": "Exception:   ",
@@ -738,6 +758,10 @@
  "Как ведёт себя": {
   "en": "Behaviour",
   "uk": "Як поводиться"
+ },
+ "Как ведёт себя телефон": {
+  "en": "How the phone behaves",
+  "uk": "Як поводиться телефон"
  },
  "Камеры": {
   "en": "Cameras",
@@ -835,6 +859,10 @@
   "en": "Microphone",
   "uk": "Мікрофон"
  },
+ "Модели": {
+  "en": "Models",
+  "uk": "Моделі"
+ },
  "Модель": {
   "en": "Model",
   "uk": "Модель"
@@ -926,6 +954,10 @@
  "Нажмите «Доверять» на телефоне": {
   "en": "Tap “Trust” on the phone",
   "uk": "Натисніть «Довіряти» на телефоні"
+ },
+ "Название": {
+  "en": "Title",
+  "uk": "Назва"
  },
  "Название мастерской для отчёта\n(можно оставить пустым, изменить — во вкладке «История»):": {
   "en": "Workshop name for the report\n(you can leave it empty and change it later on the “History” tab):",
@@ -1098,6 +1130,14 @@
  "Описание изменений не указано.": {
   "en": "No change description provided.",
   "uk": "Опис змін не вказано."
+ },
+ "Описание сохранено. Программа будет узнавать эту ошибку в логах.": {
+  "en": "Description saved. The app will recognise this error in logs.",
+  "uk": "Опис збережено. Програма впізнаватиме цю помилку в логах."
+ },
+ "Опишите, что случилось. Программа добавит версию, систему и журналы ошибок — без серийных номеров, IMEI и путей. Откроется страница GitHub — отправляете вы сами.": {
+  "en": "Describe what happened. The app adds the version, system and error logs — without serial numbers, IMEI or paths. A GitHub page opens — you send it yourself.",
+  "uk": "Опишіть, що сталося. Програма додасть версію, систему й журнали помилок — без серійних номерів, IMEI і шляхів. Відкриється сторінка GitHub — надсилаєте ви самі."
  },
  "Определяется по модели.": {
   "en": "Depends on the model.",
@@ -1407,6 +1447,10 @@
   "en": "Why",
   "uk": "Чому"
  },
+ "Почему (если известно)": {
+  "en": "Why (if known)",
+  "uk": "Чому (якщо відомо)"
+ },
  "Превышение ресурсов (CPU/память/диск)": {
   "en": "Resource limit exceeded (CPU/memory/disk)",
   "uk": "Перевищення ресурсів (CPU/пам'ять/диск)"
@@ -1511,6 +1555,10 @@
   "en": "Analysis: ",
   "uk": "Розбір: "
  },
+ "Раздел": {
+  "en": "Section",
+  "uk": "Розділ"
+ },
  "Раздел / телефон": {
   "en": "Section / phone",
   "uk": "Розділ / телефон"
@@ -1582,6 +1630,18 @@
  "Сводная аналитика": {
   "en": "Summary analytics",
   "uk": "Зведена аналітика"
+ },
+ "Своя запись": {
+  "en": "My entry",
+  "uk": "Свій запис"
+ },
+ "Своя запись удалена.": {
+  "en": "My entry deleted.",
+  "uk": "Свій запис видалено."
+ },
+ "Своё описание ошибки": {
+  "en": "My description of the error",
+  "uk": "Свій опис помилки"
  },
  "Сейчас снимаются логи с телефона. Обновите после того, как программа закончит.": {
   "en": "Logs are being pulled from the phone right now. Update after the app finishes.",
@@ -1659,6 +1719,14 @@
   "en": "Stack snapshot (hang)",
   "uk": "Знімок стеків (зависання)"
  },
+ "Сообщить об ошибке": {
+  "en": "Report a problem",
+  "uk": "Повідомити про помилку"
+ },
+ "Сообщить об ошибке программы": {
+  "en": "Report a problem with the app",
+  "uk": "Повідомити про помилку програми"
+ },
  "Сохранить": {
   "en": "Save",
   "uk": "Зберегти"
@@ -1667,9 +1735,17 @@
   "en": "Save note",
   "uk": "Зберегти нотатку"
  },
+ "Сохранить и отправить в общую базу": {
+  "en": "Save and send to the shared database",
+  "uk": "Зберегти й надіслати до спільної бази"
+ },
  "Сохранить отчёт": {
   "en": "Save report",
   "uk": "Зберегти звіт"
+ },
+ "Сохранить у себя": {
+  "en": "Save on this computer",
+  "uk": "Зберегти в себе"
  },
  "Старые логи на телефоне стёрты ({0}). Копия осталась в папке с логами на компьютере.": {
   "en": "Old logs on the phone erased ({0}). A copy remains in the logs folder on the computer.",
@@ -1718,6 +1794,14 @@
  "Текст": {
   "en": "Text",
   "uk": "Текст"
+ },
+ "Текст из лога": {
+  "en": "Log text",
+  "uk": "Текст із логу"
+ },
+ "Текст из лога, по которому узнавать": {
+  "en": "Log text to recognise it by",
+  "uk": "Текст із логу, за яким упізнавати"
  },
  "Текст скопирован": {
   "en": "Text copied",
@@ -1778,6 +1862,10 @@
  "Уверенность: ": {
   "en": "Confidence: ",
   "uk": "Впевненість: "
+ },
+ "Удалить": {
+  "en": "Delete",
+  "uk": "Видалити"
  },
  "Удалить из истории": {
   "en": "Remove from history",
@@ -1851,6 +1939,10 @@
   "en": "Reading the log archive for search…",
   "uk": "Читаю архів логів для пошуку…"
  },
+ "Что будет отправлено вместе с описанием": {
+  "en": "What will be sent along with the description",
+  "uk": "Що буде надіслано разом з описом"
+ },
  "Что делать": {
   "en": "What to do",
   "uk": "Що робити"
@@ -1863,6 +1955,14 @@
   "en": "What turned out to be faulty (if known): ",
   "uk": "Що виявилося несправним (якщо відомо): "
  },
+ "Что помогло": {
+  "en": "What helped",
+  "uk": "Що допомогло"
+ },
+ "Что помогло / как исправить": {
+  "en": "What helped / how to fix",
+  "uk": "Що допомогло / як виправити"
+ },
  "Что сделано": {
   "en": "What was done",
   "uk": "Що зроблено"
@@ -1870,6 +1970,14 @@
  "Что случилось": {
   "en": "What happened",
   "uk": "Що сталося"
+ },
+ "Что случилось и что вы делали перед этим": {
+  "en": "What happened and what you were doing before it",
+  "uk": "Що сталося і що ви робили перед цим"
+ },
+ "Что случилось и что вы делали перед этим:": {
+  "en": "What happened and what you were doing before it:",
+  "uk": "Що сталося і що ви робили перед цим:"
  },
  "ШИНА {0} У ЭТОЙ МОДЕЛИ\n": {
   "en": "BUS {0} ON THIS MODEL\n",
@@ -2158,5 +2266,9 @@
  "ёмкость {0}%": {
   "en": "capacity {0}%",
   "uk": "ємність {0}%"
+ },
+ "— не указано —": {
+  "en": "— not specified —",
+  "uk": "— не вказано —"
  }
 }
