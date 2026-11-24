@@ -166,6 +166,7 @@ class Backend:
         self.update_progress = None        # {"done", "total", "state": downloading|installing|failed, "error"}
         self._cancel = None
         self.archive, self.archive_busy = None, False
+        self._kb_logs = []                 # логи, найденные последним поиском
         self.window = None                 # окно pywebview (для диалогов)
         self.watcher = None
         if with_device and device_support():
@@ -315,7 +316,6 @@ class Backend:
     def phone(self):
         st = self.phone_state
         if st != "result" and not self.logs:
-            texts = {"nodriver": ("nodriver_t", "nodriver_s"), "error": ("error_t", None)}
             return {"state": st, "error": self.error_text, "dev": self._dev_view()}
         logs = self._view_logs()
         d = self.dev
@@ -607,6 +607,8 @@ class Backend:
         if typ == "model":
             return {"parts": views.model_parts(key)}
         if typ == "klog":
+            if int(key) >= len(self._kb_logs):
+                return {"parts": [(_("Ничего не найдено. Попробуйте другое слово или код.\n"), "body")]}
             l = self._kb_logs[int(key)]
             return {"parts": views.log_parts(l)}
         return {"parts": views.entry_parts(KB[int(key)], self.logs)}

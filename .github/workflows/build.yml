@@ -294,6 +294,7 @@ jobs:
         env:
           PYTHON: python
         run: |
+          node tools/web_smoke.js
           node tools/web_matrix.js web-screens --langs=ru --themes=neon
           node tools/web_matrix.js web-screens --langs=en,uk --themes=neon --screens=1280x720@1,1366x768@1.25,3840x2160@3
           node tools/web_matrix.js web-screens --langs=ru --themes=light,dark,night,mint,graphite
