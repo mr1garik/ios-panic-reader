@@ -923,6 +923,19 @@ def _ui_log():
     return path
 
 
+def js_api(backend):
+    """Для страницы — только действия Backend (методы без «_»). Сам Backend со всем содержимым
+    (окно, история, поток устройств) странице не отдаётся: pywebview обходит отданный объект целиком,
+    и обход окна из чужого потока ломает WebView2 на Windows."""
+    def make(name):
+        def call(self, *args):
+            return getattr(backend, name)(*args)
+        call.__name__ = name
+        return call
+    names = [n for n in dir(Backend) if not n.startswith("_") and callable(getattr(Backend, n))]
+    return type("Api", (), {n: make(n) for n in names})()
+
+
 def run(initial_paths=()):
     _ui_log()
     secs = os.environ.get("IOSPR_TEST_EXIT_AFTER")
@@ -933,7 +946,7 @@ def run(initial_paths=()):
     if initial_paths:
         backend.load_paths(list(initial_paths))
     w, h, x, y = _window_rect()
-    win = webview.create_window(APP_TITLE, url=os.path.join(WEB_DIR, "index.html"), js_api=backend,
+    win = webview.create_window(APP_TITLE, url=os.path.join(WEB_DIR, "index.html"), js_api=js_api(backend),
                                 width=w, height=h, x=x, y=y, min_size=(min(900, w), min(600, h)),
                                 background_color="#0b1020", text_select=True)
     backend.window = win
