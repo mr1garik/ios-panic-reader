@@ -907,6 +907,7 @@ def _test_hooks(ui, close):
     secs = os.environ.get("IOSPR_TEST_EXIT_AFTER")
     if secs:
         threading.Timer(float(secs), close).start()
+        threading.Timer(float(secs) + 60, lambda: os._exit(3)).start()    # если окно так и не закрылось
 
 
 def run(initial_paths=()):
@@ -926,7 +927,14 @@ def run(initial_paths=()):
         except Exception:
             pass
     win.events.closing += remember
-    _test_hooks("web", lambda: win.destroy())
+    # для автотестов: отметка «открылся новый интерфейс» — когда страница действительно загрузилась
+    fired = []
+
+    def on_loaded():
+        if not fired:
+            fired.append(1)
+            _test_hooks("web", lambda: win.destroy())
+    win.events.loaded += on_loaded
     if backend.history.setting("auto_update", True):
         threading.Timer(3.0, lambda: backend.check_updates(manual=False)).start()
     webview.start(gui="edgechromium" if IS_WIN else None, debug=bool(os.environ.get("IOSPR_WEBDEBUG")))
