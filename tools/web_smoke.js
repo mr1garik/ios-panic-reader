@@ -90,7 +90,9 @@ const PORT = 8899;
     }
     await ev("info", { model: "iPhone 13", ios: "18.6", serial: "F17DEMO0000", udid: "F17DEMO0000" }); await pg.waitForTimeout(900);
     if (!(await pg.$(".spinner"))) throw new Error("нет экрана «Снимаю логи»");
-    await ev("pulled"); await pg.waitForTimeout(1200);
+    await pg.click('.nav-item[data-view="history"]'); await pg.waitForTimeout(300);
+    await ev("pulled"); await pg.waitForTimeout(1500);
+    if (!(await pg.$("#view-phone.on"))) throw new Error("после снятия логов окно не перешло на экран телефона");
     if (!(await pg.$(".result"))) throw new Error("после снятия логов нет результата");
   });
 

@@ -137,6 +137,16 @@ class TestRepairCycle(Base):
         self.assertEqual(len(b.phone_history(SERIAL)["visits"]), 2)
         self.assertIsNotNone(d["prev"], "должно быть «этот телефон уже был»")
 
+    def test_device_errors_go_to_bug_report(self):
+        b = self.backend()
+        b.events.put(("state", "error", "ConnectionAbortedError: тест связи"))
+        b.events.put(("log", "MuxException: тест"))
+        b.poll()
+        report = b.bug_report()
+        self.assertIn("ConnectionAbortedError", report)
+        self.assertIn("MuxException", report)
+        self.assertEqual(b.phone()["state"], "error")
+
     def test_erase_refused_for_not_copied_phone(self):
         """Стирать можно только скопированное — Backend просит, а поток устройства проверяет."""
         b = self.backend()

@@ -266,6 +266,8 @@ class Backend:
         if kind == "state":
             if not (ev[1] == "wait" and self.phone_state == "result"):
                 self.phone_state, self.error_text = ev[1], ev[2]
+            if ev[1] in ("error", "nodriver") and ev[2]:
+                _log_error("device", f"{ev[1]}: {ev[2]}"[:2000])
         elif kind == "info":
             self.dev = ev[1]
             self.phone_state = "reading"
@@ -295,6 +297,8 @@ class Backend:
                              "\n".join(f"• {self.udid_names.get(u, u[:8])}: {why}" for u, why in failed))
         elif kind == "archive_ready":
             self.archive, self.archive_busy = ev[1], False
+        elif kind == "log":                 # ошибка связи с iPhone — в журнал для «Сообщить об ошибке»
+            _log_error("device", str(ev[1])[:2000])
         self._changed()
 
     def _write_phone_report(self):

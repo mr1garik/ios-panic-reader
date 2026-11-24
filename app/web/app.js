@@ -10,7 +10,7 @@ const api = new Proxy({}, {
 
 const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-let INFO = null, T = {}, VIEW = "phone", LAST_V = -1, BUSY = false;
+let INFO = null, T = {}, VIEW = "phone", LAST_V = -1, BUSY = false, LAST_STATE = null;
 const STATE = { logQ: "", onlyPanic: false, part: null, logSel: null, histQ: "", histSel: null,
   kbQ: "", kbCat: "Все", kbScope: "base_logs", kbModel: "", kbSel: null, logTab: "explain" };
 
@@ -120,6 +120,11 @@ async function poll() {
     for (const n of p.notices) toast(n.kind, n.text);
     if (p.update_info && !UPD_SHOWN && !p.update) { UPD_SHOWN = true; updateDialog(p.update_info); }
     if (p.update) updateProgress(p.update);
+    // подключили телефон: «Доверять», снятие логов, результат — сразу на экран телефона (как в прежнем окне)
+    if (p.state !== LAST_STATE) {
+      const prev = LAST_STATE; LAST_STATE = p.state;
+      if (prev !== null && ["trust", "unlock", "reading", "result"].includes(p.state) && VIEW !== "phone") show("phone");
+    }
     if (p.v !== LAST_V) { LAST_V = p.v; await render(); }
   } catch (e) { /* окно закрывается */ }
   BUSY = false;
