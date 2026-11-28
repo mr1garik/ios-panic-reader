@@ -244,6 +244,28 @@ class TestHistoryPersists(Base):
         self.assertTrue(b2.open_history_logs(SERIAL))
         self.assertTrue(b2.logs_list()["items"])
 
+    def test_parallel_saves(self):
+        """Одновременные сохранения из разных потоков (как в окне: опрос + кнопки) не падают и не мусорят."""
+        import threading
+        from history import History
+        h = History()
+        errors = []
+
+        def work(i):
+            try:
+                for j in range(30):
+                    h.data["settings"]["k%d" % i] = j
+                    h.save()
+            except Exception as e:  # noqa
+                errors.append(repr(e))
+        ts = [threading.Thread(target=work, args=(i,)) for i in range(8)]
+        [t.start() for t in ts]
+        [t.join() for t in ts]
+        self.assertEqual(errors, [])
+        self.assertEqual(History().data["settings"]["k7"], 29)
+        folder = os.path.dirname(h.path)
+        self.assertEqual([f for f in os.listdir(folder) if f.endswith(".tmp")], [])
+
 
 class TestLanguages(unittest.TestCase):
     """Экран телефона на en/uk: подписи и разбор без русского текста (отдельный процесс — язык при запуске)."""

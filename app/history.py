@@ -6,7 +6,7 @@ import json
 import os
 from datetime import datetime
 
-from core import logs_root
+from core import logs_root, write_json_atomic
 
 DATE_FMT = "%Y-%m-%d %H:%M:%S"
 
@@ -32,10 +32,7 @@ class History:
             pass
 
     def save(self):
-        tmp = self.path + ".tmp"
-        with open(tmp, "w", encoding="utf-8") as f:
-            json.dump(self.data, f, ensure_ascii=False, indent=1)
-        os.replace(tmp, self.path)
+        write_json_atomic(self.path, self.data)
 
     # --- телефоны
     @property

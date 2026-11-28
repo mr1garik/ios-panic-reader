@@ -3,6 +3,7 @@
 
 import json
 import os
+import threading
 import re
 import sys
 from collections import Counter
@@ -98,6 +99,38 @@ def pattern_hint(info):
     return first[:90]
 
 
+
+_WRITE_LOCK = threading.RLock()
+
+
+def write_json_atomic(path, data):
+    """Записать JSON целиком: уникальный временный файл + замена. Безопасно из нескольких потоков;
+    на Windows повторяет замену, если файл на миг занят антивирусом или другим потоком."""
+    import tempfile
+    import time as _time
+    folder = os.path.dirname(path) or "."
+    os.makedirs(folder, exist_ok=True)
+    with _WRITE_LOCK:
+        fd, tmp = tempfile.mkstemp(prefix=os.path.basename(path) + ".", suffix=".tmp", dir=folder)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=1)
+            for i in range(10):
+                try:
+                    os.replace(tmp, path)
+                    break
+                except PermissionError:
+                    if i == 9:
+                        raise
+                    _time.sleep(0.05 * (i + 1))
+        finally:
+            if os.path.exists(tmp):
+                try:
+                    os.remove(tmp)
+                except OSError:
+                    pass
+
+
 def save_user_entry(entry):
     """Сохранить свою запись (новую или изменённую) в user_kb.json и сразу применить."""
     items = [e for e in _user_entries() if e.get("id") != entry.get("id")]
@@ -106,11 +139,7 @@ def save_user_entry(entry):
     if not clean.get("id"):
         clean["id"] = "user_" + datetime.now().strftime("%Y%m%d%H%M%S")
     items.insert(0, clean)
-    path = user_kb_path()
-    tmp = path + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(items, f, ensure_ascii=False, indent=1)
-    os.replace(tmp, path)
+    write_json_atomic(user_kb_path(), items)
     KB[:] = [e for e in KB if e.get("id") != clean["id"]]
     KB.insert(0, _prepare_user_entry(dict(clean)))
     return clean["id"]
@@ -118,8 +147,7 @@ def save_user_entry(entry):
 
 def delete_user_entry(entry_id):
     items = [e for e in _user_entries() if e.get("id") != entry_id]
-    with open(user_kb_path(), "w", encoding="utf-8") as f:
-        json.dump(items, f, ensure_ascii=False, indent=1)
+    write_json_atomic(user_kb_path(), items)
     KB[:] = [e for e in KB if not (e.get("user") and e.get("id") == entry_id)]
 
 
