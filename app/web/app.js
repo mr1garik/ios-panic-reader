@@ -139,7 +139,7 @@ async function poll() {
     // подключили телефон: «Доверять», снятие логов, результат — сразу на экран телефона (как в прежнем окне)
     if (p.state !== LAST_STATE) {
       const prev = LAST_STATE; LAST_STATE = p.state;
-      if (prev !== null && p.state === "reading") STATE.partSel = null;       // новый телефон — сначала главная находка
+      if (prev !== null && p.state === "reading") { STATE.partSel = null; STATE.okOpen = false; }       // новый телефон — сначала главная находка
       if (prev !== null && ["trust", "unlock", "reading", "result"].includes(p.state) && VIEW !== "phone") show("phone");
     }
     if (p.v !== LAST_V) { LAST_V = p.v; await render(); }
@@ -185,12 +185,18 @@ async function renderPhone() {
     `<div class="below">${d.chart ? chart(d.chart) : ""}${notes(d)}</div>`;
   const sel = d.parts.find(r => r.part === STATE.partSel) || d.parts[0];
   STATE.partSel = sel && sel.part;
-  el.querySelectorAll(".prow").forEach(r => r.onclick = () => {
-    STATE.partSel = r.dataset.part;
-    el.querySelectorAll(".prow").forEach(x => x.classList.toggle("sel", x === r));
-    $("#pdetail").innerHTML = partDetail(d.parts.find(x => x.part === STATE.partSel), d);
-    bindActions($("#pdetail"));
-  });
+  const bindList = () => {
+    const list = el.querySelector(".plist");
+    list.querySelectorAll(".prow").forEach(r => r.onclick = () => {
+      STATE.partSel = r.dataset.part;
+      list.querySelectorAll(".prow").forEach(x => x.classList.toggle("sel", x === r));
+      $("#pdetail").innerHTML = partDetail(d.parts.find(x => x.part === STATE.partSel), d);
+      bindActions($("#pdetail"));
+    });
+    const t = list.querySelector("#ok-toggle");
+    if (t) t.onclick = () => { STATE.okOpen = !t.classList.contains("open"); list.innerHTML = partList(d.parts); bindList(); };
+  };
+  bindList();
   $("#pdetail").innerHTML = sel ? partDetail(sel, d) : "";
   bindActions(el);
 }
@@ -224,7 +230,7 @@ function verdict(d) {
   const evid = top.n ? T.n_of_total.replace("{0}", top.n).replace("{1}", d.stats.find(s => s.key === "panics")?.value || top.n) : (p.note || "");
   return `<div class="verdict"><div class="lbl ${red ? "t-red" : "t-orange"}">${esc(red ? T.likely_fault : T.possible_fault)}</div>
     <h1>${esc(top.name.replace(/\s*\(.*\)$/, ""))}</h1>
-    <p>${esc([evid, top.cause].filter(Boolean).join(" · "))}</p></div>`;
+    <p>${esc(evid)}</p></div>`;
 }
 
 function repairBanner(r) {
@@ -233,12 +239,22 @@ function repairBanner(r) {
 }
 
 function partList(rows) {
-  return `<div class="head"><span></span><span>${esc(T.part)}</span><span style="text-align:right">${esc(T.panics)}</span><span>${esc(T.share)}</span></div>` +
-    rows.map(r => `<div class="prow ${r.level} ${r.part === STATE.partSel ? "sel" : ""}" data-part="${esc(r.part)}">
+  // Сначала детали со сбоями; исправные свёрнуты в одну строку, раскрываются по клику
+  const bad = rows.filter(r => r.level !== "green"), good = rows.filter(r => r.level === "green");
+  const open = STATE.okOpen === true || !bad.length;
+  const row = r => `<div class="prow ${r.level} ${r.part === STATE.partSel ? "sel" : ""}" data-part="${esc(r.part)}">
       <span class="dot ${r.level}"></span>
-      <div class="nm"><b title="${esc(r.name)}">${esc(r.name)}</b>${r.n ? `<span>${esc(r.cause)}</span>` : (r.data ? `<span>${esc(r.data)}</span>` : "")}</div>
-      <span class="n">${r.n}</span>
-      ${r.n ? `<div class="mini"><i style="width:${r.pct}%"></i></div>` : `<span class="muted small">—</span>`}</div>`).join("");
+      <div class="nm"><b>${esc(r.name)}</b>${r.data ? `<span>${esc(r.data)}</span>` : ""}</div>
+      <span class="n">${r.n || "—"}</span>
+      ${r.n ? `<div class="mini"><i style="width:${r.pct}%"></i></div>` : "<span></span>"}</div>`;
+  let h = `<div class="head"><span></span><span>${esc(T.part)}</span><span style="text-align:right">${esc(T.panics)}</span><span>${esc(T.share)}</span></div>` +
+    bad.map(row).join("");
+  if (good.length && bad.length) {
+    h += `<button class="pgroup ${open ? "open" : ""}" id="ok-toggle"><span class="dot green"></span>
+      <span>${esc(T.ok_parts.replace("{0}", good.length))}</span><span class="chev">${open ? "▾" : "▸"}</span></button>`;
+  }
+  if (open) h += good.map(row).join("");
+  return h;
 }
 
 function partDetail(r, d) {

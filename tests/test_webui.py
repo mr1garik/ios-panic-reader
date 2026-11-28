@@ -66,3 +66,16 @@ class TestBackend(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestWebFiles(unittest.TestCase):
+    def test_fonts_bundled(self):
+        """Все шрифты из app.css лежат в app/web (иначе программа молча покажет системный шрифт)."""
+        import re
+        web = os.path.join(os.path.dirname(__file__), "..", "app", "web")
+        css = open(os.path.join(web, "app.css"), encoding="utf-8").read()
+        urls = re.findall(r"url\((fonts/[^)]+)\)", css)
+        self.assertGreaterEqual(len(urls), 12)
+        for u in urls:
+            self.assertTrue(os.path.getsize(os.path.join(web, u)) > 1000, u)
+        self.assertTrue(os.path.exists(os.path.join(web, "fonts", "OFL-GolosText.txt")))

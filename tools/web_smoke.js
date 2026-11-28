@@ -34,12 +34,24 @@ const PORT = 8899;
   const api = (m, ...a) => pg.evaluate(([m, a]) => fetch("/api/" + m, { method: "POST", body: JSON.stringify(a) }).then(r => r.json()), [m, a]);
 
   // Телефон
+  await step("встроенные шрифты загружены", async () => {
+    const ok = await pg.evaluate(async () => { await document.fonts.ready;
+      const used = [...document.fonts].some(f => f.family.replace(/"/g, "") === "Golos Text" && f.status === "loaded");
+      const mono = (await document.fonts.load('13px "JetBrains Mono"', "0O Шрифт")).length > 0;
+      return [used, mono]; });
+    if (!ok[0] || !ok[1]) throw new Error("шрифты не загрузились: " + ok);
+  });
   await step("вывод и список деталей", async () => {
     if (!(await pg.textContent(".verdict h1")).trim()) throw new Error("нет вывода");
-    const n = await pg.locator(".prow").count(); if (n < 10) throw new Error("в списке деталей " + n + " строк");
+    const n = await pg.locator(".prow").count(); if (n < 1 || n > 4) throw new Error("до раскрытия в списке " + n + " строк");
+  });
+  await step("«В норме» раскрывается и сворачивается", async () => {
+    await pg.click("#ok-toggle"); const n = await pg.locator(".prow").count(); if (n < 10) throw new Error("после раскрытия " + n + " строк");
+    await pg.click("#ok-toggle"); const m = await pg.locator(".prow").count(); if (m >= n) throw new Error("не свернулось");
+    await pg.click("#ok-toggle");
   });
   await step("выбор детали → подробности", async () => {
-    await pg.click(".prow:nth-child(4)"); await pg.waitForTimeout(200);
+    await pg.click(".prow.green >> nth=1"); await pg.waitForTimeout(200);
     const t = await pg.textContent("#pdetail h2"); const sel = await pg.textContent(".prow.sel b");
     if (!t.includes(sel.trim().slice(0, 10))) throw new Error("подробности не той детали: " + t + " / " + sel);
     await pg.click(".prow:nth-child(2)");

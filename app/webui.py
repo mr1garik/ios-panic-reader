@@ -140,7 +140,7 @@ def _ui_strings():
         "dev_ios": _("Система"), "dev_source": _("Из файлов логов"), "dev_serial": _("Серийный номер"),
         "dev_connected": _("Подключён"), "dev_disconnected": _("Отключён"),
         "likely_fault": _("Вероятная неисправность"), "possible_fault": _("Возможная проблема"),
-        "n_of_total": _("{0} из {1} паник"), "share": _("Доля"),
+        "n_of_total": _("{0} из {1} паник"), "share": _("Доля"), "ok_parts": _("В норме: {0}"),
         "first_last": _("{0} паник · первая {1} · последняя {2}"), "no_faults": _("Сбоев в логах нет"),
         "evidence": _("Подтверждающие логи"), "all_part_logs": _("Все логи этой детали ({0})"),
         "settings": _("Настройки"), "s_look": _("Вид"), "s_updates": _("Обновления"),
@@ -486,7 +486,7 @@ class Backend:
         out = []
         if d.get("battery_health") is not None:
             h = d["battery_health"]
-            out.append(("battery", f"{h}%", "green" if h >= 85 else ("orange" if h >= 80 else "red")))
+            out.append(("battery", f"{h}%", "green" if h >= 80 else "red"))
         if d.get("battery_cycles") is not None:
             out.append(("cycles", str(d["battery_cycles"]), None))
         out.append(("panics", str(len(panics)), "green" if not panics else ("orange" if len(panics) < 3 else "red")))
