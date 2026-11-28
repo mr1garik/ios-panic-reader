@@ -137,6 +137,12 @@ def _ui_strings():
         "f_fix": _("Что помогло / как исправить"), "f_models": _("Модели"),
         "save_local": _("Сохранить у себя"), "send_base": _("Сохранить и отправить в общую базу"),
         "delete": _("Удалить"), "no_part": _("— не указано —"),
+        "dev_ios": _("Система"), "dev_source": _("Из файлов логов"), "dev_serial": _("Серийный номер"),
+        "dev_connected": _("Подключён"), "dev_disconnected": _("Отключён"),
+        "likely_fault": _("Вероятная неисправность"), "possible_fault": _("Возможная проблема"),
+        "n_of_total": _("{0} из {1} паник"), "share": _("Доля"),
+        "first_last": _("{0} паник · первая {1} · последняя {2}"), "no_faults": _("Сбоев в логах нет"),
+        "evidence": _("Подтверждающие логи"), "all_part_logs": _("Все логи этой детали ({0})"),
         "settings": _("Настройки"), "s_look": _("Вид"), "s_updates": _("Обновления"),
         "s_transfer": _("Перенос на другой компьютер"),
         "s_transfer_desc": _("Один файл с настройками, историей телефонов (визиты, ремонты, заметки) и своими описаниями ошибок. На другом компьютере данные из файла добавятся к имеющимся — ничего не затрётся."),
@@ -318,7 +324,7 @@ class Backend:
 
     # ------------------------------------------------------------------ общие сведения
     def app_info(self):
-        theme = self.history.setting("theme", "neon")
+        theme = self.history.setting("theme", "system")
         key, pal = themes.resolve(theme)
         return {
             "version": updater.current_version(), "lang": i18n.LANG, "langs": i18n.LANGS,
@@ -381,6 +387,7 @@ class Backend:
             if d and d.get("battery_health") is not None:
                 msg += _(" Аккумулятор: {0}%.", d['battery_health'])
             out["ok_text"] = msg
+        out["parts"] = self._parts_view(logs, d, panics, out["problems"])
         # вероятность по деталям: доля паник, указывающих на деталь
         if panics:
             parts = Counter(core.panic_part(p) for p in panics)
@@ -418,10 +425,35 @@ class Backend:
             top = ", ".join(f"{a} ({n})" for a, n in apps.most_common(4))
             out["other"].append(("orange", _("{0} {1} {2}: {3} — ошибки приложений, с железом не связано", len(crashes),
                                              plural(len(crashes), 'вылет', 'вылета', 'вылетов'),
-                                             'приложения' if len(crashes) == 1 else 'приложений', top)))
+                                             _('приложения') if len(crashes) == 1 else _('приложений'), top)))
         if jetsam:
             out["other"].append(("gray", _("{0} раз не хватило памяти (Jetsam) — это нормально", len(jetsam))))
         return out
+
+    def _parts_view(self, logs, dev, panics, problems):
+        """Все детали для главного экрана: статус, сколько паник, когда, доказательства и что делать."""
+        index = {id(l): i for i, l in enumerate(self.logs)}
+        prob = {p["part"]: p for p in problems}
+        by_part = {}
+        for p in panics:
+            by_part.setdefault(core.panic_part(p), []).append(p)
+        rows = []
+        for (pid, _name), (name, data, fails, level) in zip(core.PARTS, parts_table(logs, dev)):
+            items = sorted(by_part.get(pid, []), key=lambda l: str(l["date"]), reverse=True)
+            dates = [core.log_local_dt(l) for l in items if core.log_local_dt(l)]
+            rows.append({
+                "part": pid, "name": name, "data": "" if data == "—" else data, "level": level, "n": len(items),
+                "pct": round(len(items) * 100 / len(panics)) if panics else 0,
+                "first": f"{min(dates):%d.%m.%Y}" if dates else "", "last": f"{max(dates):%d.%m.%Y %H:%M}" if dates else "",
+                "cause": core.main_cause(items[0]) if items else "",
+                "evidence": [{"id": index.get(id(l)), "date": str(l["date"])[:16],
+                              "text": (", ".join(l["missing_sensors"]) and "Missing sensor(s): " + " ".join(l["missing_sensors"]))
+                              or core.main_cause(l)} for l in items[:3]],
+                "problem": prob.get(pid)})
+        # сначала неисправные, потом под подозрением, потом в норме; внутри — по числу паник
+        order = {"red": 0, "orange": 1, "green": 2}
+        rows.sort(key=lambda r: (order.get(r["level"], 3), -r["n"]))
+        return rows
 
     def _dev_view(self):
         d = self.dev
@@ -900,7 +932,7 @@ class Backend:
             if not f:
                 return None
             path = f[0] if isinstance(f, (list, tuple)) else f
-        old_lang, old_theme = self.history.setting("lang", ""), self.history.setting("theme", "neon")
+        old_lang, old_theme = self.history.setting("lang", ""), self.history.setting("theme", "system")
         try:
             s = backup.import_backup(path)
         except ValueError:
@@ -911,7 +943,7 @@ class Backend:
         self._notice("ok", _("Загружено: новых телефонов {0}, дополнено {1} (визитов +{2}, ремонтов +{3}), своих описаний +{4}, логов +{5}.",
                              s["phones_new"], s["phones_merged"], s["visits"], s["repairs"], s["entries"], s["logs"]))
         return {**s, "lang_changed": self.history.setting("lang", "") != old_lang,
-                "theme_changed": self.history.setting("theme", "neon") != old_theme}
+                "theme_changed": self.history.setting("theme", "system") != old_theme}
 
     # ------------------------------------------------------------------ сообщить об ошибке программы
     def log_error(self, text):

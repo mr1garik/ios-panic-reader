@@ -258,7 +258,8 @@ b.load_paths([{SAMPLES!r}])
 d = b.phone()
 out = dict(t=b.app_info()["t"], problems=[{{k: p[k] for k in ("title", "how", "why", "fix", "note")}} for p in d["problems"]],
            prob=[p["title"] for p in d["probability"]], groups=[g["title"] for g in d["groups"]],
-           parts=[r["name"] + r["fails"] for r in b.parts()["rows"]])
+           parts=[r["name"] + r["fails"] for r in b.parts()["rows"]], other=[t for _l, t in d["other"]],
+           plist=[r["name"] + " " + r["cause"] for r in d["parts"]])
 print(json.dumps(out, ensure_ascii=False))
 """
         env = dict(os.environ, IOSPR_LANG=lang, HOME=tempfile.mkdtemp(), USERPROFILE=tempfile.mkdtemp(),

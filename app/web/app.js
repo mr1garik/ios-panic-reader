@@ -12,7 +12,7 @@ const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 let INFO = null, T = {}, VIEW = "phone", LAST_V = -1, BUSY = false, LAST_STATE = null;
 const STATE = { logQ: "", onlyPanic: false, part: null, logSel: null, histQ: "", histSel: null,
-  kbQ: "", kbCat: "Все", kbScope: "base_logs", kbModel: "", kbSel: null, logTab: "explain" };
+  partSel: null, kbQ: "", kbCat: "Все", kbScope: "base_logs", kbModel: "", kbSel: null, logTab: "explain" };
 
 // ---------- значки (свои, простые линии) ----------
 const I = {
@@ -139,6 +139,7 @@ async function poll() {
     // подключили телефон: «Доверять», снятие логов, результат — сразу на экран телефона (как в прежнем окне)
     if (p.state !== LAST_STATE) {
       const prev = LAST_STATE; LAST_STATE = p.state;
+      if (prev !== null && p.state === "reading") STATE.partSel = null;       // новый телефон — сначала главная находка
       if (prev !== null && ["trust", "unlock", "reading", "result"].includes(p.state) && VIEW !== "phone") show("phone");
     }
     if (p.v !== LAST_V) { LAST_V = p.v; await render(); }
@@ -179,84 +180,100 @@ async function renderPhone() {
       </div></div></div>`;
     return bindActions(el);
   }
-  const chipIc = { model: "phone", ios: "info", port: "bolt", bio: "face", battery: "bat" };
-  const stats = d.stats.map(s => `<div class="stat"><div class="k">${esc(T[s.key])}</div><div class="v ${s.level ? "t-" + s.level : ""}">${esc(s.value)}</div></div>`).join("");
-  const left = `
-    <div class="card glow"><div class="dev-name">${esc(d.dev.model)}</div><div class="muted small">${esc(d.dev.sub)}</div>
-      <div class="stats">${stats}</div>${d.dev.imei ? `<div class="muted small" style="margin-top:10px">IMEI ${esc(d.dev.imei)}</div>` : ""}</div>
-    ${d.prev ? `<div class="card"><div class="cap" style="margin-top:0">${esc(T.prev)}</div><b>${esc(d.prev.date)}</b>
-      <div class="t-${d.prev.level}">${esc(d.prev.text)}</div><div class="muted small">${esc(d.prev.battery)}</div></div>` : ""}
-    <div class="side-btns">
-      ${d.has_dev ? `<button class="btn" data-a="mark_repair">${icon("wrench")}${esc(T.mark_repair)}</button>` : ""}
-      ${INFO.has_device ? `<button class="btn" data-a="again">${icon("plug")}${esc(T.other_phone)}</button>` : ""}
-      <button class="btn" data-a="open_files">${icon("file")}${esc(T.open_file)}</button>
-      <button class="btn" data-a="paste">${icon("clip")}${esc(T.paste)}</button>
-    </div>`;
-  let right = `<div class="chips">${d.chips.map(c => `<span class="chip">${icon(chipIc[c.kind] || "info")}${esc(c.text)}</span>`).join("")}</div>`;
-  if (d.repair) right += `<div class="card lvl-blue"><div class="section-title"><b>${esc(d.repair.title)}</b>
-      <button class="btn small" data-a="toggle_after_repair">${esc(d.repair.after ? T.show_all : T.only_after)}</button></div>
-      <div class="t-${d.repair.level}" style="margin-top:6px">${esc(d.repair.text)}</div></div>`;
-  if (d.probability.length) {
-    right += `<div class="card"><div class="section-title"><h2>${esc(T.probability)}</h2><span class="muted small">${esc(T.probability_hint)}</span></div>
-      <div class="prob">${d.probability.map(p => `<div class="prob-row ${p.pct >= 50 ? "hi" : ""}" data-toggle>
-        <div class="name">${esc(p.title)}</div><div class="pct">${p.pct}%</div><div class="bar"><i style="width:${p.pct}%"></i></div>
-        <div class="why">${esc(p.why)}</div></div>`).join("")}</div></div>`;
-  }
-  if (!d.problems.length) {
-    right += `<div class="card lvl-green"><div class="cap t-green" style="margin-top:0">${esc(T.found_none)}</div>
-      <h1>${esc(T.phone_ok)}</h1><div>${esc(d.ok_text)}</div></div>`;
-  }
-  d.problems.forEach((p, i) => { right += problemCard(p, i + 1, d.problems.length); });
-  if (d.groups.length) {
-    right += `<div class="card"><h2>${esc(T.groups)}</h2><div class="groups">${d.groups.map(g =>
-      `<div class="group" data-group="${esc(g.title)}" title="${esc(T.show_logs)}"><span class="dot ${g.level}"></span><span class="t" title="${esc(g.title)}">${esc(g.title)}</span><span class="n">${g.n}/${g.total}</span></div>`).join("")}</div></div>`;
-  }
-  if (d.chart) right += chart(d.chart);
-  if (d.other.length) right += `<div class="card"><h2>${esc(T.other)}</h2>${d.other.map(([l, t]) => `<div class="row" style="flex-wrap:nowrap;align-items:flex-start;margin:4px 0"><span class="dot ${l}" style="margin-top:7px"></span><span>${esc(t)}</span></div>`).join("")}</div>`;
-  right += `<div class="row">
-      <button class="btn primary" data-a="save_pdf">${icon("pdf")}${esc(T.pdf)}</button>
-      <button class="btn" data-view="logs">${esc(T.show_logs)}</button>
-      <button class="btn" data-view="parts">${esc(T.parts)}</button>
-      <button class="btn" data-a="save_txt">${esc(T.txt)}</button>
-      ${d.dir ? `<button class="btn" data-a="open_dir">${icon("folder")}${esc(T.folder)}</button>` : ""}
-    </div>
-    ${d.connected ? `<div class="row"><button class="btn danger" data-a="erase">${icon("trash")}${esc(T.erase)}</button><span class="muted small">${esc(T.erase_note)}</span></div>` : ""}`;
-  el.innerHTML = `<div class="result"><div class="col">${left}</div><div class="col">${right}</div></div>`;
-  el.querySelectorAll("[data-toggle]").forEach(r => r.onclick = () => r.classList.toggle("open"));
-  el.querySelectorAll("[data-group]").forEach(g => g.onclick = () => {      // группа → её логи
-    STATE.logQ = g.dataset.group; STATE.part = null; STATE.logSel = null; show("logs");
-    const q = $("#logs-q"); if (q) q.value = STATE.logQ; });
+  el.innerHTML = devbar(d) + verdict(d) + (d.repair ? repairBanner(d.repair) : "") +
+    `<div class="diag"><div class="card plist">${partList(d.parts)}</div><div class="card pdetail" id="pdetail"></div></div>` +
+    `<div class="below">${d.chart ? chart(d.chart) : ""}${notes(d)}</div>`;
+  const sel = d.parts.find(r => r.part === STATE.partSel) || d.parts[0];
+  STATE.partSel = sel && sel.part;
+  el.querySelectorAll(".prow").forEach(r => r.onclick = () => {
+    STATE.partSel = r.dataset.part;
+    el.querySelectorAll(".prow").forEach(x => x.classList.toggle("sel", x === r));
+    $("#pdetail").innerHTML = partDetail(d.parts.find(x => x.part === STATE.partSel), d);
+    bindActions($("#pdetail"));
+  });
+  $("#pdetail").innerHTML = sel ? partDetail(sel, d) : "";
   bindActions(el);
 }
 
-function problemCard(p, num, total) {
-  const lvl = p.level === "red" ? T.important : T.not_urgent;
-  return `<div class="card lvl-${p.level}">
-    <div class="problem-head"><h2>${total > 1 ? num + ". " : ""}${esc(p.title)}</h2><span class="badge-lvl ${p.level}">${esc(lvl)}</span></div>
-    <div class="cap">${esc(T.how)}</div><div>${esc(p.how)}</div>
-    <div class="cap">${esc(T.why)}</div><div>${esc(p.why)}</div>
-    <div class="cap">${esc(T.fix)}</div><ol class="steps">${p.fix.map(f => `<li><span>${esc(f)}</span></li>`).join("")}</ol>
-    ${p.board && p.board.zone !== "none" ? board(p.board) : ""}
-    <div class="problem-foot"><span class="muted small">${esc(p.note)}</span>
-      ${p.count ? `<button class="link" data-part="${esc(p.part)}">${esc(T.part_logs)}</button>` : ""}</div></div>`;
+// Полоса телефона: что за устройство, его состояние и главные действия
+function devbar(d) {
+  const st = Object.fromEntries(d.stats.map(s => [s.key, s]));
+  const prop = (v, label, lvl) => v ? `<div class="prop"><b class="${lvl ? "t-" + lvl : ""}">${esc(v)}</b><span>${esc(label)}</span></div>` : "";
+  const sub = d.dev.sub.split(" · ");
+  return `<div class="devbar">
+    <div class="name">${esc(d.dev.model)}${d.chips[0] ? `<small>${esc(d.chips[0].text.split(" · ").pop())}</small>` : ""}</div>
+    ${prop(sub[0], d.has_dev ? T.dev_ios : T.dev_source)}
+    ${d.has_dev ? prop(sub[1], T.dev_serial) : ""}
+    ${prop(d.dev.imei, "IMEI")}
+    ${st.battery ? prop(st.battery.value + (st.cycles ? " · " + st.cycles.value : ""), T.battery + (st.cycles ? " · " + T.cycles.toLowerCase() : ""), st.battery.level) : ""}
+    ${d.has_dev ? `<span class="state-pill ${d.connected ? "on" : ""}"><span class="dot ${d.connected ? "green" : "gray"}"></span>${esc(d.connected ? T.dev_connected : T.dev_disconnected)}</span>` : ""}
+    <div class="acts">
+      ${d.has_dev ? `<button class="btn" data-a="mark_repair">${icon("wrench")}${esc(T.mark_repair)}</button>` : ""}
+      <button class="btn primary" data-a="save_pdf">${icon("pdf")}${esc(T.pdf)}</button>
+    </div></div>`;
 }
 
-// Простая схема телефона: зона, где искать (не схема платы конкретной модели)
-function board(b) {
-  const zones = {
-    top: '<rect class="zone" x="14" y="12" width="64" height="26" rx="6"/>',
-    bottom: '<rect class="zone" x="14" y="112" width="64" height="26" rx="6"/>',
-    battery: '<rect class="zone" x="40" y="44" width="38" height="62" rx="5"/>',
-    board: '<path class="zone" d="M14 40h24v66H14z"/>',
-    screen: '<rect class="zone" x="10" y="8" width="72" height="134" rx="12"/>',
-  };
-  return `<div class="board"><svg viewBox="0 0 92 150">
-    <rect x="6" y="4" width="80" height="142" rx="16" fill="none" stroke="var(--c-border)" stroke-width="2"/>
-    <rect x="14" y="40" width="24" height="66" rx="4" fill="var(--c-gray_bg)" stroke="var(--c-line)"/>
-    <rect x="40" y="44" width="38" height="62" rx="5" fill="var(--c-gray_bg)" stroke="var(--c-line)"/>
-    ${zones[b.zone] || ""}</svg>
-    <div><div class="cap" style="margin-top:0">${esc(T.where)}</div><b>${esc(b.title)}</b><div class="small">${esc(b.text)}</div>
-    <div class="muted small" style="margin-top:4px">${esc(T.board_hint)}</div></div></div>`;
+// Вывод одной фразой — главное, что нужно мастеру
+function verdict(d) {
+  const top = d.parts.find(r => r.level === "red") || d.parts.find(r => r.level === "orange");
+  if (!top || !d.problems.length) {
+    return `<div class="verdict"><div class="lbl t-green">${esc(T.found_none)}</div><h1>${esc(T.phone_ok)}</h1><p>${esc(d.ok_text || "")}</p></div>`;
+  }
+  const red = top.level === "red";
+  const p = top.problem || d.problems[0];
+  const evid = top.n ? T.n_of_total.replace("{0}", top.n).replace("{1}", d.stats.find(s => s.key === "panics")?.value || top.n) : (p.note || "");
+  return `<div class="verdict"><div class="lbl ${red ? "t-red" : "t-orange"}">${esc(red ? T.likely_fault : T.possible_fault)}</div>
+    <h1>${esc(top.name.replace(/\s*\(.*\)$/, ""))}</h1>
+    <p>${esc([evid, top.cause].filter(Boolean).join(" · "))}</p></div>`;
+}
+
+function repairBanner(r) {
+  return `<div class="banner"><b>${esc(r.title)}</b><span class="t-${r.level}">${esc(r.text)}</span>
+    <button class="btn small" data-a="toggle_after_repair" style="margin-left:auto">${esc(r.after ? T.show_all : T.only_after)}</button></div>`;
+}
+
+function partList(rows) {
+  return `<div class="head"><span></span><span>${esc(T.part)}</span><span style="text-align:right">${esc(T.panics)}</span><span>${esc(T.share)}</span></div>` +
+    rows.map(r => `<div class="prow ${r.level} ${r.part === STATE.partSel ? "sel" : ""}" data-part="${esc(r.part)}">
+      <span class="dot ${r.level}"></span>
+      <div class="nm"><b title="${esc(r.name)}">${esc(r.name)}</b>${r.n ? `<span>${esc(r.cause)}</span>` : (r.data ? `<span>${esc(r.data)}</span>` : "")}</div>
+      <span class="n">${r.n}</span>
+      ${r.n ? `<div class="mini"><i style="width:${r.pct}%"></i></div>` : `<span class="muted small">—</span>`}</div>`).join("");
+}
+
+function partDetail(r, d) {
+  if (!r) return "";
+  const p = r.problem;
+  const status = { red: T.st_red, orange: T.st_orange, green: T.st_green }[r.level];
+  let h = `<h2>${esc(r.name)}<span class="status ${r.level}">${esc(status)}</span></h2>
+    <div class="meta">${r.n ? esc(T.first_last.replace("{0}", r.n).replace("{1}", r.first).replace("{2}", r.last)) : esc(r.data || T.no_faults)}</div>`;
+  if (p) {
+    h += `<div class="split2"><div><div class="cap">${esc(T.how)}</div><div>${esc(p.how)}</div>
+        <div class="cap">${esc(T.why)}</div><div>${esc(p.why)}</div></div>
+      ${p.board && p.board.zone !== "none" ? where(p.board) : "<div></div>"}</div>
+      <div class="cap">${esc(T.fix)}</div>
+      <ul class="checklist">${p.fix.map(f => `<li><input type="checkbox"><span>${esc(f)}</span></li>`).join("")}</ul>`;
+  } else if (!r.n) {
+    h += `<p class="muted" style="margin:12px 0 0">${esc(T.no_faults)}</p>`;
+  }
+  if (r.evidence.length) {
+    h += `<div class="cap">${esc(T.evidence)} · ${r.n}</div><div class="evidence">${r.evidence.map(e =>
+      `<button data-log="${e.id}"><span>${esc(e.date)}</span><span>${esc(e.text)}</span></button>`).join("")}</div>
+      <button class="link" data-part="${esc(r.part)}" style="margin-top:6px">${esc(T.all_part_logs.replace("{0}", r.n))} →</button>`;
+  }
+  return h;
+}
+
+// Где искать: простой контур телефона и зона (не схема платы конкретной модели)
+function where(b) {
+  const zones = { top: '<rect class="zone" x="12" y="10" width="46" height="18" rx="4"/>',
+    bottom: '<rect class="zone" x="12" y="86" width="46" height="18" rx="4"/>',
+    battery: '<rect class="zone" x="31" y="34" width="27" height="46" rx="3"/>',
+    board: '<rect class="zone" x="12" y="34" width="17" height="46" rx="3"/>',
+    screen: '<rect class="zone" x="8" y="6" width="54" height="102" rx="9"/>' };
+  return `<div class="where"><svg class="where-svg" viewBox="0 0 70 114"><rect x="4" y="2" width="62" height="110" rx="12" fill="none" stroke="var(--c-border)" stroke-width="1.5"/>
+    <rect x="12" y="34" width="17" height="46" rx="3" fill="var(--c-gray_bg)"/><rect x="31" y="34" width="27" height="46" rx="3" fill="var(--c-gray_bg)"/>
+    ${zones[b.zone] || ""}</svg>${esc(b.title)}</div>`;
 }
 
 function chart(c) {
@@ -266,11 +283,28 @@ function chart(c) {
     <div class="chart-axis"><span>${esc(c.days[0][0])}</span><span>${esc(c.days[c.days.length - 1][0])}</span></div></div>`;
 }
 
+// Прочее: прошлый визит, не связанное с железом, действия с телефоном
+function notes(d) {
+  let h = `<div class="card notes">`;
+  if (d.prev) h += `<div class="cap" style="margin-top:0">${esc(T.prev)}</div><p><span class="dot ${d.prev.level}"></span><span>${esc(d.prev.date)} · ${esc(d.prev.text)}${d.prev.battery ? " · " + esc(d.prev.battery) : ""}</span></p>`;
+  if (d.other.length) h += `<div class="cap" ${d.prev ? "" : 'style="margin-top:0"'}>${esc(T.other)}</div>` + d.other.map(([l, t]) => `<p><span class="dot ${l}"></span><span>${esc(t)}</span></p>`).join("");
+  h += `<div class="row" style="margin-top:12px">
+      <button class="btn small" data-view="logs">${esc(T.show_logs)}</button>
+      <button class="btn small" data-a="save_txt">${esc(T.txt)}</button>
+      ${d.dir ? `<button class="btn small" data-a="open_dir">${icon("folder")}${esc(T.folder)}</button>` : ""}
+      ${d.connected ? `<button class="btn small danger" data-a="erase">${icon("trash")}${esc(T.erase)}</button>` : ""}
+      ${INFO.has_device ? `<button class="btn small" data-a="again">${icon("plug")}${esc(T.other_phone)}</button>` : ""}
+      <button class="btn small" data-a="open_files">${icon("file")}${esc(T.open_file)}</button>
+      <button class="btn small" data-a="paste">${icon("clip")}${esc(T.paste)}</button></div></div>`;
+  return h;
+}
+
 // ---------- кнопки-действия ----------
 function bindActions(el) {
   el.querySelectorAll("[data-a]").forEach(b => b.onclick = () => action(b.dataset.a, b));
   el.querySelectorAll("[data-view]").forEach(b => b.onclick = () => show(b.dataset.view));
-  el.querySelectorAll("[data-part]").forEach(b => b.onclick = () => { STATE.part = b.dataset.part; STATE.logSel = null; show("logs"); });
+  el.querySelectorAll("button[data-part], .link[data-part]").forEach(b => b.onclick = () => { STATE.part = b.dataset.part; STATE.logSel = null; show("logs"); });
+  el.querySelectorAll("[data-log]").forEach(b => b.onclick = () => { STATE.part = null; STATE.logQ = ""; STATE.logSel = +b.dataset.log; STATE.logTab = "explain"; show("logs"); });
 }
 async function action(a) {
   if (a === "mark_repair") return repairDialog();
@@ -439,7 +473,7 @@ async function renderKb() {
   const ids = groups.flatMap(g => g.items.map(i => i.id));
   if (!ids.includes(STATE.kbSel)) STATE.kbSel = ids[0] || null;
   $("#kb-list").innerHTML = groups.map(g => `<div class="group-title">${esc(g.title)}</div>` + g.items.map(i =>
-    `<div class="item ${i.id === STATE.kbSel ? "sel" : ""}" data-id="${esc(i.id)}"><span class="dot ${i.level || "blue"}"></span>
+    `<div class="item ${i.id === STATE.kbSel ? "sel" : ""}" data-id="${esc(i.id)}">${i.level ? `<span class="dot ${i.level}"></span>` : "<span></span>"}
       <span class="t" title="${esc(i.title)}">${esc(i.title)}</span><span class="s">${esc(i.where)}</span></div>`).join("")).join("");
   $("#kb-list").onclick = e => { const it = e.target.closest(".item"); if (it) { STATE.kbSel = it.dataset.id; renderKb(); } };
   if (!STATE.kbSel) { $("#kb-detail").innerHTML = `<div class="empty">${esc(T.nothing)}</div>`; return; }

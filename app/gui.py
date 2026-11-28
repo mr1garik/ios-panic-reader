@@ -1522,7 +1522,7 @@ class App:
                 for l in crashes:
                     apps[l["process"] or "?"] = apps.get(l["process"] or "?", 0) + 1
                 top = ", ".join(f"{a} ({n})" for a, n in sorted(apps.items(), key=lambda x: -x[1])[:4])
-                self._dot_line(c, "orange", _("{0} {1} {2}: {3} — ошибки приложений, с железом не связано", len(crashes), plural(len(crashes), 'вылет', 'вылета', 'вылетов'), 'приложения' if len(crashes) == 1 else 'приложений', top), wl)
+                self._dot_line(c, "orange", _("{0} {1} {2}: {3} — ошибки приложений, с железом не связано", len(crashes), plural(len(crashes), 'вылет', 'вылета', 'вылетов'), _('приложения') if len(crashes) == 1 else _('приложений'), top), wl)
             if jetsam:
                 self._dot_line(c, "gray", _("{0} раз не хватило памяти (Jetsam) — это нормально", len(jetsam)), wl)
 

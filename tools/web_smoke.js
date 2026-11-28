@@ -34,10 +34,27 @@ const PORT = 8899;
   const api = (m, ...a) => pg.evaluate(([m, a]) => fetch("/api/" + m, { method: "POST", body: JSON.stringify(a) }).then(r => r.json()), [m, a]);
 
   // Телефон
-  await step("вероятность: раскрыть объяснение", () => pg.click(".prob-row"));
-  await step("группа ошибок → логи", async () => { await pg.click(".group"); await pg.waitForSelector("#view-logs.on"); });
+  await step("вывод и список деталей", async () => {
+    if (!(await pg.textContent(".verdict h1")).trim()) throw new Error("нет вывода");
+    const n = await pg.locator(".prow").count(); if (n < 10) throw new Error("в списке деталей " + n + " строк");
+  });
+  await step("выбор детали → подробности", async () => {
+    await pg.click(".prow:nth-child(4)"); await pg.waitForTimeout(200);
+    const t = await pg.textContent("#pdetail h2"); const sel = await pg.textContent(".prow.sel b");
+    if (!t.includes(sel.trim().slice(0, 10))) throw new Error("подробности не той детали: " + t + " / " + sel);
+    await pg.click(".prow:nth-child(2)");
+  });
+  await step("чек-лист «что проверить» отмечается", async () => {
+    const cb = pg.locator(".checklist input").first(); await cb.check(); if (!(await cb.isChecked())) throw new Error("не отметился");
+  });
+  await step("подтверждающий лог → открыт этот лог", async () => {
+    const want = await pg.locator(".evidence button").first().getAttribute("data-log");
+    await pg.click(".evidence button"); await pg.waitForSelector("#view-logs.on");
+    const sel = await pg.locator("#logs-list .item.sel").getAttribute("data-id");
+    if (sel !== want) throw new Error(`открыт лог ${sel}, ждали ${want}`);
+  });
   await step("назад на телефон", () => pg.click('.nav-item[data-view="phone"]'));
-  await step("«Показать логи этой детали»", async () => { await pg.click("[data-part]"); await pg.waitForSelector("#clear-part"); await pg.click("#clear-part"); });
+  await step("«Все логи этой детали»", async () => { await pg.click("#pdetail .link[data-part]"); await pg.waitForSelector("#clear-part"); await pg.click("#clear-part"); });
   await step("отметить ремонт: окно", async () => { await pg.click('.nav-item[data-view="phone"]'); await pg.click('[data-a="mark_repair"]'); await pg.fill("#r-note", "тест"); await pg.click("#m-ok"); });
   await step("после ремонта: показать все / только после", async () => { await pg.waitForSelector('[data-a="toggle_after_repair"]'); await pg.click('[data-a="toggle_after_repair"]'); await pg.waitForTimeout(700); await pg.click('[data-a="toggle_after_repair"]'); });
   await step("очистить логи: окно", async () => { await pg.waitForSelector('[data-a="erase"]', { timeout: 3000 }).catch(() => null);
@@ -94,7 +111,7 @@ const PORT = 8899;
     await pg.click('.nav-item[data-view="history"]'); await pg.waitForTimeout(300);
     await ev("pulled"); await pg.waitForTimeout(1500);
     if (!(await pg.$("#view-phone.on"))) throw new Error("после снятия логов окно не перешло на экран телефона");
-    if (!(await pg.$(".result"))) throw new Error("после снятия логов нет результата");
+    if (!(await pg.$(".verdict"))) throw new Error("после снятия логов нет результата");
   });
 
   // Настройки и перенос
